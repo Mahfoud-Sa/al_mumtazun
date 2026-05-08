@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'users_cubit.dart';
 import '../../theme/app_colors.dart';
 import '../home/home_shell.dart';
 
@@ -106,22 +108,32 @@ class _ContentGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 1024;
-    if (isWide) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Expanded(flex: 4, child: _AddEngineerForm()),
-          const SizedBox(width: 24),
-          Expanded(flex: 8, child: _ActivePersonnelTable()),
-        ],
-      );
-    }
-    return Column(
-      children: [
-        const _AddEngineerForm(),
-        const SizedBox(height: 24),
-        _ActivePersonnelTable(),
-      ],
+
+    // Provide UsersCubit to children and fetch initial data
+    return BlocProvider(
+      create: (_) => UsersCubit()..fetchUsers(),
+      child: Builder(
+        builder: (context) {
+          if (isWide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Expanded(flex: 4, child: _AddEngineerForm()),
+                SizedBox(width: 24),
+                Expanded(flex: 8, child: _ActivePersonnelTable()),
+              ],
+            );
+          }
+
+          return Column(
+            children: const [
+              _AddEngineerForm(),
+              SizedBox(height: 24),
+              _ActivePersonnelTable(),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -372,6 +384,10 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
         _roleController.clear();
         _birthController.clear();
         _employDateController.clear();
+        // refresh users via cubit
+        try {
+          context.read<UsersCubit>().fetchUsers();
+        } catch (_) {}
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -390,6 +406,35 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
 }
 
 class _ActivePersonnelTable extends StatelessWidget {
+  const _ActivePersonnelTable();
+
+  String _initialsFromName(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    return parts
+        .map((p) => p.isNotEmpty ? p[0] : '')
+        .take(2)
+        .join()
+        .toUpperCase();
+  }
+
+  Color _statusColor(String status) {
+    final s = status.toUpperCase();
+    if (s.contains('ACTIVE')) return AppColors.green;
+    if (s.contains('ON')) return AppColors.secondaryContainer;
+    if (s.contains('OFF') || s.contains('OFFLINE')) return AppColors.outline;
+    return AppColors.onSurfaceVariant;
+  }
+
+  Color _statusBg(String status) {
+    final s = status.toUpperCase();
+    if (s.contains('ACTIVE')) return AppColors.greenBg;
+    if (s.contains('ON'))
+      return AppColors.secondaryContainer.withValues(alpha: 0.2);
+    if (s.contains('OFF') || s.contains('OFFLINE'))
+      return AppColors.surfaceContainerHighest;
+    return AppColors.surface;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -408,7 +453,7 @@ class _ActivePersonnelTable extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Active Personnel',
+                  "المهندسين",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -425,7 +470,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: const Text(
-                    '34 TOTAL',
+                    'TOTAL',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -437,108 +482,195 @@ class _ActivePersonnelTable extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: AppColors.outlineVariant),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowColor: WidgetStateProperty.all(
-                AppColors.surfaceContainerLow,
-              ),
-              columnSpacing: 32,
-              columns: const [
-                DataColumn(
-                  label: Text(
-                    'ENGINEER',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurfaceVariant,
-                    ),
+          BlocBuilder<UsersCubit, UsersState>(
+            builder: (context, state) {
+              if (state is UsersLoading) {
+                return const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (state is UsersError) {
+                return Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('خطأ في جلب البيانات: ${state.message}'),
+                );
+              }
+
+              final users = state is UsersLoaded ? state.users : <dynamic>[];
+
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingRowColor: WidgetStateProperty.all(
+                    AppColors.surfaceContainerLow,
                   ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'ID',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurfaceVariant,
+                  columnSpacing: 32,
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        'ENGINEER',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'ROLE',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurfaceVariant,
+                    DataColumn(
+                      label: Text(
+                        'ID',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'STATUS',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurfaceVariant,
+                    DataColumn(
+                      label: Text(
+                        'ROLE',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'ACTIONS',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurfaceVariant,
+                    DataColumn(
+                      label: Text(
+                        'STATUS',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
+                    DataColumn(
+                      label: Text(
+                        'ACTIONS',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                  rows: users.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final u = entry.value as Map<String, dynamic>;
+                    final name = (u['fullName'] ?? u['name'] ?? '') as String;
+                    final initials = _initialsFromName(
+                      name.isEmpty ? '—' : name,
+                    );
+                    final userId = (u['employeeId'] ?? u['id'] ?? '')
+                        .toString();
+                    final role = (u['role'] ?? '') as String;
+                    final status = (u['status'] ?? u['state'] ?? '')
+                        .toString()
+                        .toUpperCase();
+                    return DataRow(
+                      color: WidgetStateProperty.all(
+                        i.isOdd ? AppColors.surfaceContainerLow : Colors.white,
+                      ),
+                      cells: [
+                        DataCell(
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: const Color(0xFF1A2B3C),
+                                child: Text(
+                                  initials,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF8192A7),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                name.isEmpty ? userId : name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            userId,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            role,
+                            style: const TextStyle(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _statusBg(status),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: _statusColor(status),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  status,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: _statusColor(status),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.settings,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                              onPressed: () {},
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
-              ],
-              rows: [
-                _buildRow(
-                  'Jane Doe',
-                  'JD',
-                  'ENG-9042',
-                  'Systems Architect',
-                  'ACTIVE',
-                  AppColors.green,
-                  AppColors.greenBg,
-                  isAlternate: false,
-                ),
-                _buildRow(
-                  'Samuel Kincaid',
-                  'SK',
-                  'ENG-8811',
-                  'Lead Structural',
-                  'ON SITE',
-                  AppColors.secondaryContainer,
-                  AppColors.secondaryContainer.withValues(alpha: 0.2),
-                  isAlternate: true,
-                ),
-                _buildRow(
-                  'Aisha Lopez',
-                  'AL',
-                  'ENG-7729',
-                  'Precision Lead',
-                  'ACTIVE',
-                  AppColors.green,
-                  AppColors.greenBg,
-                  isAlternate: false,
-                ),
-                _buildRow(
-                  'Robert Vance',
-                  'RV',
-                  'ENG-4402',
-                  'Systems Architect',
-                  'OFFLINE',
-                  AppColors.outline,
-                  AppColors.surfaceContainerHighest,
-                  isAlternate: true,
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const Divider(height: 1, color: AppColors.outlineVariant),
           Container(
@@ -550,9 +682,9 @@ class _ActivePersonnelTable extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Showing 1-4 of 34',
-                  style: TextStyle(
+                Text(
+                  'Showing 1-${(0)} of ${0}',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: AppColors.onSurfaceVariant,
@@ -598,106 +730,6 @@ class _ActivePersonnelTable extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  DataRow _buildRow(
-    String name,
-    String initials,
-    String id,
-    String role,
-    String status,
-    Color statusColor,
-    Color statusBg, {
-    required bool isAlternate,
-  }) {
-    return DataRow(
-      color: WidgetStateProperty.all(
-        isAlternate ? AppColors.surfaceContainerLow : Colors.white,
-      ),
-      cells: [
-        DataCell(
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: const Color(0xFF1A2B3C),
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF8192A7),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        DataCell(
-          Text(
-            id,
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(role, style: const TextStyle(color: AppColors.onSurfaceVariant)),
-        ),
-        DataCell(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusBg,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        DataCell(
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              icon: const Icon(
-                Icons.settings,
-                color: AppColors.onSurfaceVariant,
-              ),
-              onPressed: () {},
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
