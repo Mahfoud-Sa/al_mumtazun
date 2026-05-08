@@ -5,18 +5,78 @@ import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData light() {
+    return _build(
+      brightness: Brightness.light,
+      primary: AppColors.primary,
+      onPrimary: Colors.white,
+      secondary: AppColors.secondary,
+      onSecondary: Colors.white,
+      error: AppColors.error,
+      onError: AppColors.onError,
+      surface: AppColors.surface,
+      onSurface: AppColors.onSurface,
+      onSurfaceVariant: AppColors.onSurfaceVariant,
+      outline: AppColors.outline,
+      outlineVariant: AppColors.outlineVariant,
+      background: AppColors.background,
+      surfaceContainerLow: AppColors.surfaceContainerLow,
+      card: Colors.white,
+    );
+  }
+
+  static ThemeData dark() {
+    return _build(
+      brightness: Brightness.dark,
+      primary: const Color(0xFFE7EEF7),
+      onPrimary: const Color(0xFF061A2D),
+      secondary: const Color(0xFFFFC46B),
+      onSecondary: const Color(0xFF402900),
+      error: const Color(0xFFFFB4AB),
+      onError: const Color(0xFF690005),
+      surface: const Color(0xFF111820),
+      onSurface: const Color(0xFFE2E8F0),
+      onSurfaceVariant: const Color(0xFFB8C2CC),
+      outline: const Color(0xFF8D99A6),
+      outlineVariant: const Color(0xFF334050),
+      background: const Color(0xFF0B1118),
+      surfaceContainerLow: const Color(0xFF17212B),
+      card: const Color(0xFF141D26),
+    );
+  }
+
+  static ThemeData _build({
+    required Brightness brightness,
+    required Color primary,
+    required Color onPrimary,
+    required Color secondary,
+    required Color onSecondary,
+    required Color error,
+    required Color onError,
+    required Color surface,
+    required Color onSurface,
+    required Color onSurfaceVariant,
+    required Color outline,
+    required Color outlineVariant,
+    required Color background,
+    required Color surfaceContainerLow,
+    required Color card,
+  }) {
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme(
-        brightness: Brightness.light,
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        secondary: AppColors.secondary,
-        onSecondary: Colors.white,
-        error: AppColors.error,
-        onError: AppColors.onError,
-        surface: AppColors.surface,
-        onSurface: AppColors.onSurface,
+        brightness: brightness,
+        primary: primary,
+        onPrimary: onPrimary,
+        secondary: secondary,
+        onSecondary: onSecondary,
+        error: error,
+        onError: onError,
+        surface: surface,
+        onSurface: onSurface,
+        onSurfaceVariant: onSurfaceVariant,
+        outline: outline,
+        outlineVariant: outlineVariant,
+        surfaceContainerLow: surfaceContainerLow,
       ),
     );
 
@@ -57,27 +117,26 @@ class AppTheme {
     );
 
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: background,
       textTheme: textTheme,
-      dividerTheme: const DividerThemeData(color: AppColors.outlineVariant),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.primary,
+      dividerTheme: DividerThemeData(color: outlineVariant),
+      appBarTheme: AppBarTheme(
+        backgroundColor: surface,
+        foregroundColor: primary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      cardTheme: const CardThemeData(
-        color: Colors.white,
+      cardTheme: CardThemeData(
+        color: card,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          side: BorderSide(color: AppColors.outlineVariant),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          side: BorderSide(color: outlineVariant),
         ),
         margin: EdgeInsets.zero,
       ),
     );
   }
 }
-

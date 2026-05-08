@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../localization/l10n.dart';
-import '../../theme/app_colors.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../income/income_screen.dart';
 import '../inventory/inventory_screen.dart';
@@ -15,7 +14,11 @@ class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
   static void openDrawer(BuildContext context) {
-    context.findAncestorStateOfType<_HomeShellState>()?.scaffoldKey.currentState?.openDrawer();
+    context
+        .findAncestorStateOfType<_HomeShellState>()
+        ?.scaffoldKey
+        .currentState
+        ?.openDrawer();
   }
 
   @override
@@ -40,6 +43,8 @@ class _HomeShellState extends State<HomeShell> {
       create: (_) => HomeCubit(),
       child: BlocBuilder<HomeCubit, int>(
         builder: (context, index) {
+          final colorScheme = Theme.of(context).colorScheme;
+
           return Scaffold(
             key: scaffoldKey,
             drawer: const AppDrawer(),
@@ -56,9 +61,11 @@ class _HomeShellState extends State<HomeShell> {
             bottomNavigationBar: SafeArea(
               top: false,
               child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  border: Border(top: BorderSide(color: AppColors.outlineVariant)),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(color: colorScheme.outlineVariant),
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
@@ -107,7 +114,10 @@ class _BottomNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme.labelLarge!;
-    final color = selected ? AppColors.secondary : AppColors.onSurfaceVariant;
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = selected
+        ? colorScheme.secondary
+        : colorScheme.onSurfaceVariant;
 
     return InkWell(
       borderRadius: BorderRadius.circular(999),
@@ -116,13 +126,17 @@ class _BottomNavButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.secondaryContainer : Colors.transparent,
+          color: selected ? colorScheme.secondaryContainer : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: selected ? AppColors.onSurface : color, size: 22),
+            Icon(
+              icon,
+              color: selected ? colorScheme.onSurface : color,
+              size: 22,
+            ),
             const SizedBox(height: 4),
             Text(
               label,
@@ -130,7 +144,7 @@ class _BottomNavButton extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: textStyle.copyWith(
-                color: selected ? AppColors.onSurface : color,
+                color: selected ? colorScheme.onSurface : color,
               ),
             ),
           ],
@@ -156,14 +170,10 @@ class _PlaceholderPage extends StatelessWidget {
 
     return SafeArea(
       child: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+        child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
       ),
     );
   }
 }
 
 enum _PlaceholderKey { income, inventory, engineering, admin }
-

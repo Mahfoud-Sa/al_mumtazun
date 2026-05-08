@@ -5,6 +5,8 @@ import '../features/dashboard/state/dashboard_cubit.dart';
 import '../features/home/state/home_cubit.dart';
 import '../localization/locale_cubit.dart';
 import '../localization/locale_repository.dart';
+import '../theme/theme_cubit.dart';
+import '../theme/theme_repository.dart';
 import '../core/clients/http_client.dart';
 
 // Auth
@@ -40,6 +42,7 @@ Future<void> configureDependencies() async {
   final prefs = await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(prefs);
   getIt.registerSingleton<LocaleRepository>(LocaleRepository(prefs));
+  getIt.registerSingleton<ThemeRepository>(ThemeRepository(prefs));
 
   // Core clients
   getIt.registerLazySingleton<AppHttpClient>(() => AppHttpClient());
@@ -132,6 +135,7 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<LocaleCubit>(
     () => LocaleCubit(getIt<LocaleRepository>()),
   );
+  getIt.registerFactory<ThemeCubit>(() => ThemeCubit(getIt<ThemeRepository>()));
   getIt.registerFactory<HomeCubit>(() => HomeCubit());
   getIt.registerFactory<DashboardCubit>(() => DashboardCubit());
 }
