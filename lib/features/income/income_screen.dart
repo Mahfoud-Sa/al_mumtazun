@@ -1,6 +1,8 @@
 // lib/features/income/income_screen.dart
 
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../theme/app_colors.dart';
 import '../../localization/l10n.dart';
 
@@ -30,11 +32,7 @@ class IncomeScreen extends StatelessWidget {
   Widget _buildNarrowLayout(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: const [
-        _LeftColumn(),
-        SizedBox(height: 16),
-        _EntryForm(),
-      ],
+      children: const [_LeftColumn(), SizedBox(height: 16), _EntryForm()],
     );
   }
 }
@@ -71,7 +69,9 @@ class _OverviewCard extends StatelessWidget {
           children: [
             Text(
               l10n.income, // "Income"
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: AppColors.primary),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall!.copyWith(color: AppColors.primary),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -101,7 +101,12 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _InfoRow({required this.icon, required this.label, required this.value, super.key});
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +123,21 @@ class _InfoRow extends StatelessWidget {
             children: [
               Icon(icon, color: AppColors.secondary),
               const SizedBox(width: 8),
-              Text(label.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+              Text(
+                label.toUpperCase(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
-          Text(value, style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: AppColors.primary)),
+          Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge!.copyWith(color: AppColors.primary),
+          ),
         ],
       ),
     );
@@ -157,7 +173,10 @@ class _VisualizationCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: const Text(
                   'System Status: Active',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -185,6 +204,47 @@ class _EntryFormState extends State<_EntryForm> {
   String? _selectedEngineer;
   double? _amount;
   String? _notes;
+  bool _isSubmitting = false;
+  List<dynamic> _users = [];
+  bool _isLoadingUsers = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsers();
+  }
+
+  Future<void> _fetchUsers() async {
+    setState(() => _isLoadingUsers = true);
+    final uri = Uri.parse('http://al-mumtazun-api.runasp.net/api/Users');
+    try {
+      final resp = await http.get(uri, headers: {'accept': 'text/plain'});
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        final data = json.decode(resp.body);
+        if (data is List) {
+          setState(() => _users = data);
+        } else if (data is Map && data['data'] is List) {
+          setState(() => _users = data['data']);
+        } else {
+          // unexpected shape; try to coerce to list
+          setState(() => _users = [data]);
+        }
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load users: ${resp.statusCode}')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
+    } finally {
+      if (!mounted) return;
+      setState(() => _isLoadingUsers = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +264,10 @@ class _EntryFormState extends State<_EntryForm> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(l10n.income, style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                l10n.income,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
               const SizedBox(height: 16),
               // Date field
               _FormFieldLabel(label: 'Date'),
@@ -215,46 +278,86 @@ class _EntryFormState extends State<_EntryForm> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.outlineVariant)),
-                    suffixIcon: const Icon(Icons.calendar_today, color: AppColors.onSurfaceVariant),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: AppColors.outlineVariant,
+                      ),
+                    ),
+                    suffixIcon: const Icon(
+                      Icons.calendar_today,
+                      color: AppColors.onSurfaceVariant,
+                    ),
                   ),
-                  child: Text(_selectedDate != null ? _formatDate(_selectedDate!) : 'Select date'),
+                  child: Text(
+                    _selectedDate != null
+                        ? _formatDate(_selectedDate!)
+                        : 'Select date',
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               // Engineer dropdown
               _FormFieldLabel(label: 'Engineer'),
               const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.outlineVariant)),
-                  suffixIcon: const Icon(Icons.expand_more, color: AppColors.onSurfaceVariant),
+              if (_isLoadingUsers)
+                const SizedBox(
+                  height: 48,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  value: _selectedEngineer,
+                  items: _users.map<DropdownMenuItem<String>>((u) {
+                    final id =
+                        (u['id'] ?? u['userId'] ?? u['employeeId'])
+                            ?.toString() ??
+                        '';
+                    final name =
+                        (u['fullName'] ??
+                                u['name'] ??
+                                u['username'] ??
+                                u['email'] ??
+                                'User $id')
+                            .toString();
+                    return DropdownMenuItem(value: id, child: Text(name));
+                  }).toList(),
+                  onChanged: (v) => setState(() => _selectedEngineer = v),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: AppColors.outlineVariant,
+                      ),
+                    ),
+                  ),
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Select engineer' : null,
+                  onSaved: (v) => _selectedEngineer = v,
                 ),
-                items: const [
-                  DropdownMenuItem(value: '', child: Text('Select an Engineer')),
-                  DropdownMenuItem(value: '1', child: Text('Eng. Sarah Jenkins (Senior Lead)')),
-                  DropdownMenuItem(value: '2', child: Text('Eng. Michael Chen (Hardware)')),
-                  DropdownMenuItem(value: '3', child: Text('Eng. Robert Smith (Software)')),
-                  DropdownMenuItem(value: '4', child: Text('Eng. Elena Rodriguez (QA)')),
-                ],
-                onChanged: (val) => setState(() => _selectedEngineer = val),
-                validator: (v) => (v == null || v.isEmpty) ? 'Please select an engineer' : null,
-              ),
               const SizedBox(height: 16),
               // Amount field
               _FormFieldLabel(label: 'Amount (USD)'),
               const SizedBox(height: 4),
               TextFormField(
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: InputDecoration(
                   prefixText: '\$',
                   filled: true,
                   fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.outlineVariant)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.outlineVariant,
+                    ),
+                  ),
                 ),
-                validator: (v) => (v == null || v.isEmpty) ? 'Enter amount' : null,
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Enter amount' : null,
                 onSaved: (v) => _amount = double.tryParse(v ?? ''),
               ),
               const SizedBox(height: 16),
@@ -266,7 +369,12 @@ class _EntryFormState extends State<_EntryForm> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.outlineVariant)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.outlineVariant,
+                    ),
+                  ),
                 ),
                 onSaved: (v) => _notes = v,
               ),
@@ -280,14 +388,30 @@ class _EntryFormState extends State<_EntryForm> {
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(
-                    onPressed: _submit,
-                    icon: const Icon(Icons.send),
-                    label: const Text('Submit Entry'),
+                    onPressed: _isSubmitting ? null : _submit,
+                    icon: _isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.send),
+                    label: _isSubmitting
+                        ? const Text('Submitting...')
+                        : const Text('Submit Entry'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ],
@@ -312,14 +436,60 @@ class _EntryFormState extends State<_EntryForm> {
     }
   }
 
-  String _formatDate(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _formatDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      _formKey.currentState?.save();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Entry submitted (demo)')),
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    _formKey.currentState?.save();
+
+    setState(() => _isSubmitting = true);
+
+    final uri = Uri.parse('http://al-mumtazun-api.runasp.net/api/Income');
+    final payload = {
+      'date': _selectedDate == null
+          ? DateTime.now().toIso8601String().split('T').first
+          : _formatDate(_selectedDate!),
+      'engineerId': int.tryParse(_selectedEngineer ?? '') ?? 0,
+      'amount': _amount ?? 0,
+      'notes': _notes ?? '',
+    };
+
+    try {
+      final resp = await http.post(
+        uri,
+        headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
+        body: json.encode(payload),
       );
+
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Entry submitted')));
+        _formKey.currentState?.reset();
+        setState(() {
+          _selectedDate = null;
+          _selectedEngineer = null;
+          _amount = null;
+          _notes = null;
+        });
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${resp.statusCode} ${resp.reasonPhrase}'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to submit: $e')));
+    } finally {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
     }
   }
 }

@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="engineering_ops_dashboard"
+        android:label="المتميزون"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

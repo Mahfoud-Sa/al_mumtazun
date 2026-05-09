@@ -1,4 +1,4 @@
-package com.example.engineering_ops_dashboard
+package com.gidteam.al_mumtazun
 
 import io.flutter.embedding.android.FlutterActivity
 
