@@ -148,4 +148,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get arabic => 'العربية';
+
+  @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get forgotPassword => 'نسيت كلمة المرور؟';
+
+  @override
+  String get sendResetLink => 'إرسال رابط إعادة التعيين';
+
+  @override
+  String get resetLinkSent =>
+      'إذا كان هناك حساب، أرسلنا رابط إعادة تعيين إلى بريدك الإلكتروني.';
 }

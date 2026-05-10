@@ -47,4 +47,11 @@
   "language": "Language",
   "english": "English",
   "arabic": "Arabic"
+
+  ,"signIn": "Sign in",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot password?",
+  "sendResetLink": "Send reset link",
+  "resetLinkSent": "If an account exists we sent a reset link to your email."
 }

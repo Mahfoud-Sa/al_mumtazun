@@ -50,11 +50,16 @@ class _HomeShellState extends State<HomeShell> {
             drawer: const AppDrawer(),
             body: IndexedStack(
               index: index,
-              children: const [
-                DashboardScreen(),
-                IncomeScreen(),
-                InventoryScreen(),
-                EngineeringScreen(),
+              children: [
+                _ComingSoon(title: l10n.dashboard),
+                _ComingSoon(title: l10n.income),
+                _ComingSoon(title: l10n.inventory),
+                _ComingSoon(title: l10n.engineering),
+                // Replace with real screens when ready:
+                // DashboardScreen(),
+                // IncomeScreen(),
+                // InventoryScreen(),
+                // EngineeringScreen(),
                 AdminScreen(),
               ],
             ),
@@ -145,6 +150,49 @@ class _BottomNavButton extends StatelessWidget {
               textAlign: TextAlign.center,
               style: textStyle.copyWith(
                 color: selected ? colorScheme.onSurface : color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ComingSoon extends StatelessWidget {
+  final String title;
+  const _ComingSoon({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SafeArea(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.construction_outlined,
+                size: 64,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: theme.textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            Text(
+              'Coming soon',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ],

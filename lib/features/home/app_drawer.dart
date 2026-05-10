@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../theme/theme_cubit.dart';
+import '../auth/auth_cubit.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -57,6 +58,16 @@ class AppDrawer extends StatelessWidget {
                   title: const Text('App Developer Rights'),
                   onTap: () {
                     // Open developer rights dialogue.
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.logout, color: colorScheme.primary),
+                  title: const Text('Logout'),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    try {
+                      context.read<AuthCubit>().logout();
+                    } catch (_) {}
                   },
                 ),
                 const Divider(),

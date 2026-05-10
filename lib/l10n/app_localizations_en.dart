@@ -148,4 +148,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arabic => 'Arabic';
+
+  @override
+  String get signIn => 'Sign in';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get sendResetLink => 'Send reset link';
+
+  @override
+  String get resetLinkSent =>
+      'If an account exists we sent a reset link to your email.';
 }
