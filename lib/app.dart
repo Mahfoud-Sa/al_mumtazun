@@ -35,9 +35,9 @@ class EngineeringOpsApp extends StatelessWidget {
                   theme: AppTheme.light(),
                   darkTheme: AppTheme.dark(),
                   themeMode: themeState.themeMode,
-                  home: BlocBuilder<AuthCubit, bool>(
-                    builder: (context, authenticated) {
-                      return authenticated
+                  home: BlocBuilder<AuthCubit, AuthState>(
+                    builder: (context, state) {
+                      return state.isLoggedIn
                           ? const HomeShell()
                           : const LoginScreen();
                     },

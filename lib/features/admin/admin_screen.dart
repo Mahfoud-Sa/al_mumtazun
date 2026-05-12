@@ -1,3 +1,4 @@
+import 'package:engineering_ops_dashboard/features/admin/user_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -509,7 +510,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                   columns: const [
                     DataColumn(
                       label: Text(
-                        'ENGINEER',
+                        'المهندس',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -519,7 +520,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'ID',
+                        'رقم الهوية',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -529,7 +530,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'ROLE',
+                        'الوظيفة',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -539,7 +540,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'STATUS',
+                        'الحالة',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -549,7 +550,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'ACTIONS',
+                        'العمليات',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -656,12 +657,292 @@ class _ActivePersonnelTable extends StatelessWidget {
                         DataCell(
                           Align(
                             alignment: Alignment.centerRight,
-                            child: IconButton(
+                            child: PopupMenuButton<String>(
                               icon: const Icon(
                                 Icons.settings,
                                 color: AppColors.onSurfaceVariant,
                               ),
-                              onPressed: () {},
+                              onSelected: (value) async {
+                                // ================= ACTIVATE =================
+                                if (value == 'details') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => UserDetailsPage(user: u),
+                                    ),
+                                  );
+                                }
+                                if (value == 'active') {
+                                  final success = await context
+                                      .read<UsersCubit>()
+                                      .activateUser(int.parse(userId));
+
+                                  if (!context.mounted) return;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? 'تم تفعيل المستخدم'
+                                            : 'فشل تفعيل المستخدم',
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // ================= DEACTIVATE =================
+
+                                if (value == 'inactive') {
+                                  final success = await context
+                                      .read<UsersCubit>()
+                                      .deactivateUser(int.parse(userId));
+
+                                  if (!context.mounted) return;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? 'تم تعطيل المستخدم'
+                                            : 'فشل تعطيل المستخدم',
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // ================= UPDATE =================
+
+                                if (value == 'update') {
+                                  final nameController = TextEditingController(
+                                    text: name,
+                                  );
+
+                                  final roleController = TextEditingController(
+                                    text: role,
+                                  );
+
+                                  final addressController =
+                                      TextEditingController(
+                                        text: u['address']?.toString() ?? '',
+                                      );
+
+                                  final phoneController = TextEditingController(
+                                    text: u['phoneNumber']?.toString() ?? '',
+                                  );
+
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return AlertDialog(
+                                        title: const Text('تعديل المستخدم'),
+                                        content: SingleChildScrollView(
+                                          child: SizedBox(
+                                            width: 400,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextField(
+                                                  controller: nameController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: 'الاسم',
+                                                      ),
+                                                ),
+
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller: roleController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: 'الوظيفة',
+                                                      ),
+                                                ),
+
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller: addressController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: 'العنوان',
+                                                      ),
+                                                ),
+
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller: phoneController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: 'رقم الهاتف',
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('إلغاء'),
+                                          ),
+
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              final success = await context
+                                                  .read<UsersCubit>()
+                                                  .updateUser(
+                                                    id: int.parse(userId),
+                                                    data: {
+                                                      'id': int.parse(userId),
+                                                      'fullName':
+                                                          nameController.text,
+                                                      'role':
+                                                          roleController.text,
+                                                      'address':
+                                                          addressController
+                                                              .text,
+                                                      'phoneNumber':
+                                                          phoneController.text,
+                                                    },
+                                                  );
+
+                                              if (!context.mounted) return;
+
+                                              Navigator.pop(context);
+
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    success
+                                                        ? 'تم تحديث المستخدم'
+                                                        : 'فشل تحديث المستخدم',
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: const Text('حفظ'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+
+                                // ================= DETAILS =================
+
+                                if (value == 'details') {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return AlertDialog(
+                                        title: Text(name),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text('الرقم: $userId'),
+
+                                            const SizedBox(height: 8),
+
+                                            Text('الوظيفة: $role'),
+
+                                            const SizedBox(height: 8),
+
+                                            Text(
+                                              'رقم الهاتف: ${u['phoneNumber'] ?? '-'}',
+                                            ),
+
+                                            const SizedBox(height: 8),
+
+                                            Text(
+                                              'العنوان: ${u['address'] ?? '-'}',
+                                            ),
+
+                                            const SizedBox(height: 8),
+
+                                            Text('الحالة: $status'),
+                                          ],
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('إغلاق'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'active',
+                                  child: Row(
+                                    children: const [
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('تفعيل'),
+                                    ],
+                                  ),
+                                ),
+
+                                PopupMenuItem(
+                                  value: 'inactive',
+                                  child: Row(
+                                    children: const [
+                                      Icon(
+                                        Icons.cancel,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('تعطيل'),
+                                    ],
+                                  ),
+                                ),
+
+                                PopupMenuItem(
+                                  value: 'update',
+                                  child: Row(
+                                    children: const [
+                                      Icon(
+                                        Icons.edit,
+                                        color: Colors.orange,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('تعديل'),
+                                    ],
+                                  ),
+                                ),
+
+                                PopupMenuItem(
+                                  value: 'details',
+                                  child: Row(
+                                    children: const [
+                                      Icon(
+                                        Icons.visibility,
+                                        color: Colors.blue,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('عرض التفاصيل'),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

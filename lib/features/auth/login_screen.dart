@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,9 +18,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
+
   bool _rememberDevice = false;
   bool _obscurePassword = true;
+
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -29,13 +32,21 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _onLogin() async {
-    setState(() => _loading = true);
+    setState(() {
+      _errorMessage = null;
+    });
+
     await context.read<AuthCubit>().login(
-      email: _emailController.text,
-      password: _passwordController.text,
+      phoneNumber: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
     );
+
+    final state = context.read<AuthCubit>().state;
+
     if (mounted) {
-      setState(() => _loading = false);
+      setState(() {
+        _errorMessage = state.error;
+      });
     }
   }
 
@@ -43,6 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+
+    final authState = context.watch<AuthCubit>().state;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -64,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+
           Positioned(
             bottom: -MediaQuery.of(context).size.height * 0.1,
             right: -MediaQuery.of(context).size.width * 0.1,
@@ -79,7 +93,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // Blur effect
+
+          // Blur
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
@@ -87,10 +102,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // Main Content
           Column(
             children: [
-              // TopAppBar
+              // Top Bar
               Container(
                 height: 64,
                 width: double.infinity,
@@ -112,11 +126,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         letterSpacing: -0.5,
                       ),
                     ),
+
                     Row(
                       children: [
                         TextButton.icon(
-                          onPressed: () =>
-                              context.read<LocaleCubit>().toggleEnglishArabic(),
+                          onPressed: () {
+                            context.read<LocaleCubit>().toggleEnglishArabic();
+                          },
                           icon: const Icon(Icons.language, size: 18),
                           label: Text(
                             (context
@@ -130,13 +146,46 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : l10n.arabic,
                           ),
                         ),
+
                         const SizedBox(width: 8),
+
                         IconButton(
                           icon: const Icon(
                             Icons.help_outline,
                             color: AppColors.primary,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    "موقعنا",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    "حضرموت\\المكلا\\بويش",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text("موافق"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -144,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // Login Card Area
+              // Login Card
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -155,6 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Container(
                       width: double.infinity,
                       constraints: const BoxConstraints(maxWidth: 440),
+                      padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
@@ -167,7 +217,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(32),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -186,13 +235,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               size: 28,
                             ),
                           ),
+
                           Text(
                             'مرحبا بعودتك',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: AppColors.primary,
                             ),
                           ),
+
                           const SizedBox(height: 4),
+
                           Text(
                             "يرجى ادخال البيانات الخاصة بك للدخول للنظام",
                             textAlign: TextAlign.center,
@@ -200,10 +252,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: AppColors.onSurfaceVariant,
                             ),
                           ),
+
                           const SizedBox(height: 32),
 
-                          // Form
-                          // Email Field
+                          // Username / Phone
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -213,9 +265,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: AppColors.onSurfaceVariant,
                                 ),
                               ),
+
                               const SizedBox(height: 4),
+
                               TextField(
                                 controller: _emailController,
+                                style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: "م.ث: 771234567 او سالم احمد",
                                   prefixIcon: const Icon(
@@ -243,9 +300,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 16),
 
-                          // Password Field
+                          // Password
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -259,6 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: AppColors.onSurfaceVariant,
                                     ),
                                   ),
+
                                   TextButton(
                                     onPressed: () {},
                                     style: TextButton.styleFrom(
@@ -268,7 +327,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     child: Text(
-                                      ' نسيت كلمة السر?',
+                                      'نسيت كلمة السر؟',
                                       style: theme.textTheme.labelLarge
                                           ?.copyWith(
                                             color: AppColors.secondaryContainer,
@@ -277,10 +336,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ],
                               ),
+
                               const SizedBox(height: 4),
+
                               TextField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
+                                style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: '••••••••',
                                   prefixIcon: const Icon(
@@ -294,10 +358,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                           : Icons.visibility_off_outlined,
                                       color: AppColors.outline,
                                     ),
-                                    onPressed: () => setState(
-                                      () =>
-                                          _obscurePassword = !_obscurePassword,
-                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
                                   ),
                                   filled: true,
                                   fillColor: Colors.white,
@@ -320,6 +385,45 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
+
+                          // Error Message
+                          if (_errorMessage != null) ...[
+                            const SizedBox(height: 16),
+
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red,
+                                    size: 20,
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
                           const SizedBox(height: 16),
 
                           // Remember me
@@ -330,9 +434,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 24,
                                 child: Checkbox(
                                   value: _rememberDevice,
-                                  onChanged: (val) => setState(
-                                    () => _rememberDevice = val ?? false,
-                                  ),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _rememberDevice = val ?? false;
+                                    });
+                                  },
                                   activeColor: AppColors.secondaryContainer,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
@@ -342,23 +448,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
+
                               const SizedBox(width: 8),
+
                               Text(
-                                "ذكرني ",
+                                "ذكرني",
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: AppColors.onSurfaceVariant,
                                 ),
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 32),
 
-                          // Sign In Button
+                          // Login Button
                           SizedBox(
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
-                              onPressed: _loading ? null : _onLogin,
+                              onPressed: authState.isLoading ? null : _onLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFF39C12),
                                 foregroundColor: Colors.white,
@@ -367,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 elevation: 2,
                               ),
-                              child: _loading
+                              child: authState.isLoading
                                   ? const SizedBox(
                                       width: 24,
                                       height: 24,
@@ -388,17 +497,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 fontSize: 14,
                                               ),
                                         ),
+
                                         const SizedBox(width: 8),
+
                                         const Icon(Icons.login, size: 20),
                                       ],
                                     ),
                             ),
                           ),
 
-                          // Status and Links
                           const SizedBox(height: 32),
+
                           const Divider(color: AppColors.outlineVariant),
+
                           const SizedBox(height: 16),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -414,30 +527,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ],
                               ),
-                              // Row(
-                              //   children: [
-                              //     TextButton(
-                              //       onPressed: () {},
-                              //       child: Text(
-                              //         'الدعم الفني',
-                              //         style: theme.textTheme.labelLarge
-                              //             ?.copyWith(
-                              //               color: const Color(0xFF8192A7),
-                              //             ),
-                              //       ),
-                              //     ),
-                              //     // TextButton(
-                              //     //   onPressed: () {},
-                              //     //   child: Text(
-                              //     //     'MFA Help',
-                              //     //     style: theme.textTheme.labelLarge
-                              //     //         ?.copyWith(
-                              //     //           color: const Color(0xFF8192A7),
-                              //     //         ),
-                              //     //   ),
-                              //     // ),
-                              //   ],
-                              // ),
                             ],
                           ),
                         ],
@@ -460,62 +549,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     top: BorderSide(color: AppColors.outlineVariant),
                   ),
                 ),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    Text(
-                      '© 2026 غير مصرح الدخول الا باستخدام الترخيص من مشرف النظام',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF8691A6),
-                      ),
-                    ),
-                    // Row(
-                    //   mainAxisSize: MainAxisSize.min,
-                    //   children: [
-                    //     TextButton(
-                    //       onPressed: () {},
-                    //       child: Text(
-                    //         'Privacy Policy',
-                    //         style: theme.textTheme.labelLarge?.copyWith(
-                    //           color: const Color(0xFF8691A6),
-                    //         ),
-                    //       ),
-                    //     ),
-                    //     TextButton(
-                    //       onPressed: () {},
-                    //       child: Text(
-                    //         'Security Standards',
-                    //         style: theme.textTheme.labelLarge?.copyWith(
-                    //           color: const Color(0xFF8691A6),
-                    //         ),
-                    //       ),
-                    //     ),
-                    // TextButton(
-                    //   onPressed: () {},
-                    //   child: Row(
-                    //     mainAxisSize: MainAxisSize.min,
-                    //     children: [
-                    //       Text(
-                    //         'System Status',
-                    //         style: theme.textTheme.labelLarge?.copyWith(
-                    //           color: const Color(0xFF8691A6),
-                    //         ),
-                    //       ),
-                    //       const SizedBox(width: 4),
-                    //       const Icon(
-                    //         Icons.open_in_new,
-                    //         size: 14,
-                    //         color: Color(0xFF8691A6),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    //  ],
-                    //  ),
-                  ],
+                child: Text(
+                  '© 2026 غير مصرح الدخول الا باستخدام الترخيص من مشرف النظام',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF8691A6),
+                  ),
                 ),
               ),
             ],
@@ -540,6 +578,7 @@ class _BlinkingDotState extends State<BlinkingDot>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
