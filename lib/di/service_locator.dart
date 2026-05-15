@@ -19,6 +19,22 @@ import '../features/auth/domain/usecases/logout_usecase.dart';
 import '../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../features/auth/presentation/cubit/auth_cubit.dart';
 
+// Compounds
+import '../features/compounds/data/datasources/compounds_remote_datasource.dart';
+import '../features/compounds/data/repositories/compound_repository_impl.dart';
+import '../features/compounds/domain/repositories/compound_repository.dart';
+import '../features/compounds/domain/usecases/create_compound_usecase.dart';
+import '../features/compounds/domain/usecases/get_compounds_usecase.dart';
+import '../features/compounds/presentation/cubit/compounds_cubit.dart';
+
+// Incomes
+import '../features/incomes/data/datasources/incomes_remote_datasource.dart';
+import '../features/incomes/data/repositories/income_repository_impl.dart';
+import '../features/incomes/domain/repositories/income_repository.dart';
+import '../features/incomes/domain/usecases/create_income_usecase.dart';
+import '../features/incomes/domain/usecases/get_income_engineers_usecase.dart';
+import '../features/incomes/presentation/cubit/incomes_cubit.dart';
+
 // Roles
 import '../features/roles/data/datasources/roles_local_datasource.dart';
 import '../features/roles/data/repositories/role_repository_impl.dart';
@@ -79,6 +95,46 @@ Future<void> configureDependencies() async {
       loginUseCase: getIt<LoginUseCase>(),
       logoutUseCase: getIt<LogoutUseCase>(),
       getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
+    ),
+  );
+
+  // Compounds
+  getIt.registerLazySingleton<CompoundsRemoteDataSource>(
+    () => CompoundsRemoteDataSourceImpl(getIt<AppHttpClient>()),
+  );
+  getIt.registerLazySingleton<CompoundRepository>(
+    () => CompoundRepositoryImpl(getIt<CompoundsRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetCompoundsUseCase>(
+    () => GetCompoundsUseCase(getIt<CompoundRepository>()),
+  );
+  getIt.registerLazySingleton<CreateCompoundUseCase>(
+    () => CreateCompoundUseCase(getIt<CompoundRepository>()),
+  );
+  getIt.registerFactory<CompoundsCubit>(
+    () => CompoundsCubit(
+      getCompounds: getIt<GetCompoundsUseCase>(),
+      createCompound: getIt<CreateCompoundUseCase>(),
+    ),
+  );
+
+  // Incomes
+  getIt.registerLazySingleton<IncomesRemoteDataSource>(
+    () => IncomesRemoteDataSourceImpl(getIt<AppHttpClient>()),
+  );
+  getIt.registerLazySingleton<IncomeRepository>(
+    () => IncomeRepositoryImpl(getIt<IncomesRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<CreateIncomeUseCase>(
+    () => CreateIncomeUseCase(getIt<IncomeRepository>()),
+  );
+  getIt.registerLazySingleton<GetIncomeEngineersUseCase>(
+    () => GetIncomeEngineersUseCase(getIt<IncomeRepository>()),
+  );
+  getIt.registerFactory<IncomesCubit>(
+    () => IncomesCubit(
+      createIncome: getIt<CreateIncomeUseCase>(),
+      getEngineers: getIt<GetIncomeEngineersUseCase>(),
     ),
   );
 

@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../localization/l10n.dart';
-import '../dashboard/dashboard_screen.dart';
-import '../income/income_screen.dart';
-import '../inventory/inventory_screen.dart';
-import '../engineering/engineering_screen.dart';
 import '../admin/admin_screen.dart';
+import '../compounds/presentation/pages/compounds_page.dart';
+import '../incomes/presentation/pages/incomes_page.dart';
 import 'app_drawer.dart';
 import 'state/home_cubit.dart';
 
@@ -35,7 +33,7 @@ class _HomeShellState extends State<HomeShell> {
       _NavItem(label: l10n.dashboard, icon: Icons.dashboard_outlined),
       _NavItem(label: l10n.income, icon: Icons.payments_outlined),
       _NavItem(label: l10n.inventory, icon: Icons.inventory_2_outlined),
-      _NavItem(label: l10n.engineering, icon: Icons.engineering_outlined),
+      _NavItem(label: "القطع", icon: Icons.engineering_outlined),
       _NavItem(label: l10n.admin, icon: Icons.settings_outlined),
     ];
 
@@ -52,15 +50,10 @@ class _HomeShellState extends State<HomeShell> {
               index: index,
               children: [
                 _ComingSoon(title: l10n.dashboard),
-                _ComingSoon(title: l10n.income),
+                const IncomesPage(),
                 _ComingSoon(title: l10n.inventory),
-                _ComingSoon(title: l10n.engineering),
-                // Replace with real screens when ready:
-                // DashboardScreen(),
-                // IncomeScreen(),
-                // InventoryScreen(),
-                // EngineeringScreen(),
-                AdminScreen(),
+                const CompoundsPage(),
+                const AdminScreen(),
               ],
             ),
             bottomNavigationBar: SafeArea(
@@ -177,7 +170,7 @@ class _ComingSoon extends StatelessWidget {
               width: 140,
               height: 140,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -201,27 +194,3 @@ class _ComingSoon extends StatelessWidget {
     );
   }
 }
-
-class _PlaceholderPage extends StatelessWidget {
-  final _PlaceholderKey titleKey;
-  const _PlaceholderPage({required this.titleKey});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final title = switch (titleKey) {
-      _PlaceholderKey.income => l10n.income,
-      _PlaceholderKey.inventory => l10n.inventory,
-      _PlaceholderKey.engineering => l10n.engineering,
-      _PlaceholderKey.admin => l10n.admin,
-    };
-
-    return SafeArea(
-      child: Center(
-        child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
-      ),
-    );
-  }
-}
-
-enum _PlaceholderKey { income, inventory, engineering, admin }
