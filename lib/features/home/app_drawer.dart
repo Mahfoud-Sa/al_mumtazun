@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../theme/theme_cubit.dart';
 import '../auth/auth_cubit.dart';
+import '../profile/presentation/pages/profile_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -21,6 +22,20 @@ class AppDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
+                ListTile(
+                  leading: Icon(
+                    Icons.account_circle_outlined,
+                    color: colorScheme.primary,
+                  ),
+                  title: const Text('الملف الشخصي'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                    );
+                  },
+                ),
+                const Divider(),
                 _buildSectionTitle(context, 'Settings'),
                 BlocBuilder<ThemeCubit, ThemeState>(
                   builder: (context, state) {
@@ -34,7 +49,7 @@ class AppDrawer extends StatelessWidget {
                       title: const Text('Dark Mode'),
                       value: state.isDarkMode,
                       onChanged: context.read<ThemeCubit>().setDarkMode,
-                      activeColor: colorScheme.secondary,
+                      activeThumbColor: colorScheme.secondary,
                     );
                   },
                 ),

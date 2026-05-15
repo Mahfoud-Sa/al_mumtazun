@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 // ================= STATES =================
@@ -17,11 +17,21 @@ class UsersLoading extends UsersState {}
 
 class UsersLoaded extends UsersState {
   final List<dynamic> users;
+  final int page;
+  final int size;
+  final int totalCount;
+  final int totalPages;
 
-  UsersLoaded(this.users);
+  UsersLoaded({
+    required this.users,
+    required this.page,
+    required this.size,
+    required this.totalCount,
+    required this.totalPages,
+  });
 
   @override
-  List<Object?> get props => [users];
+  List<Object?> get props => [users, page, size, totalCount, totalPages];
 }
 
 class UsersError extends UsersState {
@@ -39,15 +49,27 @@ class UsersCubit extends Cubit<UsersState> {
   UsersCubit() : super(UsersInitial());
 
   final String baseUrl = 'http://al-mumtazun-api.runasp.net/api/Users';
+  static const int defaultPageSize = 10;
+
+  int _currentPage = 1;
+  int _currentSize = defaultPageSize;
 
   // ================= FETCH USERS =================
 
-  Future<void> fetchUsers() async {
+  Future<void> fetchUsers({int? page, int? size}) async {
+    final requestedPage = page ?? _currentPage;
+    final requestedSize = size ?? _currentSize;
+
     emit(UsersLoading());
 
     try {
       final resp = await http.get(
-        Uri.parse(baseUrl),
+        Uri.parse(baseUrl).replace(
+          queryParameters: {
+            'page': requestedPage.toString(),
+            'size': requestedSize.toString(),
+          },
+        ),
         headers: {'accept': 'text/plain'},
       );
 
@@ -55,16 +77,53 @@ class UsersCubit extends Cubit<UsersState> {
         final body = json.decode(resp.body);
 
         if (body is List) {
-          emit(UsersLoaded(body));
+          _currentPage = requestedPage;
+          _currentSize = requestedSize;
+          emit(
+            UsersLoaded(
+              users: body,
+              page: requestedPage,
+              size: requestedSize,
+              totalCount: body.length,
+              totalPages: body.isEmpty ? 1 : 1,
+            ),
+          );
           return;
         }
 
         if (body is Map && body['data'] is List) {
-          emit(UsersLoaded(body['data']));
+          final users = body['data'] as List<dynamic>;
+          final loadedPage = _readInt(body['page'], requestedPage);
+          final loadedSize = _readInt(body['size'], requestedSize);
+          final totalCount = _readInt(body['totalCount'], users.length);
+          final totalPages = _readInt(body['totalPages'], 1);
+
+          _currentPage = loadedPage;
+          _currentSize = loadedSize;
+
+          emit(
+            UsersLoaded(
+              users: users,
+              page: loadedPage,
+              size: loadedSize,
+              totalCount: totalCount,
+              totalPages: totalPages < 1 ? 1 : totalPages,
+            ),
+          );
           return;
         }
 
-        emit(UsersLoaded([body]));
+        _currentPage = requestedPage;
+        _currentSize = requestedSize;
+        emit(
+          UsersLoaded(
+            users: [body],
+            page: requestedPage,
+            size: requestedSize,
+            totalCount: 1,
+            totalPages: 1,
+          ),
+        );
         return;
       }
 
@@ -72,6 +131,18 @@ class UsersCubit extends Cubit<UsersState> {
     } catch (e) {
       emit(UsersError(e.toString()));
     }
+  }
+
+  Future<void> nextPage() async {
+    final current = state;
+    if (current is! UsersLoaded || current.page >= current.totalPages) return;
+    await fetchUsers(page: current.page + 1, size: current.size);
+  }
+
+  Future<void> previousPage() async {
+    final current = state;
+    if (current is! UsersLoaded || current.page <= 1) return;
+    await fetchUsers(page: current.page - 1, size: current.size);
   }
 
   // ================= ACTIVATE USER =================
@@ -145,5 +216,10 @@ class UsersCubit extends Cubit<UsersState> {
       emit(UsersError(e.toString()));
       return false;
     }
+  }
+
+  int _readInt(dynamic value, int fallback) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
   }
 }

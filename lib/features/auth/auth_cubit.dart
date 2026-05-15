@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthState {
   final bool isLoggedIn;
@@ -27,6 +28,8 @@ class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(AuthState.initial());
 
   static const String baseUrl = 'http://al-mumtazun-api.runasp.net/api/Auth';
+  static const String _profileCacheKey = 'cached_profile_user';
+  static const String _profileImageUrlKey = 'profile_image_url';
 
   Future<void> login({
     required String phoneNumber,
@@ -41,14 +44,19 @@ class AuthCubit extends Cubit<AuthState> {
         body: jsonEncode({'phoneNumber': phoneNumber, 'password': password}),
       );
 
-      print(response.body);
-
       if (response.statusCode == 200) {
         if (response.body.isNotEmpty) {
           final data = jsonDecode(response.body);
-          if (data["isActive"] == false) {
-            // Save the token securely for future authenticated requests
-            // For example, using flutter_secure_storage or shared_preferences
+          if (data is Map<String, dynamic>) {
+            final profileData = data['user'] is Map<String, dynamic>
+                ? data['user'] as Map<String, dynamic>
+                : data;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(_profileCacheKey, jsonEncode(profileData));
+            if (data["isActive"] == false) {
+              // Save the token securely for future authenticated requests
+              // For example, using flutter_secure_storage or shared_preferences
+            }
           }
         }
         emit(state.copyWith(isLoggedIn: true, isLoading: false, error: null));
@@ -79,6 +87,9 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_profileCacheKey);
+    await prefs.remove(_profileImageUrlKey);
     emit(AuthState.initial());
   }
 }

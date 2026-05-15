@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../theme/app_colors.dart';
 
 class UserDetailsPage extends StatelessWidget {
@@ -161,7 +162,7 @@ class UserDetailsPage extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  _showResetPasswordDialog(context);
+                  _showResetPasswordDialog(context, user['id']);
                 },
                 icon: const Icon(Icons.lock_reset),
                 label: const Text('إعادة تعيين كلمة المرور'),
@@ -367,7 +368,10 @@ class UserDetailsPage extends StatelessWidget {
     );
   }
 
-  static void _showResetPasswordDialog(BuildContext context) {
+  static Future<void> _showResetPasswordDialog(
+    BuildContext context,
+    dynamic userId,
+  ) async {
     final controller = TextEditingController();
 
     showDialog(
@@ -375,10 +379,16 @@ class UserDetailsPage extends StatelessWidget {
       builder: (_) {
         return AlertDialog(
           title: const Text('إعادة تعيين كلمة المرور'),
+
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(labelText: 'كلمة المرور الجديدة'),
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'كلمة المرور الجديدة',
+              border: OutlineInputBorder(),
+            ),
           ),
+
           actions: [
             TextButton(
               onPressed: () {
@@ -386,16 +396,43 @@ class UserDetailsPage extends StatelessWidget {
               },
               child: const Text('إلغاء'),
             ),
+
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
+              onPressed: () async {
+                try {
+                  final response = await http.post(
+                    Uri.parse(
+                      'http://al-mumtazun-api.runasp.net/api/Users/reset-password/$userId',
+                    ),
+                    headers: {'accept': '*/*'},
+                  );
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم تغيير كلمة المرور')),
-                );
+                  if (!context.mounted) return;
 
-                // TODO:
-                // call reset password API
+                  Navigator.pop(context);
+
+                  if (response.statusCode >= 200 && response.statusCode < 300) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم إعادة تعيين كلمة المرور بنجاح'),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('فشل العملية: ${response.statusCode}'),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (!context.mounted) return;
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
+                }
               },
               child: const Text('حفظ'),
             ),

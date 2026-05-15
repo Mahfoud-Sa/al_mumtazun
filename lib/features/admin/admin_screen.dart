@@ -25,14 +25,14 @@ class AdminScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: MediaQuery.of(context).size.width < 1024
-          ? FloatingActionButton(
-              onPressed: () {},
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.person_add),
-            )
-          : null,
+      // floatingActionButton: MediaQuery.of(context).size.width < 1024
+      //     ? FloatingActionButton(
+      //         onPressed: () {},
+      //         backgroundColor: AppColors.secondary,
+      //         foregroundColor: Colors.white,
+      //         child: const Icon(Icons.person_add),
+      //       )
+      //     : null,
     );
   }
 }
@@ -89,6 +89,7 @@ class _HeaderSection extends StatelessWidget {
               SizedBox(width: 8),
               Expanded(
                 child: TextField(
+                  style: TextStyle(color: Colors.black),
                   decoration: InputDecoration(
                     hintText: 'البحث بالاسم او الهويه ...',
                     border: InputBorder.none,
@@ -272,6 +273,7 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
         const SizedBox(height: 4),
         TextField(
           controller: controller,
+          style: const TextStyle(color: Colors.black),
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -315,6 +317,7 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
         TextField(
           controller: controller,
           readOnly: true,
+          style: const TextStyle(color: Colors.black),
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -374,7 +377,7 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
         body: json.encode(payload),
       );
       if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        if (!mounted) return;
+        if (!context.mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('مهندس تم اضافته بنجاح')));
@@ -390,7 +393,7 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
           context.read<UsersCubit>().fetchUsers();
         } catch (_) {}
       } else {
-        if (!mounted) return;
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('خطأ: ${resp.statusCode} ${resp.reasonPhrase}'),
@@ -398,7 +401,7 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
         );
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('فشل بالاتصال: $e')));
@@ -410,7 +413,7 @@ class _ActivePersonnelTable extends StatelessWidget {
   const _ActivePersonnelTable();
 
   String _initialsFromName(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
+    final parts = name.trim().split(' ').where((part) => part.isNotEmpty);
     return parts
         .map((p) => p.isNotEmpty ? p[0] : '')
         .take(2)
@@ -420,19 +423,23 @@ class _ActivePersonnelTable extends StatelessWidget {
 
   Color _statusColor(String status) {
     final s = status.toUpperCase();
+    if (s.contains('INACTIVE') || s.contains('OFF') || s.contains('OFFLINE')) {
+      return AppColors.outline;
+    }
     if (s.contains('ACTIVE')) return AppColors.green;
     if (s.contains('ON')) return AppColors.secondaryContainer;
-    if (s.contains('OFF') || s.contains('OFFLINE')) return AppColors.outline;
     return AppColors.onSurfaceVariant;
   }
 
   Color _statusBg(String status) {
     final s = status.toUpperCase();
-    if (s.contains('ACTIVE')) return AppColors.greenBg;
-    if (s.contains('ON'))
-      return AppColors.secondaryContainer.withValues(alpha: 0.2);
-    if (s.contains('OFF') || s.contains('OFFLINE'))
+    if (s.contains('INACTIVE') || s.contains('OFF') || s.contains('OFFLINE')) {
       return AppColors.surfaceContainerHighest;
+    }
+    if (s.contains('ACTIVE')) return AppColors.greenBg;
+    if (s.contains('ON')) {
+      return AppColors.secondaryContainer.withValues(alpha: 0.2);
+    }
     return AppColors.surface;
   }
 
@@ -461,23 +468,28 @@ class _ActivePersonnelTable extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD8E3FA),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Text(
-                    'TOTAL',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2A3B),
-                    ),
-                  ),
+                BlocBuilder<UsersCubit, UsersState>(
+                  builder: (context, state) {
+                    final total = state is UsersLoaded ? state.totalCount : 0;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD8E3FA),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'TOTAL $total',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2A3B),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -569,9 +581,10 @@ class _ActivePersonnelTable extends StatelessWidget {
                     final userId = (u['employeeId'] ?? u['id'] ?? '')
                         .toString();
                     final role = (u['role'] ?? '') as String;
-                    final status = (u['status'] ?? u['state'] ?? '')
-                        .toString()
-                        .toUpperCase();
+                    final isActive = u['isActive'] == true;
+                    final status =
+                        (u['status'] ?? u['state'])?.toString() ??
+                        (isActive ? 'ACTIVE' : 'INACTIVE');
                     return DataRow(
                       color: WidgetStateProperty.all(
                         i.isOdd ? AppColors.surfaceContainerLow : Colors.white,
@@ -743,6 +756,9 @@ class _ActivePersonnelTable extends StatelessWidget {
                                               children: [
                                                 TextField(
                                                   controller: nameController,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
                                                   decoration:
                                                       const InputDecoration(
                                                         labelText: 'الاسم',
@@ -753,6 +769,9 @@ class _ActivePersonnelTable extends StatelessWidget {
 
                                                 TextField(
                                                   controller: roleController,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
                                                   decoration:
                                                       const InputDecoration(
                                                         labelText: 'الوظيفة',
@@ -763,6 +782,9 @@ class _ActivePersonnelTable extends StatelessWidget {
 
                                                 TextField(
                                                   controller: addressController,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
                                                   decoration:
                                                       const InputDecoration(
                                                         labelText: 'العنوان',
@@ -773,6 +795,9 @@ class _ActivePersonnelTable extends StatelessWidget {
 
                                                 TextField(
                                                   controller: phoneController,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
                                                   decoration:
                                                       const InputDecoration(
                                                         labelText: 'رقم الهاتف',
@@ -954,62 +979,104 @@ class _ActivePersonnelTable extends StatelessWidget {
             },
           ),
           const Divider(height: 1, color: AppColors.outlineVariant),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Showing 1-${(0)} of ${0}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurfaceVariant,
+          BlocBuilder<UsersCubit, UsersState>(
+            builder: (context, state) {
+              final loaded = state is UsersLoaded ? state : null;
+              final page = loaded?.page ?? 1;
+              final size = loaded?.size ?? UsersCubit.defaultPageSize;
+              final totalCount = loaded?.totalCount ?? 0;
+              final totalPages = loaded?.totalPages ?? 1;
+              final start = totalCount == 0 ? 0 : ((page - 1) * size) + 1;
+              final end = totalCount == 0
+                  ? 0
+                  : (start + (loaded?.users.length ?? 0) - 1).clamp(
+                      start,
+                      totalCount,
+                    );
+              final canGoPrevious = loaded != null && page > 1;
+              final canGoNext = loaded != null && page < totalPages;
+
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(12),
                   ),
                 ),
-                Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.outlineVariant),
-                        borderRadius: BorderRadius.circular(4),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final summary = Text(
+                      'Showing $start-$end of $totalCount | Page $page of $totalPages',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurfaceVariant,
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.chevron_left, size: 20),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
+                    );
+                    final controls = Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _PaginationButton(
+                          icon: Icons.chevron_left,
+                          onPressed: canGoPrevious
+                              ? () => context.read<UsersCubit>().previousPage()
+                              : null,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.outlineVariant),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.chevron_right, size: 20),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
+                        const SizedBox(width: 8),
+                        _PaginationButton(
+                          icon: Icons.chevron_right,
+                          onPressed: canGoNext
+                              ? () => context.read<UsersCubit>().nextPage()
+                              : null,
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+
+                    if (constraints.maxWidth < 420) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          summary,
+                          const SizedBox(height: 12),
+                          controls,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [summary, controls],
+                    );
+                  },
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PaginationButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  const _PaginationButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.outlineVariant),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 20),
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       ),
     );
   }

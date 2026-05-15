@@ -3,13 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocaleRepository {
   static const _prefKey = 'locale';
+  static const defaultLocale = Locale('ar');
 
   final SharedPreferences _prefs;
   LocaleRepository(this._prefs);
 
-  Locale? loadLocale() {
+  Locale loadLocale() {
     final code = _prefs.getString(_prefKey);
-    if (code == null || code.isEmpty) return null;
+    if (code == null || code.isEmpty) return defaultLocale;
     return Locale(code);
   }
 
@@ -21,4 +22,3 @@ class LocaleRepository {
     await _prefs.setString(_prefKey, locale.languageCode);
   }
 }
-

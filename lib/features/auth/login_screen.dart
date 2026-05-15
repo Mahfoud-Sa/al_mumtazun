@@ -136,11 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: const Icon(Icons.language, size: 18),
                           label: Text(
                             (context
-                                            .read<LocaleCubit>()
-                                            .state
-                                            .locale
-                                            ?.languageCode ??
-                                        'en') ==
+                                        .read<LocaleCubit>()
+                                        .state
+                                        .locale
+                                        .languageCode) ==
                                     'ar'
                                 ? l10n.english
                                 : l10n.arabic,

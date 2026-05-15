@@ -4,14 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'locale_repository.dart';
 
 class LocaleState {
-  final Locale? locale;
+  final Locale locale;
   const LocaleState({required this.locale});
 }
 
 class LocaleCubit extends Cubit<LocaleState> {
   final LocaleRepository _repo;
 
-  LocaleCubit(this._repo) : super(const LocaleState(locale: null)) {
+  LocaleCubit(this._repo)
+    : super(const LocaleState(locale: LocaleRepository.defaultLocale)) {
     emit(LocaleState(locale: _repo.loadLocale()));
   }
 
@@ -21,9 +22,8 @@ class LocaleCubit extends Cubit<LocaleState> {
   }
 
   Future<void> toggleEnglishArabic() async {
-    final current = state.locale?.languageCode;
-    final next = (current ?? 'en') == 'ar' ? const Locale('en') : const Locale('ar');
+    final current = state.locale.languageCode;
+    final next = current == 'ar' ? const Locale('en') : const Locale('ar');
     await setLocale(next);
   }
 }
-

@@ -32,7 +32,12 @@ import '../features/inventory/data/datasources/inventory_local_datasource.dart';
 import '../features/inventory/data/repositories/item_repository_impl.dart';
 import '../features/inventory/domain/repositories/item_repository.dart';
 import '../features/inventory/domain/usecases/manage_items_usecases.dart';
-import '../features/inventory/presentation/cubit/inventory_cubit.dart';
+import '../features/profile/data/datasources/profile_local_datasource.dart';
+import '../features/profile/data/datasources/profile_remote_datasource.dart';
+import '../features/profile/data/repositories/profile_repository_impl.dart';
+import '../features/profile/domain/repositories/profile_repository.dart';
+import '../features/profile/domain/usecases/profile_usecases.dart';
+import '../features/profile/presentation/cubit/profile_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -132,6 +137,42 @@ Future<void> configureDependencies() async {
   // );
 
   // Cubits (factories so they can be recreated if needed)
+  getIt.registerLazySingleton<ProfileLocalDataSource>(
+    () => ProfileLocalDataSourceImpl(getIt<SharedPreferences>()),
+  );
+  getIt.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(
+      local: getIt<ProfileLocalDataSource>(),
+      remote: getIt<ProfileRemoteDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<GetCurrentProfileUseCase>(
+    () => GetCurrentProfileUseCase(getIt<ProfileRepository>()),
+  );
+  getIt.registerLazySingleton<RefreshProfileUseCase>(
+    () => RefreshProfileUseCase(getIt<ProfileRepository>()),
+  );
+  getIt.registerLazySingleton<ChangePasswordUseCase>(
+    () => ChangePasswordUseCase(getIt<ProfileRepository>()),
+  );
+  getIt.registerLazySingleton<UpdateProfileUseCase>(
+    () => UpdateProfileUseCase(getIt<ProfileRepository>()),
+  );
+  getIt.registerLazySingleton<UpdateProfileImageUrlUseCase>(
+    () => UpdateProfileImageUrlUseCase(getIt<ProfileRepository>()),
+  );
+  getIt.registerFactory<ProfileCubit>(
+    () => ProfileCubit(
+      getCurrentProfile: getIt<GetCurrentProfileUseCase>(),
+      refreshProfileUseCase: getIt<RefreshProfileUseCase>(),
+      updateProfileUseCase: getIt<UpdateProfileUseCase>(),
+      changePasswordUseCase: getIt<ChangePasswordUseCase>(),
+      updateProfileImageUrlUseCase: getIt<UpdateProfileImageUrlUseCase>(),
+    ),
+  );
   getIt.registerFactory<LocaleCubit>(
     () => LocaleCubit(getIt<LocaleRepository>()),
   );

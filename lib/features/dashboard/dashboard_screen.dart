@@ -40,7 +40,10 @@ class DashboardScreen extends StatelessWidget {
                       title: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.menu, color: AppColors.primary),
+                            icon: const Icon(
+                              Icons.menu,
+                              color: AppColors.primary,
+                            ),
                             onPressed: () => HomeShell.openDrawer(context),
                           ),
                           const SizedBox(width: 12),
@@ -93,8 +96,10 @@ class DashboardScreen extends StatelessWidget {
                         IconButton(
                           tooltip: l10n.language,
                           onPressed: () => _showLanguageSheet(context),
-                          icon:
-                              const Icon(Icons.language, color: AppColors.primary),
+                          icon: const Icon(
+                            Icons.language,
+                            color: AppColors.primary,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -102,7 +107,9 @@ class DashboardScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: AppColors.surfaceContainer,
                               borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: AppColors.outlineVariant),
+                              border: Border.all(
+                                color: AppColors.outlineVariant,
+                              ),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(999),
@@ -133,8 +140,9 @@ class DashboardScreen extends StatelessWidget {
                             _HeaderRow(
                               isStacked: !(isLarge || isMedium),
                               rangeIndex: dash.rangeIndex,
-                              onRangeChanged: (i) =>
-                                  context.read<DashboardCubit>().setRangeIndex(i),
+                              onRangeChanged: (i) => context
+                                  .read<DashboardCubit>()
+                                  .setRangeIndex(i),
                             ),
                             const SizedBox(height: 24),
                             _BentoGrid(isLarge: isLarge, isMedium: isMedium),
@@ -154,7 +162,7 @@ class DashboardScreen extends StatelessWidget {
 
   void _showLanguageSheet(BuildContext context) {
     final l10n = context.l10n;
-    final current = context.read<LocaleCubit>().state.locale?.languageCode;
+    final current = context.read<LocaleCubit>().state.locale.languageCode;
 
     showModalBottomSheet<void>(
       context: context,
@@ -176,7 +184,9 @@ class DashboardScreen extends StatelessWidget {
                   title: Text(l10n.english),
                   trailing: current == 'en' ? const Icon(Icons.check) : null,
                   onTap: () async {
-                    await context.read<LocaleCubit>().setLocale(const Locale('en'));
+                    await context.read<LocaleCubit>().setLocale(
+                      const Locale('en'),
+                    );
                     if (context.mounted) Navigator.pop(context);
                   },
                 ),
@@ -185,7 +195,9 @@ class DashboardScreen extends StatelessWidget {
                   title: Text(l10n.arabic),
                   trailing: current == 'ar' ? const Icon(Icons.check) : null,
                   onTap: () async {
-                    await context.read<LocaleCubit>().setLocale(const Locale('ar'));
+                    await context.read<LocaleCubit>().setLocale(
+                      const Locale('ar'),
+                    );
                     if (context.mounted) Navigator.pop(context);
                   },
                 ),
@@ -222,7 +234,9 @@ class _TopNavLink extends StatelessWidget {
           child: Text(
             label,
             style: style.copyWith(
-              color: selected ? AppColors.secondary : AppColors.onSurfaceVariant,
+              color: selected
+                  ? AppColors.secondary
+                  : AppColors.onSurfaceVariant,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -252,17 +266,17 @@ class _HeaderRow extends StatelessWidget {
         Text(
           l10n.managementSystem.toUpperCase(),
           style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                color: AppColors.secondary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-              ),
+            color: AppColors.secondary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
           l10n.dashboardInsights,
-          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                color: AppColors.primary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineLarge!.copyWith(color: AppColors.primary),
         ),
       ],
     );
@@ -275,11 +289,7 @@ class _HeaderRow extends StatelessWidget {
     if (isStacked) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          left,
-          const SizedBox(height: 12),
-          right,
-        ],
+        children: [left, const SizedBox(height: 12), right],
       );
     }
 
@@ -290,10 +300,7 @@ class _HeaderRow extends StatelessWidget {
         Expanded(child: left),
         const SizedBox(width: 12),
         Flexible(
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: right,
-          ),
+          child: Align(alignment: Alignment.bottomRight, child: right),
         ),
       ],
     );
@@ -438,9 +445,7 @@ class _BentoGrid extends StatelessWidget {
 class _CardShell extends StatelessWidget {
   final Widget child;
 
-  const _CardShell({
-    required this.child,
-  });
+  const _CardShell({required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -471,16 +476,15 @@ class _TotalIncomeCard extends StatelessWidget {
                     Text(
                       l10n.totalIncome.toUpperCase(),
                       style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: AppColors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       r'$1,248,392.50',
-                      style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                            color: AppColors.primary,
-                          ),
+                      style: Theme.of(context).textTheme.headlineLarge!
+                          .copyWith(color: AppColors.primary),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -493,11 +497,11 @@ class _TotalIncomeCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           l10n.incomeDelta,
-                          style:
-                              Theme.of(context).textTheme.labelLarge!.copyWith(
-                                    color: AppColors.green,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.labelLarge!
+                              .copyWith(
+                                color: AppColors.green,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -530,9 +534,7 @@ class _TotalIncomeCard extends StatelessWidget {
                   Positioned.fill(
                     child: Padding(
                       padding: const EdgeInsets.all(12),
-                      child: CustomPaint(
-                        painter: _IncomeChartPainter(),
-                      ),
+                      child: CustomPaint(painter: _IncomeChartPainter()),
                     ),
                   ),
                   Positioned(
@@ -541,9 +543,9 @@ class _TotalIncomeCard extends StatelessWidget {
                     child: Text(
                       'Jun 01',
                       style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: AppColors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -552,9 +554,9 @@ class _TotalIncomeCard extends StatelessWidget {
                     child: Text(
                       'Jun 30',
                       style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: AppColors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -633,24 +635,24 @@ class _LogisticsPerformanceCard extends StatelessWidget {
           Text(
             l10n.logisticsPerformance.toUpperCase(),
             style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             l10n.inventoryTurnoverRate.toUpperCase(),
             style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  color: AppColors.outline,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.outline,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             l10n.turnoverValue,
-            style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  color: AppColors.primary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium!.copyWith(color: AppColors.primary),
           ),
           const SizedBox(height: 18),
           const Divider(height: 1),
@@ -665,22 +667,24 @@ class _LogisticsPerformanceCard extends StatelessWidget {
                   Text(
                     l10n.efficiency.toUpperCase(),
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     l10n.efficiencyValue,
                     style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                          color: AppColors.primary,
-                        ),
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.greenBg,
                   borderRadius: BorderRadius.circular(8),
@@ -696,9 +700,9 @@ class _LogisticsPerformanceCard extends StatelessWidget {
                     Text(
                       l10n.efficiencyDelta,
                       style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                            color: AppColors.green,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: AppColors.green,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),
@@ -724,9 +728,9 @@ class _ResourceAllocationCard extends StatelessWidget {
           Text(
             l10n.resourceAllocation.toUpperCase(),
             style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
@@ -797,17 +801,17 @@ class _CapacityRing extends StatelessWidget {
                 Text(
                   '82%',
                   style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                        color: AppColors.primary,
-                      ),
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   l10n.capacity.toUpperCase(),
                   style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -839,17 +843,17 @@ class _AllocationLegend extends StatelessWidget {
         Text(
           l10n.avgResponseTime.toUpperCase(),
           style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                color: AppColors.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
+            color: AppColors.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
         Text(
           l10n.avgResponseValue,
-          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: AppColors.primary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall!.copyWith(color: AppColors.primary),
           textAlign: TextAlign.center,
         ),
       ],
@@ -881,27 +885,24 @@ class _LegendRow extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: AppColors.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  color: AppColors.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -927,18 +928,18 @@ class _CriticalLogsCard extends StatelessWidget {
                 Text(
                   l10n.criticalEngineeringLogs.toUpperCase(),
                   style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: AppColors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 TextButton(
                   onPressed: () {},
                   child: Text(
                     l10n.viewAll,
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -1036,17 +1037,17 @@ class _LogRow extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -1060,11 +1061,11 @@ class _LogRow extends StatelessWidget {
               child: Text(
                 chipLabel.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      color: fg,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                    ),
+                  color: fg,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
               ),
             ),
           ],
@@ -1109,4 +1110,3 @@ class _ProfileAvatar extends StatelessWidget {
     );
   }
 }
-
