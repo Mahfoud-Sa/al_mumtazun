@@ -131,14 +131,7 @@ class DeviceDetailsState extends Equatable {
       deliveryDate: device.createdAt.add(const Duration(days: 14)),
       problemDescription: device.problemDescription,
       internalNotes: device.internalNotes,
-      engineerNotes: [
-        EngineerNote(
-          author: 'سارة جنكنز',
-          text:
-              'تم إجراء فحص أولي للجهاز. يلزم استكمال التشخيص الفني قبل اعتماد قائمة القطع النهائية.',
-          createdAt: now.subtract(const Duration(hours: 2)),
-        ),
-      ],
+      engineerNotes: const [],
       components: const [
         BillComponent(name: 'طقم جلدة الصمام الرئيسي', quantity: 1, price: 245),
         BillComponent(name: 'زيت هيدروليك صناعي', quantity: 2, price: 60),

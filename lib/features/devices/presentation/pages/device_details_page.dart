@@ -565,8 +565,31 @@ class _EditableDateRow extends StatelessWidget {
   }
 }
 
-class _DiagnosticsSection extends StatelessWidget {
+class _DiagnosticsSection extends StatefulWidget {
   const _DiagnosticsSection();
+
+  @override
+  State<_DiagnosticsSection> createState() => _DiagnosticsSectionState();
+}
+
+class _DiagnosticsSectionState extends State<_DiagnosticsSection> {
+  final TextEditingController _noteController = TextEditingController();
+  String _draftNote = '';
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _submitNote() {
+    final note = _draftNote.trim();
+    if (note.isEmpty) return;
+
+    context.read<DeviceDetailsCubit>().addEngineerNote(note);
+    _noteController.clear();
+    setState(() => _draftNote = '');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -575,36 +598,116 @@ class _DiagnosticsSection extends StatelessWidget {
         return _Section(
           title: 'التشخيص والملاحظات',
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // _LargeTextField(
-              //   label: 'وصف المشكلة',
-              //   initialValue: state.problemDescription,
-              //   accent: true,
-              //   onChanged: context
-              //       .read<DeviceDetailsCubit>()
-              //       .updateProblemDescription,
-              // ),
-              // const SizedBox(height: AppSpacing.lg),
-              // _LargeTextField(
-              //   label: 'وصف المشكلة',
-              //   initialValue: state.problemDescription,
-              //   accent: true,
-              //   onChanged: context
-              //       .read<DeviceDetailsCubit>()
-              //       .updateProblemDescription,
-              // ),
               const SizedBox(height: AppSpacing.lg),
-              _LargeTextField(
-                label: 'ملاحظات التسجيل الداخلية',
-                initialValue: state.internalNotes,
-                onChanged: context
-                    .read<DeviceDetailsCubit>()
-                    .updateInternalNotes,
+              _EngineerNoteInput(
+                controller: _noteController,
+                value: _draftNote,
+                onChanged: (value) => setState(() => _draftNote = value),
+                onSubmit: _submitNote,
               ),
+              if (state.engineerNotes.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.lg),
+                ...state.engineerNotes.map(
+                  (note) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: _EngineerDiagnosticNoteCard(note: note),
+                  ),
+                ),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _EngineerNoteInput extends StatelessWidget {
+  final TextEditingController controller;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onSubmit;
+
+  const _EngineerNoteInput({
+    required this.controller,
+    required this.value,
+    required this.onChanged,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final canSubmit = value.trim().isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        border: Border.all(color: AppColors.outlineVariant),
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('ملاحظات المهندس', style: AppTextStyles.labelStrong),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            controller: controller,
+            maxLines: 4,
+            onChanged: onChanged,
+            textInputAction: TextInputAction.newline,
+            decoration: const InputDecoration(
+              hintText: 'اكتب ملاحظة جديدة...',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.all(AppSpacing.md),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: ElevatedButton.icon(
+              onPressed: canSubmit ? onSubmit : null,
+              icon: const Icon(Icons.add_comment_outlined, size: 18),
+              label: const Text('إضافة ملاحظة'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EngineerDiagnosticNoteCard extends StatelessWidget {
+  final EngineerNote note;
+
+  const _EngineerDiagnosticNoteCard({required this.note});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        border: Border.all(color: AppColors.outlineVariant),
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(note.author, style: AppTextStyles.labelStrong),
+              ),
+              Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(note.text, style: AppTextStyles.body),
+        ],
+      ),
     );
   }
 }
@@ -618,17 +721,7 @@ class _EngineerNotesSection extends StatelessWidget {
       builder: (context, state) {
         return _Section(
           title: 'ملاحظات الجهاز ',
-          child: Column(
-            children: [
-              _EngineerNoteCard(
-                note: state.device.problemDescription.toString(),
-              ),
-              // for (final note in state.engineerNotes) ...[
-              //   _EngineerNoteCard(note: note),
-              //   const SizedBox(height: AppSpacing.md),
-              // ],
-            ],
-          ),
+          child: Column(children: [_EngineerNoteCard(note: state.device)]),
         );
       },
     );
@@ -636,7 +729,7 @@ class _EngineerNotesSection extends StatelessWidget {
 }
 
 class _EngineerNoteCard extends StatelessWidget {
-  final String note;
+  final Device note;
 
   const _EngineerNoteCard({required this.note});
 
@@ -655,13 +748,22 @@ class _EngineerNoteCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text("note.author", style: AppTextStyles.labelStrong),
+                child: Text("وصف المشكلة", style: AppTextStyles.labelStrong),
               ),
               // Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(note, style: AppTextStyles.body),
+          Text(note.problemDescription, style: AppTextStyles.body),
+          Row(
+            children: [
+              Expanded(
+                child: Text("ملاحظات داخلية", style: AppTextStyles.labelStrong),
+              ),
+              // Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
+            ],
+          ),
+          Text(note.internalNotes, style: AppTextStyles.body),
         ],
       ),
     );
