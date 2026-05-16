@@ -45,6 +45,7 @@ import '../features/devices/data/repositories/device_repository_impl.dart';
 import '../features/devices/domain/entities/device.dart';
 import '../features/devices/domain/repositories/device_users_repository.dart';
 import '../features/devices/domain/repositories/device_repository.dart';
+import '../features/devices/domain/usecases/change_device_status_usecase.dart';
 import '../features/devices/domain/usecases/create_device_usecase.dart';
 import '../features/devices/domain/usecases/get_device_users_usecase.dart';
 import '../features/devices/domain/usecases/get_devices_usecase.dart';
@@ -181,6 +182,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<CreateDeviceUseCase>(
     () => CreateDeviceUseCase(getIt<DeviceRepository>()),
   );
+  getIt.registerLazySingleton<ChangeDeviceStatusUseCase>(
+    () => ChangeDeviceStatusUseCase(getIt<DeviceRepository>()),
+  );
   getIt.registerLazySingleton<GetDeviceUsersUseCase>(
     () => GetDeviceUsersUseCase(getIt<DeviceUsersRepository>()),
   );
@@ -191,9 +195,11 @@ Future<void> configureDependencies() async {
     ),
   );
   getIt.registerFactoryParam<DeviceDetailsCubit, Device, void>(
-    (device, _) =>
-        DeviceDetailsCubit(device, getUsers: getIt<GetDeviceUsersUseCase>())
-          ..loadUsers(refresh: true),
+    (device, _) => DeviceDetailsCubit(
+      device,
+      changeDeviceStatus: getIt<ChangeDeviceStatusUseCase>(),
+      getUsers: getIt<GetDeviceUsersUseCase>(),
+    )..loadUsers(refresh: true),
   );
 
   // Roles

@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import '../../../../core/clients/http_client.dart';
+import '../../domain/entities/device.dart';
 import '../../domain/entities/device_page.dart';
 import '../models/device_model.dart';
 
 abstract class DevicesRemoteDataSource {
   Future<DevicePage> getDevices({required int page, required int size});
   Future<DeviceModel> createDevice(DeviceModel device);
+  Future<void> changeStatus({required String id, required DeviceStatus status});
 }
 
 class DevicesRemoteDataSourceImpl implements DevicesRemoteDataSource {
@@ -110,6 +112,22 @@ class DevicesRemoteDataSourceImpl implements DevicesRemoteDataSource {
     }
 
     return device;
+  }
+
+  @override
+  Future<void> changeStatus({
+    required String id,
+    required DeviceStatus status,
+  }) async {
+    final response = await client.put(
+      baseUri.replace(path: '${baseUri.path}/change-status/$id'),
+      headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+      body: jsonEncode({'status': DeviceModel.statusToApiValue(status)}),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
+    }
   }
 
   List<dynamic>? _readList(Map<String, dynamic> json) {

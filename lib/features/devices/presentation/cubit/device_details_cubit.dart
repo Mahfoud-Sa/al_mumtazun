@@ -2,15 +2,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
+import '../../domain/usecases/change_device_status_usecase.dart';
 import '../../domain/usecases/get_device_users_usecase.dart';
 import 'device_details_state.dart';
 
 class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
+  final ChangeDeviceStatusUseCase changeDeviceStatus;
   final GetDeviceUsersUseCase getUsers;
   static const int defaultUsersPageSize = 10;
 
-  DeviceDetailsCubit(Device device, {required this.getUsers})
-    : super(DeviceDetailsState.initial(device));
+  DeviceDetailsCubit(
+    Device device, {
+    required this.changeDeviceStatus,
+    required this.getUsers,
+  }) : super(DeviceDetailsState.initial(device));
 
   Future<void> loadUsers({bool refresh = false}) async {
     if (state.isLoadingUsers || state.isLoadingMoreUsers) return;
@@ -67,10 +72,17 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
     );
   }
 
-  void changeStatus(DeviceStatus status) {
+  Future<void> changeStatus(DeviceStatus status) async {
+    if (state.isChangingStatus || status == state.status) return;
+
+    final previousStatus = state.status;
+    final previousActivityLog = state.activityLog;
     emit(
       state.copyWith(
         status: status,
+        device: state.device.copyWith(status: status),
+        isChangingStatus: true,
+        clearStatusError: true,
         activityLog: [
           ActivityLogEntry(
             title: 'تم تحديث الحالة',
@@ -81,6 +93,23 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
           ...state.activityLog,
         ],
       ),
+    );
+
+    final result = await changeDeviceStatus(
+      ChangeDeviceStatusParams(id: state.device.id, status: status),
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          status: previousStatus,
+          device: state.device.copyWith(status: previousStatus),
+          isChangingStatus: false,
+          statusErrorMessage: failure.message,
+          activityLog: previousActivityLog,
+        ),
+      ),
+      (_) => emit(state.copyWith(isChangingStatus: false)),
     );
   }
 
@@ -176,12 +205,16 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
 
   String _statusLabel(DeviceStatus status) {
     switch (status) {
-      case DeviceStatus.inRepair:
+      case DeviceStatus.received:
+        return 'استلام';
+      case DeviceStatus.waiting:
+        return 'انتظار';
+      case DeviceStatus.inMaintenance:
         return 'قيد الصيانة';
-      case DeviceStatus.pending:
-        return 'قيد الانتظار';
       case DeviceStatus.completed:
-        return 'مكتمل';
+        return 'تم';
+      case DeviceStatus.delivered:
+        return 'تم تسليم العميل';
     }
   }
 }

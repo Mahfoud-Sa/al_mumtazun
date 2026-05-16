@@ -23,6 +23,19 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> changeStatus({
+    required String id,
+    required DeviceStatus status,
+  }) async {
+    try {
+      await remote.changeStatus(id: id, status: status);
+      return const Right(unit);
+    } catch (error) {
+      return Left(ServerFailure(error.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, DevicePage>> getDevices({
     required int page,
     required int size,

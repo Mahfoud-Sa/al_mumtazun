@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum DeviceStatus { inRepair, pending, completed }
+enum DeviceStatus { received, waiting, inMaintenance, completed, delivered }
 
 class Device extends Equatable {
   final String id;

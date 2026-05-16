@@ -640,45 +640,61 @@ class _RegisterDeviceCard extends StatelessWidget {
 extension DeviceStatusPresentation on DeviceStatus {
   String get label {
     switch (this) {
-      case DeviceStatus.inRepair:
+      case DeviceStatus.received:
+        return 'استلام';
+      case DeviceStatus.waiting:
+        return 'انتظار';
+      case DeviceStatus.inMaintenance:
         return 'قيد الصيانة';
-      case DeviceStatus.pending:
-        return 'قيد الانتظار';
       case DeviceStatus.completed:
-        return 'مكتمل';
+        return 'تم';
+      case DeviceStatus.delivered:
+        return 'تم تسليم العميل';
     }
   }
 
   Color get backgroundColor {
     switch (this) {
-      case DeviceStatus.inRepair:
-        return AppColors.secondaryContainer.withValues(alpha: 0.2);
-      case DeviceStatus.pending:
+      case DeviceStatus.received:
+        return AppColors.info.withValues(alpha: 0.12);
+      case DeviceStatus.waiting:
         return AppColors.surfaceContainerHigh;
+      case DeviceStatus.inMaintenance:
+        return AppColors.secondaryContainer.withValues(alpha: 0.2);
       case DeviceStatus.completed:
         return AppColors.greenBg;
+      case DeviceStatus.delivered:
+        return AppColors.success.withValues(alpha: 0.14);
     }
   }
 
   Color get foregroundColor {
     switch (this) {
-      case DeviceStatus.inRepair:
-        return const Color(0xFF694000);
-      case DeviceStatus.pending:
+      case DeviceStatus.received:
+        return AppColors.info;
+      case DeviceStatus.waiting:
         return AppColors.onSurfaceVariant;
+      case DeviceStatus.inMaintenance:
+        return const Color(0xFF694000);
       case DeviceStatus.completed:
         return const Color(0xFF166534);
+      case DeviceStatus.delivered:
+        return AppColors.success;
     }
   }
 
   Color get borderColor {
     switch (this) {
-      case DeviceStatus.inRepair:
-        return AppColors.secondaryContainer.withValues(alpha: 0.4);
-      case DeviceStatus.pending:
+      case DeviceStatus.received:
+        return AppColors.info.withValues(alpha: 0.28);
+      case DeviceStatus.waiting:
         return AppColors.outlineVariant;
+      case DeviceStatus.inMaintenance:
+        return AppColors.secondaryContainer.withValues(alpha: 0.4);
       case DeviceStatus.completed:
         return const Color(0xFFBBF7D0);
+      case DeviceStatus.delivered:
+        return AppColors.success.withValues(alpha: 0.32);
     }
   }
 }

@@ -272,7 +272,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       const Text(
-                        "بالضبط، هذا النموذج يلتقط كل التفاصيل اللازمة لاستلام الجهاز بدقة، مما يسهل على فريق الصيانة فهم المشكلة وتقديم خدمة سريعة وفعالة.",
+                        "بهذا النموذج يلتقط كل التفاصيل اللازمة لاستلام الجهاز بدقة، مما يسهل على فريق الصيانة فهم المشكلة وتقديم خدمة سريعة وفعالة.",
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -312,7 +312,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
           .where((phone) => phone.isNotEmpty)
           .toList(),
       receivedBy: _receivedByName.text.trim(),
-      status: DeviceStatus.pending,
+      status: DeviceStatus.received,
       problemDescription: _problemController.text.trim(),
       internalNotes: _notesController.text.trim(),
       createdAt: now,

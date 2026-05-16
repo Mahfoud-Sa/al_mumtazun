@@ -95,28 +95,52 @@ class DeviceModel extends Device {
 
   static DeviceStatus _statusFromJson(String? value) {
     final normalized = value?.trim().toLowerCase();
-    if (normalized == 'inrepair' ||
-        normalized == 'in repair' ||
-        normalized == 'قيد الصيانة') {
-      return DeviceStatus.inRepair;
+    final apiIndex = int.tryParse(normalized ?? '');
+    if (apiIndex != null &&
+        apiIndex >= 0 &&
+        apiIndex < DeviceStatus.values.length) {
+      return DeviceStatus.values[apiIndex];
     }
-    if (normalized == 'completed' || normalized == 'مكتمل') {
-      return DeviceStatus.completed;
+
+    switch (normalized) {
+      case 'received':
+        return DeviceStatus.received;
+      case 'waiting':
+      case 'pending':
+        return DeviceStatus.waiting;
+      case 'inmaintenance':
+      case 'in maintenance':
+      case 'inrepair':
+      case 'in repair':
+        return DeviceStatus.inMaintenance;
+      case 'completed':
+        return DeviceStatus.completed;
+      case 'delivered':
+        return DeviceStatus.delivered;
     }
+
     return DeviceStatus.values.firstWhere(
-      (status) => status.name == value,
-      orElse: () => DeviceStatus.pending,
+      (status) => status.name.toLowerCase() == normalized,
+      orElse: () => DeviceStatus.received,
     );
+  }
+
+  static int statusToApiValue(DeviceStatus status) {
+    return status.index;
   }
 
   static String _statusToApi(DeviceStatus status) {
     switch (status) {
-      case DeviceStatus.inRepair:
-        return 'InRepair';
-      case DeviceStatus.pending:
-        return 'Pending';
+      case DeviceStatus.received:
+        return 'Received';
+      case DeviceStatus.waiting:
+        return 'Waiting';
+      case DeviceStatus.inMaintenance:
+        return 'InMaintenance';
       case DeviceStatus.completed:
         return 'Completed';
+      case DeviceStatus.delivered:
+        return 'Delivered';
     }
   }
 }

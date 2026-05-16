@@ -10,4 +10,8 @@ abstract class DeviceRepository {
     required int size,
   });
   Future<Either<Failure, Device>> createDevice(Device device);
+  Future<Either<Failure, Unit>> changeStatus({
+    required String id,
+    required DeviceStatus status,
+  });
 }

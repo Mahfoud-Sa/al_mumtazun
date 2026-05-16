@@ -82,6 +82,8 @@ class DeviceDetailsState extends Equatable {
   final double additionalCosts;
   final double discount;
   final List<ActivityLogEntry> activityLog;
+  final bool isChangingStatus;
+  final String? statusErrorMessage;
 
   const DeviceDetailsState({
     required this.device,
@@ -105,6 +107,8 @@ class DeviceDetailsState extends Equatable {
     required this.additionalCosts,
     required this.discount,
     required this.activityLog,
+    required this.isChangingStatus,
+    required this.statusErrorMessage,
   });
 
   factory DeviceDetailsState.initial(Device device) {
@@ -142,6 +146,8 @@ class DeviceDetailsState extends Equatable {
       repairLaborPrice: 450,
       additionalCosts: 45,
       discount: 0,
+      isChangingStatus: false,
+      statusErrorMessage: null,
       activityLog: [
         ActivityLogEntry(
           title: 'تم تحديث الحالة',
@@ -193,6 +199,9 @@ class DeviceDetailsState extends Equatable {
     double? additionalCosts,
     double? discount,
     List<ActivityLogEntry>? activityLog,
+    bool? isChangingStatus,
+    String? statusErrorMessage,
+    bool clearStatusError = false,
   }) {
     return DeviceDetailsState(
       device: device ?? this.device,
@@ -222,6 +231,10 @@ class DeviceDetailsState extends Equatable {
       additionalCosts: additionalCosts ?? this.additionalCosts,
       discount: discount ?? this.discount,
       activityLog: activityLog ?? this.activityLog,
+      isChangingStatus: isChangingStatus ?? this.isChangingStatus,
+      statusErrorMessage: clearStatusError
+          ? null
+          : statusErrorMessage ?? this.statusErrorMessage,
     );
   }
 
@@ -248,5 +261,7 @@ class DeviceDetailsState extends Equatable {
     additionalCosts,
     discount,
     activityLog,
+    isChangingStatus,
+    statusErrorMessage,
   ];
 }

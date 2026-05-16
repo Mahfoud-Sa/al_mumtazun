@@ -61,36 +61,49 @@ class _DeviceDetailsView extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: BlocBuilder<DeviceDetailsCubit, DeviceDetailsState>(
-          builder: (context, state) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 960),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: const [
-                      _StatusAssignmentCard(),
-                      SizedBox(height: AppSpacing.xl),
-                      // _DeviceOverviewCard(),
-                      // SizedBox(height: AppSpacing.xl),
-                      _TechnicalLogisticsSection(),
-                      SizedBox(height: AppSpacing.xl),
-                      _EngineerNotesSection(),
-
-                      SizedBox(height: AppSpacing.xl),
-                      _DiagnosticsSection(),
-                      SizedBox(height: AppSpacing.xl),
-                      _BillingSection(),
-                      SizedBox(height: AppSpacing.xl),
-                      // _ActivityLogSection(),
-                    ],
-                  ),
-                ),
+        child: BlocListener<DeviceDetailsCubit, DeviceDetailsState>(
+          listenWhen: (previous, current) =>
+              previous.statusErrorMessage != current.statusErrorMessage &&
+              current.statusErrorMessage != null,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.statusErrorMessage!),
+                backgroundColor: AppColors.error,
               ),
             );
           },
+          child: BlocBuilder<DeviceDetailsCubit, DeviceDetailsState>(
+            builder: (context, state) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 960),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: const [
+                        _StatusAssignmentCard(),
+                        SizedBox(height: AppSpacing.xl),
+                        // _DeviceOverviewCard(),
+                        // SizedBox(height: AppSpacing.xl),
+                        _TechnicalLogisticsSection(),
+                        SizedBox(height: AppSpacing.xl),
+                        _EngineerNotesSection(),
+
+                        SizedBox(height: AppSpacing.xl),
+                        _DiagnosticsSection(),
+                        SizedBox(height: AppSpacing.xl),
+                        _BillingSection(),
+                        SizedBox(height: AppSpacing.xl),
+                        // _ActivityLogSection(),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -139,6 +152,7 @@ class _StatusAssignmentCard extends StatelessWidget {
                     ),
                   ),
                   PopupMenuButton<DeviceStatus>(
+                    enabled: !state.isChangingStatus,
                     onSelected: context.read<DeviceDetailsCubit>().changeStatus,
                     itemBuilder: (context) => DeviceStatus.values
                         .map(
@@ -148,9 +162,18 @@ class _StatusAssignmentCard extends StatelessWidget {
                           ),
                         )
                         .toList(),
-                    child: ElevatedButton(
-                      onPressed: null,
-                      child: const Text('تغيير الحالة'),
+                    child: IgnorePointer(
+                      child: ElevatedButton(
+                        onPressed: state.isChangingStatus ? null : () {},
+                        child: state.isChangingStatus
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('تغيير الحالة'),
+                      ),
                     ),
                   ),
                 ],
@@ -594,13 +617,16 @@ class _EngineerNotesSection extends StatelessWidget {
     return BlocBuilder<DeviceDetailsCubit, DeviceDetailsState>(
       builder: (context, state) {
         return _Section(
-          title: 'ملاحطات الجهاز ',
+          title: 'ملاحظات الجهاز ',
           child: Column(
             children: [
-              for (final note in state.engineerNotes) ...[
-                _EngineerNoteCard(note: note),
-                const SizedBox(height: AppSpacing.md),
-              ],
+              _EngineerNoteCard(
+                note: state.device.problemDescription.toString(),
+              ),
+              // for (final note in state.engineerNotes) ...[
+              //   _EngineerNoteCard(note: note),
+              //   const SizedBox(height: AppSpacing.md),
+              // ],
             ],
           ),
         );
@@ -610,7 +636,7 @@ class _EngineerNotesSection extends StatelessWidget {
 }
 
 class _EngineerNoteCard extends StatelessWidget {
-  final EngineerNote note;
+  final String note;
 
   const _EngineerNoteCard({required this.note});
 
@@ -629,13 +655,13 @@ class _EngineerNoteCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(note.author, style: AppTextStyles.labelStrong),
+                child: Text("note.author", style: AppTextStyles.labelStrong),
               ),
-              Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
+              // Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(note.text, style: AppTextStyles.body),
+          Text(note, style: AppTextStyles.body),
         ],
       ),
     );
@@ -1105,22 +1131,30 @@ class _LargeTextFieldState extends State<_LargeTextField> {
 
 String _statusLabel(DeviceStatus status) {
   switch (status) {
-    case DeviceStatus.inRepair:
+    case DeviceStatus.received:
+      return 'استلام';
+    case DeviceStatus.waiting:
+      return 'انتظار';
+    case DeviceStatus.inMaintenance:
       return 'قيد الصيانة';
-    case DeviceStatus.pending:
-      return 'قيد الانتظار';
     case DeviceStatus.completed:
-      return 'مكتمل';
+      return 'تم';
+    case DeviceStatus.delivered:
+      return 'تم تسليم العميل';
   }
 }
 
 Color _statusColor(DeviceStatus status) {
   switch (status) {
-    case DeviceStatus.inRepair:
-      return AppColors.warning;
-    case DeviceStatus.pending:
+    case DeviceStatus.received:
       return AppColors.info;
+    case DeviceStatus.waiting:
+      return AppColors.outline;
+    case DeviceStatus.inMaintenance:
+      return AppColors.warning;
     case DeviceStatus.completed:
+      return AppColors.success;
+    case DeviceStatus.delivered:
       return AppColors.success;
   }
 }
