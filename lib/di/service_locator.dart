@@ -35,6 +35,14 @@ import '../features/incomes/domain/usecases/create_income_usecase.dart';
 import '../features/incomes/domain/usecases/get_income_engineers_usecase.dart';
 import '../features/incomes/presentation/cubit/incomes_cubit.dart';
 
+// Devices
+import '../features/devices/data/datasources/devices_remote_datasource.dart';
+import '../features/devices/data/repositories/device_repository_impl.dart';
+import '../features/devices/domain/repositories/device_repository.dart';
+import '../features/devices/domain/usecases/create_device_usecase.dart';
+import '../features/devices/domain/usecases/get_devices_usecase.dart';
+import '../features/devices/presentation/cubit/devices_cubit.dart';
+
 // Roles
 import '../features/roles/data/datasources/roles_local_datasource.dart';
 import '../features/roles/data/repositories/role_repository_impl.dart';
@@ -135,6 +143,26 @@ Future<void> configureDependencies() async {
     () => IncomesCubit(
       createIncome: getIt<CreateIncomeUseCase>(),
       getEngineers: getIt<GetIncomeEngineersUseCase>(),
+    ),
+  );
+
+  // Devices
+  getIt.registerLazySingleton<DevicesRemoteDataSource>(
+    () => DevicesRemoteDataSourceImpl(getIt<AppHttpClient>()),
+  );
+  getIt.registerLazySingleton<DeviceRepository>(
+    () => DeviceRepositoryImpl(getIt<DevicesRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetDevicesUseCase>(
+    () => GetDevicesUseCase(getIt<DeviceRepository>()),
+  );
+  getIt.registerLazySingleton<CreateDeviceUseCase>(
+    () => CreateDeviceUseCase(getIt<DeviceRepository>()),
+  );
+  getIt.registerFactory<DevicesCubit>(
+    () => DevicesCubit(
+      getDevices: getIt<GetDevicesUseCase>(),
+      createDevice: getIt<CreateDeviceUseCase>(),
     ),
   );
 

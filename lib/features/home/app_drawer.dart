@@ -1,3 +1,4 @@
+import 'package:engineering_ops_dashboard/features/admin/admin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -35,49 +36,55 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                 ),
+                // const Divider(),
+                // _buildSectionTitle(context, 'Settings'),
+                // BlocBuilder<ThemeCubit, ThemeState>(
+                //   builder: (context, state) {
+                //     return SwitchListTile(
+                //       secondary: Icon(
+                //         state.isDarkMode
+                //             ? Icons.dark_mode
+                //             : Icons.light_mode_outlined,
+                //         color: colorScheme.primary,
+                //       ),
+                //       title: const Text('Dark Mode'),
+                //       value: state.isDarkMode,
+                //       onChanged: context.read<ThemeCubit>().setDarkMode,
+                //       activeThumbColor: colorScheme.secondary,
+                //     );
+                //   },
+                // ),
                 const Divider(),
-                _buildSectionTitle(context, 'Settings'),
-                BlocBuilder<ThemeCubit, ThemeState>(
-                  builder: (context, state) {
-                    return SwitchListTile(
-                      secondary: Icon(
-                        state.isDarkMode
-                            ? Icons.dark_mode
-                            : Icons.light_mode_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      title: const Text('Dark Mode'),
-                      value: state.isDarkMode,
-                      onChanged: context.read<ThemeCubit>().setDarkMode,
-                      activeThumbColor: colorScheme.secondary,
-                    );
-                  },
-                ),
-                const Divider(),
-                _buildSectionTitle(context, 'System'),
-                ListTile(
-                  leading: Icon(
-                    Icons.developer_mode,
-                    color: colorScheme.primary,
-                  ),
-                  title: const Text('Developer Options'),
-                  onTap: () {
-                    // Navigate to developer options.
-                  },
-                ),
+                _buildSectionTitle(context, 'النظام'),
+                // ListTile(
+                //   leading: Icon(
+                //     Icons.developer_mode,
+                //     color: colorScheme.primary,
+                //   ),
+                //   title: const Text('Developer Options'),
+                //   onTap: () {
+                //     // Navigate to developer options.
+                //   },
+                // ),
                 ListTile(
                   leading: Icon(
                     Icons.admin_panel_settings_outlined,
                     color: colorScheme.primary,
                   ),
-                  title: const Text('App Developer Rights'),
+                  title: const Text('لوحة الادارة'),
                   onTap: () {
-                    // Open developer rights dialogue.
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) {
+                          return AdminScreen();
+                        },
+                      ),
+                    );
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.logout, color: colorScheme.primary),
-                  title: const Text('Logout'),
+                  title: const Text('تسجيل الخروج'),
                   onTap: () async {
                     Navigator.of(context).pop();
                     try {
@@ -86,12 +93,12 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
                 const Divider(),
-                _buildSectionTitle(context, 'About'),
+                _buildSectionTitle(context, 'عنا'),
                 FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform().catchError(
                     (_) => PackageInfo(
-                      appName: 'EngineeredPrecision',
-                      packageName: 'com.example.app',
+                      appName: 'نظام المتميزن',
+                      packageName: 'com.GidTeam.app',
                       version: '1.0.0',
                       buildNumber: '1',
                     ),
@@ -104,12 +111,12 @@ class AppDrawer extends StatelessWidget {
                         Icons.info_outline,
                         color: colorScheme.primary,
                       ),
-                      title: const Text('App Version'),
+                      title: const Text('اصدار التطبيق'),
                       subtitle: Text('v$version (Build $buildNumber)'),
                       onTap: () {
                         showAboutDialog(
                           context: context,
-                          applicationName: 'EngineeredPrecision',
+                          applicationName: 'نظام المتميزون',
                           applicationVersion: 'v$version (Build $buildNumber)',
                           applicationIcon: Icon(
                             Icons.engineering,
@@ -117,7 +124,7 @@ class AppDrawer extends StatelessWidget {
                             color: colorScheme.secondary,
                           ),
                           applicationLegalese:
-                              '© 2026 EngineeredPrecision Inc.',
+                              '©تم تطوير هذا التطبيق بواسطة فريق GidTeam. جميع الحقوق محفوظة.',
                         );
                       },
                     );
@@ -204,7 +211,7 @@ class AppDrawer extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: colorScheme.outline,
+          color: Colors.black,
           letterSpacing: 1.2,
         ),
       ),
@@ -220,13 +227,13 @@ class AppDrawer extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.engineering, size: 16, color: colorScheme.outline),
+            Icon(Icons.engineering, size: 16, color: Colors.black),
             const SizedBox(width: 8),
             Text(
-              'EngineeredPrecision Ops',
+              'نظام المتميزون - لوحة التحكم',
               style: TextStyle(
                 fontSize: 12,
-                color: colorScheme.outline,
+                color: Colors.black,
                 fontWeight: FontWeight.w500,
               ),
             ),
