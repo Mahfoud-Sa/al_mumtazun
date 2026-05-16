@@ -9,6 +9,7 @@ import '../../../home/home_shell.dart';
 import '../../domain/entities/device.dart';
 import '../cubit/devices_cubit.dart';
 import '../cubit/devices_state.dart';
+import 'device_details_page.dart';
 import 'register_device_page.dart';
 
 class DevicesPage extends StatelessWidget {
@@ -135,7 +136,7 @@ class _DevicesHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'القائمة',
+              tooltip: 'ط§ظ„ظ‚ط§ط¦ظ…ط©',
               icon: const Icon(Icons.menu, color: AppColors.primary),
               onPressed: () => HomeShell.openDrawer(context),
             ),
@@ -400,7 +401,7 @@ class _DeviceGrid extends StatelessWidget {
                     crossAxisCount: columns,
                     crossAxisSpacing: AppSpacing.xl,
                     mainAxisSpacing: AppSpacing.xl,
-                    mainAxisExtent: 214,
+                    mainAxisExtent: 238,
                   ),
                   itemCount: cards.length,
                   itemBuilder: (context, index) => cards[index],
@@ -436,128 +437,95 @@ class _DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.surfaceContainer,
-      elevation: 1,
-      shadowColor: AppColors.shadow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-        side: const BorderSide(color: AppColors.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        device.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppSpacing.xs),
+      onTap: () => _openDetails(context),
+      child: Card(
+        color: AppColors.surfaceContainer,
+        elevation: 1,
+        shadowColor: AppColors.shadow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.xs),
+          side: const BorderSide(color: AppColors.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          device.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'الرقم التسلسلي: ${device.serialNumber}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.onSurfaceVariant,
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'الرقم التسلسلي: ${device.serialNumber}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _StatusBadge(status: device.status),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const Divider(height: 1, color: AppColors.outlineVariant),
-            const SizedBox(height: AppSpacing.md),
-            _DeviceInfoRow(label: 'الماركة', value: device.brand),
-            const SizedBox(height: AppSpacing.sm),
-            _DeviceInfoRow(label: 'العميل', value: device.customerName),
-            const Spacer(),
-            const Divider(height: 1, color: AppColors.outlineVariant),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => _showDetails(context, device),
-                icon: const Icon(Icons.chevron_right, size: 18),
-                label: const Text('عرض التفاصيل'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.secondary,
-                  textStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
+                  const SizedBox(width: AppSpacing.sm),
+                  _StatusBadge(status: device.status),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              const Divider(height: 1, color: AppColors.outlineVariant),
+              const SizedBox(height: AppSpacing.md),
+              _DeviceInfoRow(label: 'الماركة', value: device.brand),
+              const SizedBox(height: AppSpacing.sm),
+              _DeviceInfoRow(label: 'العميل', value: device.customerName),
+              const Spacer(),
+              const Divider(height: 1, color: AppColors.outlineVariant),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _openDetails(context),
+                  icon: const Icon(Icons.chevron_right, size: 18),
+                  label: const Text('عرض التفاصيل'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.secondary,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _showDetails(BuildContext context, Device device) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              device.name,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _DeviceInfoRow(label: 'التسلسلي', value: device.serialNumber),
-            _DeviceInfoRow(label: 'الموديل', value: device.model),
-            _DeviceInfoRow(label: 'استلم بواسطة', value: device.receivedBy),
-            _DeviceInfoRow(
-              label: 'الهاتف',
-              value: device.phoneNumbers.isEmpty
-                  ? '-'
-                  : device.phoneNumbers.join(', '),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'وصف المشكلة',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 6),
-            Text(device.problemDescription),
-            if (device.internalNotes.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text(
-                'ملاحظات داخلية',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              Text(device.internalNotes),
-            ],
-          ],
-        ),
+  void _openDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DeviceDetailsPage(device: device),
       ),
     );
   }
@@ -574,9 +542,11 @@ class _DeviceInfoRow extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 92,
+          width: 76,
           child: Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,

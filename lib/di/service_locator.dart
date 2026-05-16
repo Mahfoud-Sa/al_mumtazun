@@ -36,11 +36,17 @@ import '../features/incomes/domain/usecases/get_income_engineers_usecase.dart';
 import '../features/incomes/presentation/cubit/incomes_cubit.dart';
 
 // Devices
+import '../features/devices/data/datasources/device_users_remote_datasource.dart';
 import '../features/devices/data/datasources/devices_remote_datasource.dart';
+import '../features/devices/data/repositories/device_users_repository_impl.dart';
 import '../features/devices/data/repositories/device_repository_impl.dart';
+import '../features/devices/domain/entities/device.dart';
+import '../features/devices/domain/repositories/device_users_repository.dart';
 import '../features/devices/domain/repositories/device_repository.dart';
 import '../features/devices/domain/usecases/create_device_usecase.dart';
+import '../features/devices/domain/usecases/get_device_users_usecase.dart';
 import '../features/devices/domain/usecases/get_devices_usecase.dart';
+import '../features/devices/presentation/cubit/device_details_cubit.dart';
 import '../features/devices/presentation/cubit/devices_cubit.dart';
 
 // Roles
@@ -150,8 +156,14 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<DevicesRemoteDataSource>(
     () => DevicesRemoteDataSourceImpl(getIt<AppHttpClient>()),
   );
+  getIt.registerLazySingleton<DeviceUsersRemoteDataSource>(
+    () => DeviceUsersRemoteDataSourceImpl(getIt<AppHttpClient>()),
+  );
   getIt.registerLazySingleton<DeviceRepository>(
     () => DeviceRepositoryImpl(getIt<DevicesRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<DeviceUsersRepository>(
+    () => DeviceUsersRepositoryImpl(getIt<DeviceUsersRemoteDataSource>()),
   );
   getIt.registerLazySingleton<GetDevicesUseCase>(
     () => GetDevicesUseCase(getIt<DeviceRepository>()),
@@ -159,11 +171,19 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<CreateDeviceUseCase>(
     () => CreateDeviceUseCase(getIt<DeviceRepository>()),
   );
+  getIt.registerLazySingleton<GetDeviceUsersUseCase>(
+    () => GetDeviceUsersUseCase(getIt<DeviceUsersRepository>()),
+  );
   getIt.registerFactory<DevicesCubit>(
     () => DevicesCubit(
       getDevices: getIt<GetDevicesUseCase>(),
       createDevice: getIt<CreateDeviceUseCase>(),
     ),
+  );
+  getIt.registerFactoryParam<DeviceDetailsCubit, Device, void>(
+    (device, _) =>
+        DeviceDetailsCubit(device, getUsers: getIt<GetDeviceUsersUseCase>())
+          ..loadUsers(refresh: true),
   );
 
   // Roles

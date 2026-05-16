@@ -18,7 +18,10 @@ class RegisterDevicePage extends StatefulWidget {
 class _RegisterDevicePageState extends State<RegisterDevicePage> {
   final _formKey = GlobalKey<FormState>();
   final _customerController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _receivedByName = TextEditingController();
+  final List<TextEditingController> _phoneControllers = [
+    TextEditingController(),
+  ];
   final _deviceNameController = TextEditingController();
   final _brandController = TextEditingController();
   final _modelController = TextEditingController();
@@ -28,7 +31,10 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
   @override
   void dispose() {
     _customerController.dispose();
-    _phoneController.dispose();
+    _receivedByName.dispose();
+    for (final controller in _phoneControllers) {
+      controller.dispose();
+    }
     _deviceNameController.dispose();
     _brandController.dispose();
     _modelController.dispose();
@@ -88,6 +94,31 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       const _PageTitle(),
                       const SizedBox(height: AppSpacing.xxl),
                       _SectionCard(
+                        title: "بيانات المستلم",
+                        icon: Icons.import_contacts,
+                        children: [
+                          _FormField(
+                            label: 'استلم بواسطة',
+                            hint: 'الاسم الكامل   ',
+                            controller: _receivedByName,
+                            validator: _required,
+                          ),
+                          _DateField(
+                            label: 'تاريخ الاستلام',
+                            hint: 'اختر تاريخ استلام الجهاز',
+                            controller: TextEditingController(
+                              text: DateTime.now().toIso8601String().substring(
+                                0,
+                                10,
+                              ),
+                            ),
+                            validator: _required,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      _SectionCard(
                         title: '01. بيانات العميل',
                         icon: Icons.person_outline,
                         children: [
@@ -99,20 +130,50 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                                 controller: _customerController,
                                 validator: _required,
                               ),
-                              const _ReadOnlyInfo(
-                                label: 'استلم بواسطة',
-                                value: 'TechID: Admin_042',
-                                icon: Icons.badge_outlined,
-                              ),
+
+                              // const _ReadOnlyInfo(
+                              //   label: 'استلم بواسطة',
+                              //   value: 'TechID: Admin_042',
+                              //   icon: Icons.badge_outlined,
+                              // ),
                             ],
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           _FormField(
                             label: 'رقم الهاتف',
                             hint: '+962 7 0000 0000',
-                            controller: _phoneController,
+                            controller: _phoneControllers.first,
                             keyboardType: TextInputType.phone,
                             validator: _required,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          for (
+                            var i = 1;
+                            i < _phoneControllers.length;
+                            i++
+                          ) ...[
+                            _FormField(
+                              label: 'رقم هاتف إضافي',
+                              hint: '+962 7 0000 0000',
+                              controller: _phoneControllers[i],
+                              keyboardType: TextInputType.phone,
+                              validator: _required,
+                              trailing: IconButton(
+                                tooltip: 'حذف الرقم',
+                                onPressed: () => _removePhoneNumber(i),
+                                icon: const Icon(Icons.delete_outline),
+                                color: AppColors.error,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: OutlinedButton.icon(
+                              onPressed: _addPhoneNumber,
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('إضافة رقم هاتف'),
+                            ),
                           ),
                         ],
                       ),
@@ -247,8 +308,11 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
       brand: _brandController.text.trim(),
       model: _modelController.text.trim(),
       customerName: _customerController.text.trim(),
-      phoneNumbers: [_phoneController.text.trim()],
-      receivedBy: 'TechID: Admin_042',
+      phoneNumbers: _phoneControllers
+          .map((controller) => controller.text.trim())
+          .where((phone) => phone.isNotEmpty)
+          .toList(),
+      receivedBy: _receivedByName.text.trim(),
       status: DeviceStatus.pending,
       problemDescription: _problemController.text.trim(),
       internalNotes: _notesController.text.trim(),
@@ -256,6 +320,21 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
     );
 
     context.read<DevicesCubit>().addDevice(device);
+  }
+
+  void _addPhoneNumber() {
+    setState(() => _phoneControllers.add(TextEditingController()));
+  }
+
+  void _removePhoneNumber(int index) {
+    if (_phoneControllers.length == 1) {
+      _phoneControllers.first.clear();
+      return;
+    }
+
+    final controller = _phoneControllers.removeAt(index);
+    controller.dispose();
+    setState(() {});
   }
 }
 
@@ -403,50 +482,6 @@ class _ResponsiveFields extends StatelessWidget {
   }
 }
 
-class _ReadOnlyInfo extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _ReadOnlyInfo({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _FieldLabel(label),
-        const SizedBox(height: AppSpacing.xs),
-        Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(AppSpacing.xs),
-            border: Border.all(color: AppColors.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: AppColors.onSurfaceVariant),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                value,
-                style: AppTextStyles.labelStrong.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _FormField extends StatelessWidget {
   final String label;
   final String hint;
@@ -454,6 +489,7 @@ class _FormField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final String? Function(String?)? validator;
+  final Widget? trailing;
 
   const _FormField({
     required this.label,
@@ -462,6 +498,7 @@ class _FormField extends StatelessWidget {
     this.keyboardType,
     this.maxLines = 1,
     this.validator,
+    this.trailing,
   });
 
   @override
@@ -471,36 +508,49 @@ class _FormField extends StatelessWidget {
       children: [
         _FieldLabel(label),
         const SizedBox(height: AppSpacing.xs),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: AppColors.surfaceContainer,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.md,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                keyboardType: keyboardType,
+                maxLines: maxLines,
+                validator: validator,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  filled: true,
+                  fillColor: AppColors.surfaceContainer,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.md,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                      color: AppColors.outlineVariant,
+                    ),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: AppColors.secondary),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: AppColors.error),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: AppColors.error),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  ),
+                ),
+              ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.secondary),
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.error),
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.error),
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
-            ),
-          ),
+            if (trailing != null) ...[
+              const SizedBox(width: AppSpacing.sm),
+              SizedBox(height: 48, child: trailing!),
+            ],
+          ],
         ),
       ],
     );
@@ -515,5 +565,109 @@ class _FieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(label, style: AppTextStyles.labelStrong);
+  }
+}
+
+class _DateField extends StatelessWidget {
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
+
+  const _DateField({
+    required this.label,
+    required this.hint,
+    required this.controller,
+    this.validator,
+  });
+
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+
+    DateTime initialDate = now;
+
+    if (controller.text.isNotEmpty) {
+      try {
+        initialDate = DateTime.parse(controller.text);
+      } catch (_) {}
+    }
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.secondary,
+              onPrimary: Colors.white,
+              surface: AppColors.surfaceContainer,
+              onSurface: AppColors.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final formatted =
+          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+
+      controller.text = formatted;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(label),
+        const SizedBox(height: AppSpacing.xs),
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          readOnly: true,
+          onTap: () => _pickDate(context),
+          style: AppTextStyles.body,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: AppColors.surfaceContainer,
+            suffixIcon: const Icon(
+              Icons.calendar_today_outlined,
+              size: 18,
+              //color: AppColors.caption,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderSide: const BorderSide(color: AppColors.outlineVariant),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderSide: const BorderSide(
+                color: AppColors.secondary,
+                width: 1.4,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.4),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
