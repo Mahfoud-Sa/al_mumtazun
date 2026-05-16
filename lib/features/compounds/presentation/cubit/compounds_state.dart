@@ -34,6 +34,24 @@ class CompoundsLoaded extends CompoundsState {
     this.isSubmitting = false,
   });
 
+  CompoundsLoaded copyWith({
+    List<Compound>? compounds,
+    int? page,
+    int? size,
+    int? totalCount,
+    int? totalPages,
+    bool? isSubmitting,
+  }) {
+    return CompoundsLoaded(
+      compounds: compounds ?? this.compounds,
+      page: page ?? this.page,
+      size: size ?? this.size,
+      totalCount: totalCount ?? this.totalCount,
+      totalPages: totalPages ?? this.totalPages,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+    );
+  }
+
   @override
   List<Object?> get props => [
     compounds,

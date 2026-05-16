@@ -10,4 +10,6 @@ abstract class CompoundRepository {
     required int size,
   });
   Future<Either<Failure, Compound>> create(Compound compound);
+  Future<Either<Failure, Compound>> update(Compound compound);
+  Future<Either<Failure, void>> delete(int id);
 }

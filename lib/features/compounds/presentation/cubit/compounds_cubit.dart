@@ -2,19 +2,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/compound.dart';
 import '../../domain/usecases/create_compound_usecase.dart';
+import '../../domain/usecases/delete_compound_usecase.dart';
 import '../../domain/usecases/get_compounds_usecase.dart';
+import '../../domain/usecases/update_compound_usecase.dart';
 import 'compounds_state.dart';
 
 class CompoundsCubit extends Cubit<CompoundsState> {
   final GetCompoundsUseCase getCompounds;
   final CreateCompoundUseCase createCompound;
+  final UpdateCompoundUseCase updateCompound;
+  final DeleteCompoundUseCase deleteCompound;
   static const int defaultPageSize = 10;
 
   int _currentPage = 1;
   int _currentSize = defaultPageSize;
 
-  CompoundsCubit({required this.getCompounds, required this.createCompound})
-    : super(const CompoundsInitial());
+  CompoundsCubit({
+    required this.getCompounds,
+    required this.createCompound,
+    required this.updateCompound,
+    required this.deleteCompound,
+  }) : super(const CompoundsInitial());
 
   Future<void> fetch({int? page, int? size}) async {
     final requestedPage = page ?? _currentPage;
@@ -78,6 +86,62 @@ class CompoundsCubit extends Cubit<CompoundsState> {
       },
       (_) async {
         await fetch();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> editCompound(Compound compound) async {
+    final current = state;
+    final currentLoaded = current is CompoundsLoaded ? current : null;
+
+    if (currentLoaded != null) {
+      emit(currentLoaded.copyWith(isSubmitting: true));
+    }
+
+    final result = await updateCompound(compound);
+    return result.fold<Future<bool>>(
+      (failure) async {
+        if (currentLoaded != null) {
+          emit(currentLoaded.copyWith(isSubmitting: false));
+        } else {
+          emit(CompoundsError(failure.message));
+        }
+        return false;
+      },
+      (_) async {
+        await fetch(
+          page: currentLoaded?.page ?? _currentPage,
+          size: currentLoaded?.size ?? _currentSize,
+        );
+        return true;
+      },
+    );
+  }
+
+  Future<bool> removeCompound(int id) async {
+    final current = state;
+    final currentLoaded = current is CompoundsLoaded ? current : null;
+
+    if (currentLoaded != null) {
+      emit(currentLoaded.copyWith(isSubmitting: true));
+    }
+
+    final result = await deleteCompound(id);
+    return result.fold<Future<bool>>(
+      (failure) async {
+        if (currentLoaded != null) {
+          emit(currentLoaded.copyWith(isSubmitting: false));
+        } else {
+          emit(CompoundsError(failure.message));
+        }
+        return false;
+      },
+      (_) async {
+        await fetch(
+          page: currentLoaded?.page ?? _currentPage,
+          size: currentLoaded?.size ?? _currentSize,
+        );
         return true;
       },
     );

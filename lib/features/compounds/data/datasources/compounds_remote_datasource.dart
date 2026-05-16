@@ -7,6 +7,8 @@ import '../models/compound_model.dart';
 abstract class CompoundsRemoteDataSource {
   Future<CompoundPage> getCompounds({required int page, required int size});
   Future<CompoundModel> createCompound(CompoundModel compound);
+  Future<CompoundModel> updateCompound(CompoundModel compound);
+  Future<void> deleteCompound(int id);
 }
 
 class CompoundsRemoteDataSourceImpl implements CompoundsRemoteDataSource {
@@ -108,8 +110,49 @@ class CompoundsRemoteDataSourceImpl implements CompoundsRemoteDataSource {
     return compound;
   }
 
+  @override
+  Future<CompoundModel> updateCompound(CompoundModel compound) async {
+    final response = await client.put(
+      _compoundUri(compound.id),
+      headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+      body: jsonEncode(compound.toJson()),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
+    }
+
+    if (response.body.trim().isEmpty) return compound;
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) {
+      return CompoundModel.fromJson(decoded);
+    }
+
+    return compound;
+  }
+
+  @override
+  Future<void> deleteCompound(int id) async {
+    final response = await client.delete(
+      _compoundUri(id),
+      headers: {'accept': '*/*'},
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
+    }
+  }
+
   int _readInt(dynamic value, int fallback) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  Uri _compoundUri(int id) {
+    final path = baseUri.path.endsWith('/')
+        ? '${baseUri.path}$id'
+        : '${baseUri.path}/$id';
+    return baseUri.replace(path: path, queryParameters: null);
   }
 }

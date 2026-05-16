@@ -87,7 +87,7 @@ class _CompoundsHeader extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'إدارة سجلات المكونات وأسعار الخلايا والتواريخ المعتمدة.',
+                  'إدارة سجلات القطع وأسعار.',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.onSurfaceVariant,
@@ -138,21 +138,21 @@ class _SummaryRow extends StatelessWidget {
           builder: (context, constraints) {
             final isWide = constraints.maxWidth >= 720;
             final cards = [
-              _SummaryCard(
-                icon: Icons.category_outlined,
-                label: 'إجمالي المركبات',
-                value: totalCount.toString(),
-              ),
-              _SummaryCard(
-                icon: Icons.payments_outlined,
-                label: 'إجمالي سعر الخلية',
-                value: totalValue.toStringAsFixed(2),
-              ),
-              _SummaryCard(
-                icon: Icons.analytics_outlined,
-                label: 'متوسط سعر الخلية',
-                value: average.toStringAsFixed(2),
-              ),
+              // _SummaryCard(
+              //   icon: Icons.category_outlined,
+              //   label: 'إجمالي المركبات',
+              //   value: totalCount.toString(),
+              // ),
+              // _SummaryCard(
+              //   icon: Icons.payments_outlined,
+              //   label: 'إجمالي سعر الخلية',
+              //   value: totalValue.toStringAsFixed(2),
+              // ),
+              // _SummaryCard(
+              //   icon: Icons.analytics_outlined,
+              //   label: 'متوسط سعر الخلية',
+              //   value: average.toStringAsFixed(2),
+              // ),
             ];
 
             if (isWide) {
@@ -326,7 +326,7 @@ class _CompoundFormState extends State<_CompoundForm> {
                   Icon(Icons.add_box_outlined, color: AppColors.secondary),
                   SizedBox(width: 8),
                   Text(
-                    'إضافة مركب',
+                    'إضافة قطعة',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -338,7 +338,7 @@ class _CompoundFormState extends State<_CompoundForm> {
               const SizedBox(height: 24),
               _buildTextField(
                 label: 'الاسم',
-                hint: 'اسم المكون',
+                hint: 'اسم القطعة',
                 controller: _nameController,
                 validator: (value) =>
                     value == null || value.trim().isEmpty ? 'مطلوب' : null,
@@ -352,7 +352,7 @@ class _CompoundFormState extends State<_CompoundForm> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: 'سعر الخلية',
+                label: "سعر البيع",
                 hint: '0.00',
                 controller: _priceController,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -382,7 +382,7 @@ class _CompoundFormState extends State<_CompoundForm> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.save_outlined, size: 18),
-                      label: Text(isSubmitting ? 'جار الحفظ...' : 'حفظ المركب'),
+                      label: Text(isSubmitting ? 'جار الحفظ...' : 'حفظ القطعة'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondary,
                         foregroundColor: Colors.white,
@@ -507,7 +507,7 @@ class _CompoundFormState extends State<_CompoundForm> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success ? 'تم حفظ المركب بنجاح' : 'فشل حفظ المركب'),
+        content: Text(success ? 'تم حفظ القطعة بنجاح' : 'فشل حفظ القطعة'),
       ),
     );
 
@@ -545,7 +545,7 @@ class _CompoundsTable extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'المركبات',
+                  'القطع',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -619,7 +619,7 @@ class _CompoundsTable extends StatelessWidget {
                       padding: EdgeInsets.all(32),
                       child: Center(
                         child: Text(
-                          'لا توجد مركبات.',
+                          'لا توجد قطع.',
                           style: TextStyle(color: AppColors.onSurfaceVariant),
                         ),
                       ),
@@ -643,8 +643,9 @@ class _CompoundsTable extends StatelessWidget {
                         DataColumn(label: Text('الرقم')),
                         DataColumn(label: Text('الاسم')),
                         DataColumn(label: Text('الوصف')),
-                        DataColumn(label: Text('سعر الخلية')),
+                        DataColumn(label: Text('سعر البيع')),
                         DataColumn(label: Text('التاريخ')),
+                        DataColumn(label: Text('الإجراءات')),
                       ],
                       rows: compounds.map((compound) {
                         return DataRow(
@@ -674,6 +675,60 @@ class _CompoundsTable extends StatelessWidget {
                               Text(compound.cellPrice.toStringAsFixed(2)),
                             ),
                             DataCell(Text(_formatDate(compound.date))),
+                            DataCell(
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: PopupMenuButton<String>(
+                                  icon: const Icon(
+                                    Icons.settings,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                  onSelected: (value) async {
+                                    if (value == 'update') {
+                                      await _showUpdateDialog(
+                                        context,
+                                        compound,
+                                      );
+                                      return;
+                                    }
+
+                                    if (value == 'delete') {
+                                      await _confirmDelete(context, compound);
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      value: 'update',
+                                      child: Row(
+                                        children: const [
+                                          Icon(
+                                            Icons.edit,
+                                            color: Colors.orange,
+                                            size: 20,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('تعديل'),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: const [
+                                          Icon(
+                                            Icons.delete_outline,
+                                            color: AppColors.error,
+                                            size: 20,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('حذف'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         );
                       }).toList(),
@@ -692,6 +747,183 @@ class _CompoundsTable extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return date.toIso8601String().split('T').first;
+  }
+
+  Future<void> _showUpdateDialog(
+    BuildContext context,
+    Compound compound,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: compound.name);
+    final descriptionController = TextEditingController(
+      text: compound.description ?? '',
+    );
+    final priceController = TextEditingController(
+      text: compound.cellPrice.toStringAsFixed(2),
+    );
+    final dateController = TextEditingController(
+      text: _formatDate(compound.date),
+    );
+
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('تعديل القطعة'),
+            content: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(labelText: 'الاسم'),
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                            ? 'مطلوب'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: descriptionController,
+                        decoration: const InputDecoration(labelText: 'الوصف'),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: priceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'سعر البيع',
+                        ),
+                        validator: (value) {
+                          final price = double.tryParse(value?.trim() ?? '');
+                          return price == null || price < 0
+                              ? 'أدخل سعرا صحيحا'
+                              : null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: dateController,
+                        readOnly: true,
+                        decoration: const InputDecoration(labelText: 'التاريخ'),
+                        validator: (value) =>
+                            DateTime.tryParse(value?.trim() ?? '') == null
+                            ? 'مطلوب'
+                            : null,
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: dialogContext,
+                            initialDate:
+                                DateTime.tryParse(dateController.text) ??
+                                compound.date,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                            helpText: 'اختر التاريخ',
+                            cancelText: 'إلغاء',
+                            confirmText: 'اختيار',
+                          );
+                          if (picked != null) {
+                            dateController.text = _formatDate(picked);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (!formKey.currentState!.validate()) return;
+
+                  final updated = Compound(
+                    id: compound.id,
+                    name: nameController.text.trim(),
+                    description: descriptionController.text.trim().isEmpty
+                        ? null
+                        : descriptionController.text.trim(),
+                    cellPrice: double.parse(priceController.text.trim()),
+                    date: DateTime.parse(dateController.text.trim()),
+                  );
+
+                  final success = await context
+                      .read<CompoundsCubit>()
+                      .editCompound(updated);
+
+                  if (!dialogContext.mounted) return;
+                  Navigator.pop(dialogContext);
+
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success ? 'تم تحديث القطعة' : 'فشل تحديث القطعة',
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('حفظ'),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      descriptionController.dispose();
+      priceController.dispose();
+      dateController.dispose();
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context, Compound compound) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('حذف القطعة'),
+          content: Text('هل تريد حذف "${compound.name}"؟'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('حذف'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await context.read<CompoundsCubit>().removeCompound(
+      compound.id,
+    );
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(success ? 'تم حذف القطعة' : 'فشل حذف القطعة')),
+    );
   }
 }
 

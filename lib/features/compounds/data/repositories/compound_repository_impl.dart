@@ -25,6 +25,28 @@ class CompoundRepositoryImpl implements CompoundRepository {
   }
 
   @override
+  Future<Either<Failure, Compound>> update(Compound compound) async {
+    try {
+      final updated = await remote.updateCompound(
+        CompoundModel.fromEntity(compound),
+      );
+      return Right(updated);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> delete(int id) async {
+    try {
+      await remote.deleteCompound(id);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, CompoundPage>> getAll({
     required int page,
     required int size,

@@ -24,7 +24,9 @@ import '../features/compounds/data/datasources/compounds_remote_datasource.dart'
 import '../features/compounds/data/repositories/compound_repository_impl.dart';
 import '../features/compounds/domain/repositories/compound_repository.dart';
 import '../features/compounds/domain/usecases/create_compound_usecase.dart';
+import '../features/compounds/domain/usecases/delete_compound_usecase.dart';
 import '../features/compounds/domain/usecases/get_compounds_usecase.dart';
+import '../features/compounds/domain/usecases/update_compound_usecase.dart';
 import '../features/compounds/presentation/cubit/compounds_cubit.dart';
 
 // Incomes
@@ -125,10 +127,18 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<CreateCompoundUseCase>(
     () => CreateCompoundUseCase(getIt<CompoundRepository>()),
   );
+  getIt.registerLazySingleton<UpdateCompoundUseCase>(
+    () => UpdateCompoundUseCase(getIt<CompoundRepository>()),
+  );
+  getIt.registerLazySingleton<DeleteCompoundUseCase>(
+    () => DeleteCompoundUseCase(getIt<CompoundRepository>()),
+  );
   getIt.registerFactory<CompoundsCubit>(
     () => CompoundsCubit(
       getCompounds: getIt<GetCompoundsUseCase>(),
       createCompound: getIt<CreateCompoundUseCase>(),
+      updateCompound: getIt<UpdateCompoundUseCase>(),
+      deleteCompound: getIt<DeleteCompoundUseCase>(),
     ),
   );
 
