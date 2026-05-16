@@ -94,7 +94,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       const _PageTitle(),
                       const SizedBox(height: AppSpacing.xxl),
                       _SectionCard(
-                        title: "بيانات المستلم",
+                        title: "01.بيانات المستلم",
                         icon: Icons.import_contacts,
                         children: [
                           _FormField(
@@ -119,7 +119,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       const SizedBox(height: AppSpacing.xl),
 
                       _SectionCard(
-                        title: '01. بيانات العميل',
+                        title: '02. بيانات العميل',
                         icon: Icons.person_outline,
                         children: [
                           _ResponsiveFields(
@@ -179,7 +179,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       _SectionCard(
-                        title: '02. معلومات الجهاز',
+                        title: '03. معلومات الجهاز',
                         icon: Icons.devices_other_outlined,
                         children: [
                           _ResponsiveFields(
@@ -209,7 +209,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       _SectionCard(
-                        title: '03. التشخيص وملاحظات الاستلام',
+                        title: '04. التشخيص وملاحظات الاستلام',
                         icon: Icons.assignment_outlined,
                         children: [
                           _FormField(
@@ -223,8 +223,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                           const SizedBox(height: AppSpacing.lg),
                           _FormField(
                             label: 'ملاحظات داخلية إضافية',
-                            hint:
-                                'مكان التخزين أو درجة الاستعجال أو الأدوات المطلوبة.',
+                            hint: 'ملاحظات خاصة بفريق الصيانة (اختياري)...',
                             controller: _notesController,
                             maxLines: 2,
                           ),
@@ -273,7 +272,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       const Text(
-                        'بالضغط على تسجيل، أنت تؤكد أن البيانات مطابقة لسجلات الاستلام الورقية.',
+                        "بالضبط، هذا النموذج يلتقط كل التفاصيل اللازمة لاستلام الجهاز بدقة، مما يسهل على فريق الصيانة فهم المشكلة وتقديم خدمة سريعة وفعالة.",
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
