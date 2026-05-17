@@ -13,6 +13,7 @@ class DeviceModel extends Device {
     required super.status,
     required super.problemDescription,
     required super.internalNotes,
+    super.engineerNote,
     required super.createdAt,
   });
 
@@ -29,6 +30,7 @@ class DeviceModel extends Device {
       status: device.status,
       problemDescription: device.problemDescription,
       internalNotes: device.internalNotes,
+      engineerNote: device.engineerNote,
       createdAt: device.createdAt,
     );
   }
@@ -55,6 +57,7 @@ class DeviceModel extends Device {
       problemDescription: json['problemDescription']?.toString() ?? '',
       internalNotes:
           json['notes']?.toString() ?? json['internalNotes']?.toString() ?? '',
+      engineerNote: json['engineerNote']?.toString() ?? '',
       createdAt:
           DateTime.tryParse(receivedDate?.toString() ?? '') ?? DateTime.now(),
     );
@@ -73,6 +76,7 @@ class DeviceModel extends Device {
       'status': status.name,
       'problemDescription': problemDescription,
       'internalNotes': internalNotes,
+      'engineerNote': engineerNote,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -82,11 +86,28 @@ class DeviceModel extends Device {
       'customerName': customerName,
       'receivedByUserName': receivedBy,
       'deviceName': name,
+      'engineerNote': engineerNote,
       'brand': brand,
       'model': model,
       'problemDescription': problemDescription,
       'notes': internalNotes,
       'status': _statusToApi(status),
+      'receivedDate': createdAt.toUtc().toIso8601String(),
+      'expectedCost': 0,
+      'finalCost': 0,
+    };
+  }
+
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      'customerName': customerName,
+      'receivedByUserName': receivedBy,
+      'deviceName': name,
+      'engineerNote': engineerNote,
+      'brand': brand,
+      'model': model,
+      'problemDescription': problemDescription,
+      'notes': internalNotes,
       'receivedDate': createdAt.toUtc().toIso8601String(),
       'expectedCost': 0,
       'finalCost': 0,

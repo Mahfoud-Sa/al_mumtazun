@@ -23,6 +23,16 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }
 
   @override
+  Future<Either<Failure, Device>> updateDevice(Device device) async {
+    try {
+      final updated = await remote.updateDevice(DeviceModel.fromEntity(device));
+      return Right(updated);
+    } catch (error) {
+      return Left(ServerFailure(error.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> changeStatus({
     required String id,
     required DeviceStatus status,

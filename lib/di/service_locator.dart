@@ -37,6 +37,13 @@ import '../features/incomes/domain/usecases/create_income_usecase.dart';
 import '../features/incomes/domain/usecases/get_income_engineers_usecase.dart';
 import '../features/incomes/presentation/cubit/incomes_cubit.dart';
 
+// Invoices
+import '../features/invoices/data/datasources/invoices_remote_datasource.dart';
+import '../features/invoices/data/repositories/invoice_repository_impl.dart';
+import '../features/invoices/domain/repositories/invoice_repository.dart';
+import '../features/invoices/domain/usecases/get_invoices_usecase.dart';
+import '../features/invoices/presentation/cubit/invoices_cubit.dart';
+
 // Devices
 import '../features/devices/data/datasources/device_users_remote_datasource.dart';
 import '../features/devices/data/datasources/devices_remote_datasource.dart';
@@ -49,6 +56,7 @@ import '../features/devices/domain/usecases/change_device_status_usecase.dart';
 import '../features/devices/domain/usecases/create_device_usecase.dart';
 import '../features/devices/domain/usecases/get_device_users_usecase.dart';
 import '../features/devices/domain/usecases/get_devices_usecase.dart';
+import '../features/devices/domain/usecases/update_device_usecase.dart';
 import '../features/devices/presentation/cubit/device_details_cubit.dart';
 import '../features/devices/presentation/cubit/devices_cubit.dart';
 
@@ -163,6 +171,20 @@ Future<void> configureDependencies() async {
     ),
   );
 
+  // Invoices
+  getIt.registerLazySingleton<InvoicesRemoteDataSource>(
+    () => InvoicesRemoteDataSourceImpl(getIt<AppHttpClient>()),
+  );
+  getIt.registerLazySingleton<InvoiceRepository>(
+    () => InvoiceRepositoryImpl(getIt<InvoicesRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetInvoicesUseCase>(
+    () => GetInvoicesUseCase(getIt<InvoiceRepository>()),
+  );
+  getIt.registerFactory<InvoicesCubit>(
+    () => InvoicesCubit(getInvoices: getIt<GetInvoicesUseCase>()),
+  );
+
   // Devices
   getIt.registerLazySingleton<DevicesRemoteDataSource>(
     () => DevicesRemoteDataSourceImpl(getIt<AppHttpClient>()),
@@ -182,6 +204,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<CreateDeviceUseCase>(
     () => CreateDeviceUseCase(getIt<DeviceRepository>()),
   );
+  getIt.registerLazySingleton<UpdateDeviceUseCase>(
+    () => UpdateDeviceUseCase(getIt<DeviceRepository>()),
+  );
   getIt.registerLazySingleton<ChangeDeviceStatusUseCase>(
     () => ChangeDeviceStatusUseCase(getIt<DeviceRepository>()),
   );
@@ -198,6 +223,7 @@ Future<void> configureDependencies() async {
     (device, _) => DeviceDetailsCubit(
       device,
       changeDeviceStatus: getIt<ChangeDeviceStatusUseCase>(),
+      updateDevice: getIt<UpdateDeviceUseCase>(),
       getUsers: getIt<GetDeviceUsersUseCase>(),
     )..loadUsers(refresh: true),
   );

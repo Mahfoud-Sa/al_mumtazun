@@ -4,16 +4,19 @@ import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
 import '../../domain/usecases/change_device_status_usecase.dart';
 import '../../domain/usecases/get_device_users_usecase.dart';
+import '../../domain/usecases/update_device_usecase.dart';
 import 'device_details_state.dart';
 
 class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
   final ChangeDeviceStatusUseCase changeDeviceStatus;
+  final UpdateDeviceUseCase updateDevice;
   final GetDeviceUsersUseCase getUsers;
   static const int defaultUsersPageSize = 10;
 
   DeviceDetailsCubit(
     Device device, {
     required this.changeDeviceStatus,
+    required this.updateDevice,
     required this.getUsers,
   }) : super(DeviceDetailsState.initial(device));
 
@@ -147,21 +150,34 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
     emit(state.copyWith(discount: discount < 0 ? 0 : discount));
   }
 
-  void addEngineerNote(String text) {
+  Future<void> addEngineerNote(String text) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty || state.isSavingEngineerNote) return;
 
+    final previousDevice = state.device;
+    final updatedDevice = state.device.copyWith(engineerNote: trimmed);
     emit(
       state.copyWith(
-        engineerNotes: [
-          EngineerNote(
-            author: state.assignedEngineer,
-            text: trimmed,
-            createdAt: DateTime.now(),
-          ),
-          ...state.engineerNotes,
-        ],
+        device: updatedDevice,
+        isSavingEngineerNote: true,
+        clearEngineerNoteError: true,
       ),
+    );
+
+    final result = await updateDevice(
+      UpdateDeviceParams(device: updatedDevice),
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          device: previousDevice,
+          isSavingEngineerNote: false,
+          engineerNoteErrorMessage: failure.message,
+        ),
+      ),
+      (device) =>
+          emit(state.copyWith(device: device, isSavingEngineerNote: false)),
     );
   }
 

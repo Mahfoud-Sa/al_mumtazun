@@ -14,6 +14,7 @@ class Device extends Equatable {
   final DeviceStatus status;
   final String problemDescription;
   final String internalNotes;
+  final String engineerNote;
   final DateTime createdAt;
 
   const Device({
@@ -28,6 +29,7 @@ class Device extends Equatable {
     required this.status,
     required this.problemDescription,
     required this.internalNotes,
+    this.engineerNote = '',
     required this.createdAt,
   });
 
@@ -43,6 +45,7 @@ class Device extends Equatable {
     DeviceStatus? status,
     String? problemDescription,
     String? internalNotes,
+    String? engineerNote,
     DateTime? createdAt,
   }) {
     return Device(
@@ -57,6 +60,7 @@ class Device extends Equatable {
       status: status ?? this.status,
       problemDescription: problemDescription ?? this.problemDescription,
       internalNotes: internalNotes ?? this.internalNotes,
+      engineerNote: engineerNote ?? this.engineerNote,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -74,6 +78,7 @@ class Device extends Equatable {
     status,
     problemDescription,
     internalNotes,
+    engineerNote,
     createdAt,
   ];
 }

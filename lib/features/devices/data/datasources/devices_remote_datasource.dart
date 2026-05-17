@@ -8,6 +8,7 @@ import '../models/device_model.dart';
 abstract class DevicesRemoteDataSource {
   Future<DevicePage> getDevices({required int page, required int size});
   Future<DeviceModel> createDevice(DeviceModel device);
+  Future<DeviceModel> updateDevice(DeviceModel device);
   Future<void> changeStatus({required String id, required DeviceStatus status});
 }
 
@@ -109,6 +110,27 @@ class DevicesRemoteDataSourceImpl implements DevicesRemoteDataSource {
     final decoded = jsonDecode(response.body);
     if (decoded is Map<String, dynamic>) {
       return DeviceModel.fromJson(decoded);
+    }
+
+    return device;
+  }
+
+  @override
+  Future<DeviceModel> updateDevice(DeviceModel device) async {
+    if (int.tryParse(device.id) == null) {
+      throw Exception(
+        'Cannot update device before it has a server id. Refresh devices and try again.',
+      );
+    }
+
+    final response = await client.put(
+      baseUri.replace(path: '${baseUri.path}/${device.id}'),
+      headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+      body: jsonEncode(device.toUpdateJson()),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
     }
 
     return device;

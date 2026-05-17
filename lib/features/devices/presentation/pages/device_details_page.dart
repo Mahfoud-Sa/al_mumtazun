@@ -63,12 +63,19 @@ class _DeviceDetailsView extends StatelessWidget {
       body: SafeArea(
         child: BlocListener<DeviceDetailsCubit, DeviceDetailsState>(
           listenWhen: (previous, current) =>
-              previous.statusErrorMessage != current.statusErrorMessage &&
-              current.statusErrorMessage != null,
+              (previous.statusErrorMessage != current.statusErrorMessage &&
+                  current.statusErrorMessage != null) ||
+              (previous.engineerNoteErrorMessage !=
+                      current.engineerNoteErrorMessage &&
+                  current.engineerNoteErrorMessage != null),
           listener: (context, state) {
+            final message =
+                state.statusErrorMessage ?? state.engineerNoteErrorMessage;
+            if (message == null) return;
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.statusErrorMessage!),
+                content: Text(message),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -575,6 +582,7 @@ class _DiagnosticsSection extends StatefulWidget {
 class _DiagnosticsSectionState extends State<_DiagnosticsSection> {
   final TextEditingController _noteController = TextEditingController();
   String _draftNote = '';
+  bool _loadedInitialNote = false;
 
   @override
   void dispose() {
@@ -582,13 +590,22 @@ class _DiagnosticsSectionState extends State<_DiagnosticsSection> {
     super.dispose();
   }
 
-  void _submitNote() {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loadedInitialNote) return;
+
+    final note = context.read<DeviceDetailsCubit>().state.device.engineerNote;
+    _noteController.text = note;
+    _draftNote = note;
+    _loadedInitialNote = true;
+  }
+
+  Future<void> _submitNote() async {
     final note = _draftNote.trim();
     if (note.isEmpty) return;
 
-    context.read<DeviceDetailsCubit>().addEngineerNote(note);
-    _noteController.clear();
-    setState(() => _draftNote = '');
+    await context.read<DeviceDetailsCubit>().addEngineerNote(note);
   }
 
   @override
@@ -604,18 +621,10 @@ class _DiagnosticsSectionState extends State<_DiagnosticsSection> {
               _EngineerNoteInput(
                 controller: _noteController,
                 value: _draftNote,
+                isSaving: state.isSavingEngineerNote,
                 onChanged: (value) => setState(() => _draftNote = value),
                 onSubmit: _submitNote,
               ),
-              if (state.engineerNotes.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.lg),
-                ...state.engineerNotes.map(
-                  (note) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: _EngineerDiagnosticNoteCard(note: note),
-                  ),
-                ),
-              ],
             ],
           ),
         );
@@ -627,19 +636,21 @@ class _DiagnosticsSectionState extends State<_DiagnosticsSection> {
 class _EngineerNoteInput extends StatelessWidget {
   final TextEditingController controller;
   final String value;
+  final bool isSaving;
   final ValueChanged<String> onChanged;
   final VoidCallback onSubmit;
 
   const _EngineerNoteInput({
     required this.controller,
     required this.value,
+    required this.isSaving,
     required this.onChanged,
     required this.onSubmit,
   });
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit = value.trim().isNotEmpty;
+    final canSubmit = value.trim().isNotEmpty && !isSaving;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -669,43 +680,16 @@ class _EngineerNoteInput extends StatelessWidget {
             alignment: AlignmentDirectional.centerEnd,
             child: ElevatedButton.icon(
               onPressed: canSubmit ? onSubmit : null,
-              icon: const Icon(Icons.add_comment_outlined, size: 18),
-              label: const Text('إضافة ملاحظة'),
+              icon: isSaving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_outlined, size: 18),
+              label: Text(isSaving ? 'جاري الحفظ...' : 'حفظ الملاحظة'),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EngineerDiagnosticNoteCard extends StatelessWidget {
-  final EngineerNote note;
-
-  const _EngineerDiagnosticNoteCard({required this.note});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        border: Border.all(color: AppColors.outlineVariant),
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(note.author, style: AppTextStyles.labelStrong),
-              ),
-              Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(note.text, style: AppTextStyles.body),
         ],
       ),
     );

@@ -52,7 +52,7 @@ class DashboardScreen extends StatelessWidget {
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                l10n.appBarTitle,
+                                "لوحة التحكم",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
@@ -72,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
                       actions: [
                         if (isLarge || isMedium) ...[
                           _TopNavLink(
-                            label: l10n.dashboard,
+                            label: "لوحة التحكم",
                             selected: true,
                             onTap: () {},
                           ),
@@ -93,30 +93,30 @@ class DashboardScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                         ],
-                        IconButton(
-                          tooltip: l10n.language,
-                          onPressed: () => _showLanguageSheet(context),
-                          icon: const Icon(
-                            Icons.language,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceContainer,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: AppColors.outlineVariant,
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(999),
-                              child: const _ProfileAvatar(),
-                            ),
-                          ),
-                        ),
+                        // IconButton(
+                        //   tooltip: l10n.language,
+                        //   onPressed: () => _showLanguageSheet(context),
+                        //   icon: const Icon(
+                        //     Icons.language,
+                        //     color: AppColors.primary,
+                        //   ),
+                        // ),
+                        // Padding(
+                        //   padding: const EdgeInsets.symmetric(vertical: 10),
+                        //   child: DecoratedBox(
+                        //     decoration: BoxDecoration(
+                        //       color: AppColors.surfaceContainer,
+                        //       borderRadius: BorderRadius.circular(999),
+                        //       border: Border.all(
+                        //         color: AppColors.outlineVariant,
+                        //       ),
+                        //     ),
+                        //     child: ClipRRect(
+                        //       borderRadius: BorderRadius.circular(999),
+                        //       child: const _ProfileAvatar(),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                       bottom: PreferredSize(
                         preferredSize: const Size.fromHeight(1),

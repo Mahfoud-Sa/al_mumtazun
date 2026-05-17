@@ -3,21 +3,6 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
 
-class EngineerNote extends Equatable {
-  final String author;
-  final String text;
-  final DateTime createdAt;
-
-  const EngineerNote({
-    required this.author,
-    required this.text,
-    required this.createdAt,
-  });
-
-  @override
-  List<Object?> get props => [author, text, createdAt];
-}
-
 class BillComponent extends Equatable {
   final String name;
   final int quantity;
@@ -76,7 +61,6 @@ class DeviceDetailsState extends Equatable {
   final DateTime? deliveryDate;
   final String problemDescription;
   final String internalNotes;
-  final List<EngineerNote> engineerNotes;
   final List<BillComponent> components;
   final double repairLaborPrice;
   final double additionalCosts;
@@ -84,6 +68,8 @@ class DeviceDetailsState extends Equatable {
   final List<ActivityLogEntry> activityLog;
   final bool isChangingStatus;
   final String? statusErrorMessage;
+  final bool isSavingEngineerNote;
+  final String? engineerNoteErrorMessage;
 
   const DeviceDetailsState({
     required this.device,
@@ -101,7 +87,6 @@ class DeviceDetailsState extends Equatable {
     required this.deliveryDate,
     required this.problemDescription,
     required this.internalNotes,
-    required this.engineerNotes,
     required this.components,
     required this.repairLaborPrice,
     required this.additionalCosts,
@@ -109,6 +94,8 @@ class DeviceDetailsState extends Equatable {
     required this.activityLog,
     required this.isChangingStatus,
     required this.statusErrorMessage,
+    required this.isSavingEngineerNote,
+    required this.engineerNoteErrorMessage,
   });
 
   factory DeviceDetailsState.initial(Device device) {
@@ -131,7 +118,6 @@ class DeviceDetailsState extends Equatable {
       deliveryDate: device.createdAt.add(const Duration(days: 14)),
       problemDescription: device.problemDescription,
       internalNotes: device.internalNotes,
-      engineerNotes: const [],
       components: const [
         BillComponent(name: 'طقم جلدة الصمام الرئيسي', quantity: 1, price: 245),
         BillComponent(name: 'زيت هيدروليك صناعي', quantity: 2, price: 60),
@@ -141,6 +127,8 @@ class DeviceDetailsState extends Equatable {
       discount: 0,
       isChangingStatus: false,
       statusErrorMessage: null,
+      isSavingEngineerNote: false,
+      engineerNoteErrorMessage: null,
       activityLog: [
         ActivityLogEntry(
           title: 'تم تحديث الحالة',
@@ -186,7 +174,6 @@ class DeviceDetailsState extends Equatable {
     bool clearDeliveryDate = false,
     String? problemDescription,
     String? internalNotes,
-    List<EngineerNote>? engineerNotes,
     List<BillComponent>? components,
     double? repairLaborPrice,
     double? additionalCosts,
@@ -195,6 +182,9 @@ class DeviceDetailsState extends Equatable {
     bool? isChangingStatus,
     String? statusErrorMessage,
     bool clearStatusError = false,
+    bool? isSavingEngineerNote,
+    String? engineerNoteErrorMessage,
+    bool clearEngineerNoteError = false,
   }) {
     return DeviceDetailsState(
       device: device ?? this.device,
@@ -218,7 +208,6 @@ class DeviceDetailsState extends Equatable {
           : deliveryDate ?? this.deliveryDate,
       problemDescription: problemDescription ?? this.problemDescription,
       internalNotes: internalNotes ?? this.internalNotes,
-      engineerNotes: engineerNotes ?? this.engineerNotes,
       components: components ?? this.components,
       repairLaborPrice: repairLaborPrice ?? this.repairLaborPrice,
       additionalCosts: additionalCosts ?? this.additionalCosts,
@@ -228,6 +217,10 @@ class DeviceDetailsState extends Equatable {
       statusErrorMessage: clearStatusError
           ? null
           : statusErrorMessage ?? this.statusErrorMessage,
+      isSavingEngineerNote: isSavingEngineerNote ?? this.isSavingEngineerNote,
+      engineerNoteErrorMessage: clearEngineerNoteError
+          ? null
+          : engineerNoteErrorMessage ?? this.engineerNoteErrorMessage,
     );
   }
 
@@ -248,7 +241,6 @@ class DeviceDetailsState extends Equatable {
     deliveryDate,
     problemDescription,
     internalNotes,
-    engineerNotes,
     components,
     repairLaborPrice,
     additionalCosts,
@@ -256,5 +248,7 @@ class DeviceDetailsState extends Equatable {
     activityLog,
     isChangingStatus,
     statusErrorMessage,
+    isSavingEngineerNote,
+    engineerNoteErrorMessage,
   ];
 }

@@ -1,11 +1,12 @@
+import 'package:engineering_ops_dashboard/features/dashboard/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../localization/l10n.dart';
-import '../admin/admin_screen.dart';
 import '../compounds/presentation/pages/compounds_page.dart';
 import '../devices/presentation/pages/devices_page.dart';
 import '../incomes/presentation/pages/incomes_page.dart';
+import '../invoices/presentation/pages/invoice_page.dart';
 import 'app_drawer.dart';
 import 'state/home_cubit.dart';
 
@@ -32,8 +33,9 @@ class _HomeShellState extends State<HomeShell> {
     final l10n = context.l10n;
     final items = <_NavItem>[
       _NavItem(label: l10n.dashboard, icon: Icons.dashboard_outlined),
-      _NavItem(label: l10n.income, icon: Icons.payments_outlined),
+      //   _NavItem(label: l10n.income, icon: Icons.payments_outlined),
       _NavItem(label: "الاجهزة", icon: Icons.inventory_2_outlined),
+      _NavItem(label: "الفواتير", icon: Icons.receipt_long_outlined),
       _NavItem(label: "القطع", icon: Icons.engineering_outlined),
       //      _NavItem(label: l10n.admin, icon: Icons.settings_outlined),
     ];
@@ -50,9 +52,11 @@ class _HomeShellState extends State<HomeShell> {
             body: IndexedStack(
               index: index,
               children: [
-                _ComingSoon(title: l10n.dashboard),
-                const IncomesPage(),
+                DashboardScreen(),
+                // _ComingSoon(title: l10n.dashboard),
+                //    const IncomesPage(),
                 const DevicesPage(),
+                const InvoiceIndexPage(),
                 const CompoundsPage(),
                 //    const AdminScreen(),
               ],
