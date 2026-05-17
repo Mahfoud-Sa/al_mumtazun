@@ -36,6 +36,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboardInsights => 'مؤشرات لوحة التحكم';
 
   @override
+  String get dashboardOverview => 'نظرة عامة على لوحة التحكم';
+
+  @override
   String get weekly => 'أسبوعي';
 
   @override
@@ -91,6 +94,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get criticalEngineeringLogs => 'سجلات هندسية حرجة';
+
+  @override
+  String get engineeringOverview => 'نظرة عامة هندسية';
+
+  @override
+  String get components => 'القطع';
+
+  @override
+  String get invoices => 'الفواتير';
+
+  @override
+  String get received => 'تم الاستلام';
+
+  @override
+  String get waiting => 'قيد الانتظار';
+
+  @override
+  String get inMaintenance => 'قيد الصيانة';
+
+  @override
+  String get completed => 'مكتمل';
+
+  @override
+  String get delivered => 'تم التسليم';
+
+  @override
+  String get thisMonth => 'هذا الشهر';
+
+  @override
+  String get incomeChart => 'مخطط الدخل';
+
+  @override
+  String get deviceOverheatingDetected => 'تم رصد ارتفاع حرارة جهاز';
+
+  @override
+  String get deviceOverheatingSubtitle => 'الجهاز #A21 في غرفة الصيانة';
+
+  @override
+  String get lowStockAlert => 'تنبيه انخفاض المخزون';
+
+  @override
+  String get lowStockSubtitle => 'قطع الغيار أقل من الحد المطلوب';
+
+  @override
+  String get repairCompleted => 'اكتمل الإصلاح';
+
+  @override
+  String get repairCompletedSubtitle => 'تم إصلاح الجهاز #B11 بنجاح';
 
   @override
   String get viewAll => 'عرض الكل';

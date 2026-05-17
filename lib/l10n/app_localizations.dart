@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'Dashboard Insights'**
   String get dashboardInsights;
 
+  /// No description provided for @dashboardOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard Overview'**
+  String get dashboardOverview;
+
   /// No description provided for @weekly.
   ///
   /// In en, this message translates to:
@@ -265,6 +271,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Critical Engineering Logs'**
   String get criticalEngineeringLogs;
+
+  /// No description provided for @engineeringOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Engineering Overview'**
+  String get engineeringOverview;
+
+  /// No description provided for @components.
+  ///
+  /// In en, this message translates to:
+  /// **'Components'**
+  String get components;
+
+  /// No description provided for @invoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices'**
+  String get invoices;
+
+  /// No description provided for @received.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get received;
+
+  /// No description provided for @waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get waiting;
+
+  /// No description provided for @inMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'In Maintenance'**
+  String get inMaintenance;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @delivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get delivered;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @incomeChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Income Chart'**
+  String get incomeChart;
+
+  /// No description provided for @deviceOverheatingDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Device overheating detected'**
+  String get deviceOverheatingDetected;
+
+  /// No description provided for @deviceOverheatingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device #A21 in maintenance room'**
+  String get deviceOverheatingSubtitle;
+
+  /// No description provided for @lowStockAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock alert'**
+  String get lowStockAlert;
+
+  /// No description provided for @lowStockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spare parts below threshold'**
+  String get lowStockSubtitle;
+
+  /// No description provided for @repairCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair completed'**
+  String get repairCompleted;
+
+  /// No description provided for @repairCompletedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device #B11 successfully fixed'**
+  String get repairCompletedSubtitle;
 
   /// No description provided for @viewAll.
   ///

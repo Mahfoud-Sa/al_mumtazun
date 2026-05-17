@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardInsights => 'Dashboard Insights';
 
   @override
+  String get dashboardOverview => 'Dashboard Overview';
+
+  @override
   String get weekly => 'Weekly';
 
   @override
@@ -91,6 +94,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get criticalEngineeringLogs => 'Critical Engineering Logs';
+
+  @override
+  String get engineeringOverview => 'Engineering Overview';
+
+  @override
+  String get components => 'Components';
+
+  @override
+  String get invoices => 'Invoices';
+
+  @override
+  String get received => 'Received';
+
+  @override
+  String get waiting => 'Waiting';
+
+  @override
+  String get inMaintenance => 'In Maintenance';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get delivered => 'Delivered';
+
+  @override
+  String get thisMonth => 'This Month';
+
+  @override
+  String get incomeChart => 'Income Chart';
+
+  @override
+  String get deviceOverheatingDetected => 'Device overheating detected';
+
+  @override
+  String get deviceOverheatingSubtitle => 'Device #A21 in maintenance room';
+
+  @override
+  String get lowStockAlert => 'Low stock alert';
+
+  @override
+  String get lowStockSubtitle => 'Spare parts below threshold';
+
+  @override
+  String get repairCompleted => 'Repair completed';
+
+  @override
+  String get repairCompletedSubtitle => 'Device #B11 successfully fixed';
 
   @override
   String get viewAll => 'View All';
