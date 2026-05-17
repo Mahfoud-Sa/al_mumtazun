@@ -1,14 +1,28 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_page.dart';
 import '../../domain/repositories/invoice_repository.dart';
 import '../datasources/invoices_remote_datasource.dart';
+import '../models/invoice_model.dart';
 
 class InvoiceRepositoryImpl implements InvoiceRepository {
   final InvoicesRemoteDataSource remote;
 
   InvoiceRepositoryImpl(this.remote);
+
+  @override
+  Future<Either<Failure, Invoice>> createInvoice(Invoice invoice) async {
+    try {
+      final created = await remote.createInvoice(
+        InvoiceModel.fromEntity(invoice),
+      );
+      return Right(created);
+    } catch (error) {
+      return Left(ServerFailure(error.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, InvoicePage>> getInvoices({

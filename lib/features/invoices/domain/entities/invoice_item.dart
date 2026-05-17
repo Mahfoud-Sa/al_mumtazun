@@ -17,6 +17,24 @@ class InvoiceItem extends Equatable {
     required this.unitPrice,
   });
 
+  InvoiceItem copyWith({
+    int? id,
+    int? invoiceId,
+    int? sparePartId,
+    String? sparePartName,
+    int? quantity,
+    double? unitPrice,
+  }) {
+    return InvoiceItem(
+      id: id ?? this.id,
+      invoiceId: invoiceId ?? this.invoiceId,
+      sparePartId: sparePartId ?? this.sparePartId,
+      sparePartName: sparePartName ?? this.sparePartName,
+      quantity: quantity ?? this.quantity,
+      unitPrice: unitPrice ?? this.unitPrice,
+    );
+  }
+
   double get total => quantity * unitPrice;
 
   @override

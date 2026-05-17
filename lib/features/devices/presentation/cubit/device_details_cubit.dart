@@ -5,11 +5,15 @@ import '../../domain/entities/device_user.dart';
 import '../../domain/usecases/change_device_status_usecase.dart';
 import '../../domain/usecases/get_device_users_usecase.dart';
 import '../../domain/usecases/update_device_usecase.dart';
+import '../../../invoices/domain/entities/invoice.dart';
+import '../../../invoices/domain/entities/invoice_item.dart';
+import '../../../invoices/domain/usecases/create_invoice_usecase.dart';
 import 'device_details_state.dart';
 
 class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
   final ChangeDeviceStatusUseCase changeDeviceStatus;
   final UpdateDeviceUseCase updateDevice;
+  final CreateInvoiceUseCase createInvoice;
   final GetDeviceUsersUseCase getUsers;
   static const int defaultUsersPageSize = 10;
 
@@ -17,6 +21,7 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
     Device device, {
     required this.changeDeviceStatus,
     required this.updateDevice,
+    required this.createInvoice,
     required this.getUsers,
   }) : super(DeviceDetailsState.initial(device));
 
@@ -181,42 +186,137 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
     );
   }
 
-  void addComponent(BillComponent component) {
-    final existingIndex = state.components.indexWhere(
-      (item) => item.name == component.name && item.price == component.price,
+  Future<void> exportInvoice() async {
+    if (state.isCreatingInvoice) return;
+
+    final deviceId = int.tryParse(state.device.id);
+    if (deviceId == null) {
+      emit(
+        state.copyWith(
+          invoiceErrorMessage: 'لا يمكن إنشاء الفاتورة قبل تحديث بيانات الجهاز',
+          invoiceCreated: false,
+        ),
+      );
+      return;
+    }
+
+    final invoiceItems = _invoiceItemsForSubmission();
+    if (invoiceItems.isEmpty) {
+      emit(
+        state.copyWith(
+          invoiceErrorMessage: 'أضف عنصرًا واحدًا على الأقل قبل تصدير الفاتورة',
+          invoiceCreated: false,
+        ),
+      );
+      return;
+    }
+
+    final invoice = Invoice(
+      id: 0,
+      deviceId: deviceId,
+      device: state.device,
+      customerId: 0,
+      date: DateTime.now(),
+      discount: state.discount,
+      items: invoiceItems,
+    );
+
+    emit(
+      state.copyWith(
+        isCreatingInvoice: true,
+        clearInvoiceError: true,
+        invoiceCreated: false,
+      ),
+    );
+
+    final result = await createInvoice(CreateInvoiceParams(invoice: invoice));
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          isCreatingInvoice: false,
+          invoiceErrorMessage: failure.message,
+          invoiceCreated: false,
+        ),
+      ),
+      (_) => emit(
+        state.copyWith(
+          isCreatingInvoice: false,
+          clearInvoiceError: true,
+          invoiceCreated: true,
+        ),
+      ),
+    );
+  }
+
+  void addInvoiceItem(InvoiceItem item) {
+    final existingIndex = state.invoiceItems.indexWhere(
+      (current) =>
+          current.sparePartId == item.sparePartId &&
+          current.sparePartName == item.sparePartName &&
+          current.unitPrice == item.unitPrice,
     );
 
     if (existingIndex == -1) {
-      emit(state.copyWith(components: [...state.components, component]));
+      emit(state.copyWith(invoiceItems: [...state.invoiceItems, item]));
       return;
     }
 
-    final components = [...state.components];
-    final existing = components[existingIndex];
-    components[existingIndex] = existing.copyWith(
-      quantity: existing.quantity + component.quantity,
+    final invoiceItems = [...state.invoiceItems];
+    final existing = invoiceItems[existingIndex];
+    invoiceItems[existingIndex] = existing.copyWith(
+      quantity: existing.quantity + item.quantity,
     );
-    emit(state.copyWith(components: components));
+    emit(state.copyWith(invoiceItems: invoiceItems));
   }
 
-  void updateComponentQuantity(int index, int quantity) {
-    if (index < 0 || index >= state.components.length) return;
+  void updateInvoiceItemQuantity(int index, int quantity) {
+    if (index < 0 || index >= state.invoiceItems.length) return;
 
     if (quantity <= 0) {
-      removeComponent(index);
+      removeInvoiceItem(index);
       return;
     }
 
-    final components = [...state.components];
-    components[index] = components[index].copyWith(quantity: quantity);
-    emit(state.copyWith(components: components));
+    final invoiceItems = [...state.invoiceItems];
+    invoiceItems[index] = invoiceItems[index].copyWith(quantity: quantity);
+    emit(state.copyWith(invoiceItems: invoiceItems));
   }
 
-  void removeComponent(int index) {
-    if (index < 0 || index >= state.components.length) return;
+  void removeInvoiceItem(int index) {
+    if (index < 0 || index >= state.invoiceItems.length) return;
 
-    final components = [...state.components]..removeAt(index);
-    emit(state.copyWith(components: components));
+    final invoiceItems = [...state.invoiceItems]..removeAt(index);
+    emit(state.copyWith(invoiceItems: invoiceItems));
+  }
+
+  List<InvoiceItem> _invoiceItemsForSubmission() {
+    final items = <InvoiceItem>[...state.invoiceItems];
+    if (state.repairLaborPrice > 0) {
+      items.add(
+        InvoiceItem(
+          id: 0,
+          invoiceId: 0,
+          sparePartId: null,
+          sparePartName: 'أجرة الصيانة',
+          quantity: 1,
+          unitPrice: state.repairLaborPrice,
+        ),
+      );
+    }
+    if (state.additionalCosts > 0) {
+      items.add(
+        InvoiceItem(
+          id: 0,
+          invoiceId: 0,
+          sparePartId: null,
+          sparePartName: 'تكاليف إضافية',
+          quantity: 1,
+          unitPrice: state.additionalCosts,
+        ),
+      );
+    }
+    return items;
   }
 
   String _statusLabel(DeviceStatus status) {

@@ -13,6 +13,18 @@ class InvoiceModel extends Invoice {
     required super.items,
   });
 
+  factory InvoiceModel.fromEntity(Invoice invoice) {
+    return InvoiceModel(
+      id: invoice.id,
+      deviceId: invoice.deviceId,
+      device: invoice.device,
+      customerId: invoice.customerId,
+      date: invoice.date,
+      discount: invoice.discount,
+      items: invoice.items,
+    );
+  }
+
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
     final device = json['device'];
     final items = json['items'];
@@ -33,6 +45,18 @@ class InvoiceModel extends Invoice {
                 .toList()
           : const [],
     );
+  }
+
+  Map<String, dynamic> toCreateJson() {
+    return {
+      'deviceId': deviceId,
+      'customerId': customerId,
+      'date': date.toUtc().toIso8601String(),
+      'discount': discount,
+      'items': items
+          .map((item) => InvoiceItemModel.fromEntity(item).toCreateJson())
+          .toList(),
+    };
   }
 
   static int _readInt(dynamic value, int fallback) {

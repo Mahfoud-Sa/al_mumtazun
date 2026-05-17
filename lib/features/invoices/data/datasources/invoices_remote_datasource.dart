@@ -8,6 +8,7 @@ import '../models/invoice_model.dart';
 
 abstract class InvoicesRemoteDataSource {
   Future<InvoicePage> getInvoices({required int page, required int size});
+  Future<InvoiceModel> createInvoice(InvoiceModel invoice);
 }
 
 class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
@@ -16,7 +17,39 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
 
   InvoicesRemoteDataSourceImpl(this.client, {Uri? baseUri})
     : baseUri =
-          baseUri ?? Uri.parse('http://al-mumtazun-api.runasp.net/api/Invoice');
+          baseUri ??
+          Uri.parse('http://al-mumtazun-api.runasp.net/api/Invoices');
+
+  @override
+  Future<InvoiceModel> createInvoice(InvoiceModel invoice) async {
+    final response = await client.post(
+      baseUri,
+      headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "deviceId": 1,
+        "customerId": 1,
+        "date": DateTime.now().toIso8601String(),
+        "discount": 5,
+        "items": [
+          {"quantity": 2, "unitPrice": 100},
+          {"quantity": 1, "unitPrice": 250},
+        ],
+      }), //jsonEncode(invoice.toCreateJson()),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
+    }
+
+    if (response.body.trim().isEmpty) return invoice;
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) {
+      return InvoiceModel.fromJson(decoded);
+    }
+
+    return invoice;
+  }
 
   @override
   Future<InvoicePage> getInvoices({
@@ -102,8 +135,11 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
       return response;
     }
 
+    final fallbackPath = baseUri.path.endsWith('Invoices')
+        ? baseUri.path.substring(0, baseUri.path.length - 1)
+        : '${baseUri.path}s';
     final fallbackUri = baseUri.replace(
-      path: baseUri.path.endsWith('s') ? baseUri.path : '${baseUri.path}s',
+      path: fallbackPath,
       queryParameters: queryParameters,
     );
     return client.get(fallbackUri, headers: {'accept': '*/*'});

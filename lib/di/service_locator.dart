@@ -41,6 +41,7 @@ import '../features/incomes/presentation/cubit/incomes_cubit.dart';
 import '../features/invoices/data/datasources/invoices_remote_datasource.dart';
 import '../features/invoices/data/repositories/invoice_repository_impl.dart';
 import '../features/invoices/domain/repositories/invoice_repository.dart';
+import '../features/invoices/domain/usecases/create_invoice_usecase.dart';
 import '../features/invoices/domain/usecases/get_invoices_usecase.dart';
 import '../features/invoices/presentation/cubit/invoices_cubit.dart';
 
@@ -181,6 +182,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<GetInvoicesUseCase>(
     () => GetInvoicesUseCase(getIt<InvoiceRepository>()),
   );
+  getIt.registerLazySingleton<CreateInvoiceUseCase>(
+    () => CreateInvoiceUseCase(getIt<InvoiceRepository>()),
+  );
   getIt.registerFactory<InvoicesCubit>(
     () => InvoicesCubit(getInvoices: getIt<GetInvoicesUseCase>()),
   );
@@ -224,6 +228,7 @@ Future<void> configureDependencies() async {
       device,
       changeDeviceStatus: getIt<ChangeDeviceStatusUseCase>(),
       updateDevice: getIt<UpdateDeviceUseCase>(),
+      createInvoice: getIt<CreateInvoiceUseCase>(),
       getUsers: getIt<GetDeviceUsersUseCase>(),
     )..loadUsers(refresh: true),
   );

@@ -10,6 +10,17 @@ class InvoiceItemModel extends InvoiceItem {
     required super.unitPrice,
   });
 
+  factory InvoiceItemModel.fromEntity(InvoiceItem item) {
+    return InvoiceItemModel(
+      id: item.id,
+      invoiceId: item.invoiceId,
+      sparePartId: item.sparePartId,
+      sparePartName: item.sparePartName,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    );
+  }
+
   factory InvoiceItemModel.fromJson(Map<String, dynamic> json) {
     final sparePart = json['sparePart'];
     final sparePartName = sparePart is Map<String, dynamic>
@@ -27,6 +38,15 @@ class InvoiceItemModel extends InvoiceItem {
       quantity: _readInt(json['quantity'], 0),
       unitPrice: _readDouble(json['unitPrice'], 0),
     );
+  }
+
+  Map<String, dynamic> toCreateJson() {
+    return {
+      'invoiceId': invoiceId,
+      if (sparePartId != null) 'sparePartId': sparePartId,
+      'quantity': quantity,
+      'unitPrice': unitPrice,
+    };
   }
 
   static int _readInt(dynamic value, int fallback) {

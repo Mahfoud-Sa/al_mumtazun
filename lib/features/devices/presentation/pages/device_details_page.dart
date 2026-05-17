@@ -10,6 +10,7 @@ import '../../../compounds/presentation/cubit/compounds_cubit.dart';
 import '../../../compounds/presentation/cubit/compounds_state.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
+import '../../../invoices/domain/entities/invoice_item.dart';
 import '../cubit/device_details_cubit.dart';
 import '../cubit/device_details_state.dart';
 
@@ -67,16 +68,23 @@ class _DeviceDetailsView extends StatelessWidget {
                   current.statusErrorMessage != null) ||
               (previous.engineerNoteErrorMessage !=
                       current.engineerNoteErrorMessage &&
-                  current.engineerNoteErrorMessage != null),
+                  current.engineerNoteErrorMessage != null) ||
+              (previous.invoiceErrorMessage != current.invoiceErrorMessage &&
+                  current.invoiceErrorMessage != null) ||
+              (!previous.invoiceCreated && current.invoiceCreated),
           listener: (context, state) {
             final message =
-                state.statusErrorMessage ?? state.engineerNoteErrorMessage;
-            if (message == null) return;
+                state.statusErrorMessage ??
+                state.engineerNoteErrorMessage ??
+                state.invoiceErrorMessage;
+            if (message == null && !state.invoiceCreated) return;
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(message),
-                backgroundColor: AppColors.error,
+                content: Text(message ?? 'تم تصدير الفاتورة بنجاح'),
+                backgroundColor: message == null
+                    ? AppColors.success
+                    : AppColors.error,
               ),
             );
           },
@@ -777,7 +785,7 @@ class _BillingSection extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'قائمة المواد',
+                          "القكع المراد تبديلها / إصلاحها",
                           style: AppTextStyles.labelStrong,
                         ),
                       ),
@@ -785,15 +793,15 @@ class _BillingSection extends StatelessWidget {
                     ],
                   ),
                 ),
-                for (var index = 0; index < state.components.length; index++)
-                  _BillComponentRow(
-                    component: state.components[index],
+                for (var index = 0; index < state.invoiceItems.length; index++)
+                  _InvoiceItemRow(
+                    item: state.invoiceItems[index],
                     onQuantityChanged: (quantity) => context
                         .read<DeviceDetailsCubit>()
-                        .updateComponentQuantity(index, quantity),
+                        .updateInvoiceItemQuantity(index, quantity),
                     onRemove: () => context
                         .read<DeviceDetailsCubit>()
-                        .removeComponent(index),
+                        .removeInvoiceItem(index),
                   ),
                 TextButton.icon(
                   onPressed: () async {
@@ -807,11 +815,14 @@ class _BillingSection extends StatelessWidget {
                     );
 
                     if (result != null && context.mounted) {
-                      context.read<DeviceDetailsCubit>().addComponent(
-                        BillComponent(
-                          name: result.name,
+                      context.read<DeviceDetailsCubit>().addInvoiceItem(
+                        InvoiceItem(
+                          id: 0,
+                          invoiceId: 0,
+                          sparePartId: result.id,
+                          sparePartName: result.name,
                           quantity: 1,
-                          price: result.cellPrice,
+                          unitPrice: result.cellPrice,
                         ),
                       );
                     }
@@ -869,9 +880,25 @@ class _BillingSection extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.description_outlined),
-                          label: const Text('تصدير الفاتورة'),
+                          onPressed: state.isCreatingInvoice
+                              ? null
+                              : context
+                                    .read<DeviceDetailsCubit>()
+                                    .exportInvoice,
+                          icon: state.isCreatingInvoice
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.description_outlined),
+                          label: Text(
+                            state.isCreatingInvoice
+                                ? 'جاري تصدير الفاتورة...'
+                                : 'تصدير الفاتورة',
+                          ),
                         ),
                       ),
                     ],
@@ -886,13 +913,13 @@ class _BillingSection extends StatelessWidget {
   }
 }
 
-class _BillComponentRow extends StatelessWidget {
-  final BillComponent component;
+class _InvoiceItemRow extends StatelessWidget {
+  final InvoiceItem item;
   final ValueChanged<int> onQuantityChanged;
   final VoidCallback onRemove;
 
-  const _BillComponentRow({
-    required this.component,
+  const _InvoiceItemRow({
+    required this.item,
     required this.onQuantityChanged,
     required this.onRemove,
   });
@@ -908,10 +935,10 @@ class _BillComponentRow extends StatelessWidget {
         children: [
           const Icon(Icons.settings_outlined, size: 18),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(component.name, style: AppTextStyles.body)),
+          Expanded(child: Text(item.sparePartName, style: AppTextStyles.body)),
           IconButton(
             tooltip: 'تقليل الكمية',
-            onPressed: () => onQuantityChanged(component.quantity - 1),
+            onPressed: () => onQuantityChanged(item.quantity - 1),
             icon: const Icon(Icons.remove_circle_outline, size: 18),
             visualDensity: VisualDensity.compact,
             constraints: const BoxConstraints.tightFor(width: 32, height: 32),
@@ -928,21 +955,21 @@ class _BillComponentRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.xs),
             ),
             child: Text(
-              '${component.quantity}x',
+              '${item.quantity}x',
               textAlign: TextAlign.center,
               style: AppTextStyles.label,
             ),
           ),
           IconButton(
             tooltip: 'زيادة الكمية',
-            onPressed: () => onQuantityChanged(component.quantity + 1),
+            onPressed: () => onQuantityChanged(item.quantity + 1),
             icon: const Icon(Icons.add_circle_outline, size: 18),
             visualDensity: VisualDensity.compact,
             constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             padding: EdgeInsets.zero,
           ),
           const SizedBox(width: AppSpacing.md),
-          Text(_formatMoney(component.total), style: AppTextStyles.labelStrong),
+          Text(_formatMoney(item.total), style: AppTextStyles.labelStrong),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             tooltip: 'حذف المادة',

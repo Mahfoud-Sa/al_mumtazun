@@ -2,31 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
-
-class BillComponent extends Equatable {
-  final String name;
-  final int quantity;
-  final double price;
-
-  const BillComponent({
-    required this.name,
-    required this.quantity,
-    required this.price,
-  });
-
-  BillComponent copyWith({String? name, int? quantity, double? price}) {
-    return BillComponent(
-      name: name ?? this.name,
-      quantity: quantity ?? this.quantity,
-      price: price ?? this.price,
-    );
-  }
-
-  double get total => quantity * price;
-
-  @override
-  List<Object?> get props => [name, quantity, price];
-}
+import '../../../invoices/domain/entities/invoice_item.dart';
 
 class ActivityLogEntry extends Equatable {
   final String title;
@@ -61,7 +37,7 @@ class DeviceDetailsState extends Equatable {
   final DateTime? deliveryDate;
   final String problemDescription;
   final String internalNotes;
-  final List<BillComponent> components;
+  final List<InvoiceItem> invoiceItems;
   final double repairLaborPrice;
   final double additionalCosts;
   final double discount;
@@ -70,6 +46,9 @@ class DeviceDetailsState extends Equatable {
   final String? statusErrorMessage;
   final bool isSavingEngineerNote;
   final String? engineerNoteErrorMessage;
+  final bool isCreatingInvoice;
+  final String? invoiceErrorMessage;
+  final bool invoiceCreated;
 
   const DeviceDetailsState({
     required this.device,
@@ -87,7 +66,7 @@ class DeviceDetailsState extends Equatable {
     required this.deliveryDate,
     required this.problemDescription,
     required this.internalNotes,
-    required this.components,
+    required this.invoiceItems,
     required this.repairLaborPrice,
     required this.additionalCosts,
     required this.discount,
@@ -96,6 +75,9 @@ class DeviceDetailsState extends Equatable {
     required this.statusErrorMessage,
     required this.isSavingEngineerNote,
     required this.engineerNoteErrorMessage,
+    required this.isCreatingInvoice,
+    required this.invoiceErrorMessage,
+    required this.invoiceCreated,
   });
 
   factory DeviceDetailsState.initial(Device device) {
@@ -118,9 +100,23 @@ class DeviceDetailsState extends Equatable {
       deliveryDate: device.createdAt.add(const Duration(days: 14)),
       problemDescription: device.problemDescription,
       internalNotes: device.internalNotes,
-      components: const [
-        BillComponent(name: 'طقم جلدة الصمام الرئيسي', quantity: 1, price: 245),
-        BillComponent(name: 'زيت هيدروليك صناعي', quantity: 2, price: 60),
+      invoiceItems: const [
+        InvoiceItem(
+          id: 0,
+          invoiceId: 0,
+          sparePartId: null,
+          sparePartName: 'طقم جلدة الصمام الرئيسي',
+          quantity: 1,
+          unitPrice: 245,
+        ),
+        InvoiceItem(
+          id: 0,
+          invoiceId: 0,
+          sparePartId: null,
+          sparePartName: 'زيت هيدروليك صناعي',
+          quantity: 2,
+          unitPrice: 60,
+        ),
       ],
       repairLaborPrice: 450,
       additionalCosts: 45,
@@ -129,6 +125,9 @@ class DeviceDetailsState extends Equatable {
       statusErrorMessage: null,
       isSavingEngineerNote: false,
       engineerNoteErrorMessage: null,
+      isCreatingInvoice: false,
+      invoiceErrorMessage: null,
+      invoiceCreated: false,
       activityLog: [
         ActivityLogEntry(
           title: 'تم تحديث الحالة',
@@ -145,10 +144,10 @@ class DeviceDetailsState extends Equatable {
     );
   }
 
-  double get componentsTotal =>
-      components.fold(0, (sum, component) => sum + component.total);
+  double get invoiceItemsTotal =>
+      invoiceItems.fold(0, (sum, item) => sum + item.total);
 
-  double get subtotal => componentsTotal + repairLaborPrice + additionalCosts;
+  double get subtotal => invoiceItemsTotal + repairLaborPrice + additionalCosts;
 
   double get totalBill {
     final total = subtotal - discount;
@@ -174,7 +173,7 @@ class DeviceDetailsState extends Equatable {
     bool clearDeliveryDate = false,
     String? problemDescription,
     String? internalNotes,
-    List<BillComponent>? components,
+    List<InvoiceItem>? invoiceItems,
     double? repairLaborPrice,
     double? additionalCosts,
     double? discount,
@@ -185,6 +184,10 @@ class DeviceDetailsState extends Equatable {
     bool? isSavingEngineerNote,
     String? engineerNoteErrorMessage,
     bool clearEngineerNoteError = false,
+    bool? isCreatingInvoice,
+    String? invoiceErrorMessage,
+    bool clearInvoiceError = false,
+    bool? invoiceCreated,
   }) {
     return DeviceDetailsState(
       device: device ?? this.device,
@@ -208,7 +211,7 @@ class DeviceDetailsState extends Equatable {
           : deliveryDate ?? this.deliveryDate,
       problemDescription: problemDescription ?? this.problemDescription,
       internalNotes: internalNotes ?? this.internalNotes,
-      components: components ?? this.components,
+      invoiceItems: invoiceItems ?? this.invoiceItems,
       repairLaborPrice: repairLaborPrice ?? this.repairLaborPrice,
       additionalCosts: additionalCosts ?? this.additionalCosts,
       discount: discount ?? this.discount,
@@ -221,6 +224,11 @@ class DeviceDetailsState extends Equatable {
       engineerNoteErrorMessage: clearEngineerNoteError
           ? null
           : engineerNoteErrorMessage ?? this.engineerNoteErrorMessage,
+      isCreatingInvoice: isCreatingInvoice ?? this.isCreatingInvoice,
+      invoiceErrorMessage: clearInvoiceError
+          ? null
+          : invoiceErrorMessage ?? this.invoiceErrorMessage,
+      invoiceCreated: invoiceCreated ?? this.invoiceCreated,
     );
   }
 
@@ -241,7 +249,7 @@ class DeviceDetailsState extends Equatable {
     deliveryDate,
     problemDescription,
     internalNotes,
-    components,
+    invoiceItems,
     repairLaborPrice,
     additionalCosts,
     discount,
@@ -250,5 +258,8 @@ class DeviceDetailsState extends Equatable {
     statusErrorMessage,
     isSavingEngineerNote,
     engineerNoteErrorMessage,
+    isCreatingInvoice,
+    invoiceErrorMessage,
+    invoiceCreated,
   ];
 }
