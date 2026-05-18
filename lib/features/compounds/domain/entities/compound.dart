@@ -4,14 +4,14 @@ class Compound extends Equatable {
   final int id;
   final String name;
   final String? description;
-  final double cellPrice;
+  final double sellPrice;
   final DateTime date;
 
   const Compound({
     required this.id,
     required this.name,
     this.description,
-    required this.cellPrice,
+    required this.sellPrice,
     required this.date,
   });
 
@@ -19,18 +19,18 @@ class Compound extends Equatable {
     int? id,
     String? name,
     String? description,
-    double? cellPrice,
+    double? sellPrice,
     DateTime? date,
   }) {
     return Compound(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      cellPrice: cellPrice ?? this.cellPrice,
+      sellPrice: sellPrice ?? this.sellPrice,
       date: date ?? this.date,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, description, cellPrice, date];
+  List<Object?> get props => [id, name, description, sellPrice, date];
 }

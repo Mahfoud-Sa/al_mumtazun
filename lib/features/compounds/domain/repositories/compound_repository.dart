@@ -8,6 +8,11 @@ abstract class CompoundRepository {
   Future<Either<Failure, CompoundPage>> getAll({
     required int page,
     required int size,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    String? sortDirection,
   });
   Future<Either<Failure, Compound>> create(Compound compound);
   Future<Either<Failure, Compound>> update(Compound compound);

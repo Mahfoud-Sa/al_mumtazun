@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../localization/l10n.dart';
 import '../compounds/presentation/pages/compounds_page.dart';
 import '../devices/presentation/pages/devices_page.dart';
-import '../incomes/presentation/pages/incomes_page.dart';
 import '../invoices/presentation/pages/invoice_page.dart';
 import 'app_drawer.dart';
 import 'state/home_cubit.dart';
@@ -34,9 +33,9 @@ class _HomeShellState extends State<HomeShell> {
     final items = <_NavItem>[
       _NavItem(label: l10n.dashboard, icon: Icons.dashboard_outlined),
       //   _NavItem(label: l10n.income, icon: Icons.payments_outlined),
-      _NavItem(label: "الاجهزة", icon: Icons.inventory_2_outlined),
-      _NavItem(label: "الفواتير", icon: Icons.receipt_long_outlined),
-      _NavItem(label: "القطع", icon: Icons.engineering_outlined),
+      const _NavItem(label: 'الأجهزة', icon: Icons.inventory_2_outlined),
+      const _NavItem(label: 'الفواتير', icon: Icons.receipt_long_outlined),
+      _NavItem(label: l10n.components, icon: Icons.engineering_outlined),
       //      _NavItem(label: l10n.admin, icon: Icons.settings_outlined),
     ];
 
@@ -148,49 +147,6 @@ class _BottomNavButton extends StatelessWidget {
               textAlign: TextAlign.center,
               style: textStyle.copyWith(
                 color: selected ? colorScheme.onSurface : color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ComingSoon extends StatelessWidget {
-  final String title;
-  const _ComingSoon({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.construction_outlined,
-                size: 64,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(title, style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(
-              'Coming soon',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ],

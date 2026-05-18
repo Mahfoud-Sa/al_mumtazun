@@ -99,7 +99,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get engineeringOverview => 'Engineering Overview';
 
   @override
-  String get components => 'Components';
+  String get components => 'Spare Parts';
 
   @override
   String get invoices => 'Invoices';

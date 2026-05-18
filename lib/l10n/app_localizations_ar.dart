@@ -21,7 +21,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get income => 'الدخل';
 
   @override
-  String get inventory => 'المخزون';
+  String get inventory => 'قطع الغيار';
 
   @override
   String get engineering => 'الهندسة';
@@ -42,7 +42,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weekly => 'أسبوعي';
 
   @override
-  String get last30Days => 'آخر 30 يومًا';
+  String get last30Days => 'آخر 30 يوما';
 
   @override
   String get yearly => 'سنوي';
@@ -54,13 +54,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incomeDelta => '+12.4% مقارنة بالشهر الماضي';
 
   @override
-  String get logisticsPerformance => 'أداء الخدمات اللوجستية';
+  String get logisticsPerformance => 'أداء العمليات';
 
   @override
-  String get inventoryTurnoverRate => 'معدل دوران المخزون';
+  String get inventoryTurnoverRate => 'معدل دوران قطع الغيار';
 
   @override
-  String get turnoverValue => '4.2× / شهر';
+  String get turnoverValue => '4.2x / شهر';
 
   @override
   String get efficiency => 'الكفاءة';
@@ -75,7 +75,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resourceAllocation => 'توزيع الموارد';
 
   @override
-  String get capacity => 'القدرة';
+  String get capacity => 'السعة';
 
   @override
   String get active => 'نشط';
@@ -99,7 +99,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get engineeringOverview => 'نظرة عامة هندسية';
 
   @override
-  String get components => 'القطع';
+  String get components => 'قطع الغيار';
 
   @override
   String get invoices => 'الفواتير';
@@ -126,7 +126,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incomeChart => 'مخطط الدخل';
 
   @override
-  String get deviceOverheatingDetected => 'تم رصد ارتفاع حرارة جهاز';
+  String get deviceOverheatingDetected => 'تم رصد ارتفاع حرارة الجهاز';
 
   @override
   String get deviceOverheatingSubtitle => 'الجهاز #A21 في غرفة الصيانة';
@@ -159,7 +159,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get log2Title => 'مطلوب إعادة تزويد: نواة الليثيوم';
 
   @override
-  String get log2Subtitle => 'إدارة المخزون العالمية • قبل 45 دقيقة';
+  String get log2Subtitle => 'إدارة المخزون • قبل 45 دقيقة';
 
   @override
   String get log2Chip => 'إجراء';
@@ -217,5 +217,5 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get resetLinkSent =>
-      'إذا كان هناك حساب، أرسلنا رابط إعادة تعيين إلى بريدك الإلكتروني.';
+      'إذا كان هناك حساب، أرسلنا رابط إعادة التعيين إلى بريدك الإلكتروني.';
 }

@@ -810,7 +810,7 @@ class _BillingSection extends StatelessWidget {
                       builder: (_) => BlocProvider(
                         create: (_) =>
                             getIt<CompoundsCubit>()..fetch(size: 100),
-                        child: const ComponentPickerDialog(),
+                        child: const SparePartPickerDialog(),
                       ),
                     );
 
@@ -822,7 +822,7 @@ class _BillingSection extends StatelessWidget {
                           sparePartId: result.id,
                           sparePartName: result.name,
                           quantity: 1,
-                          unitPrice: result.cellPrice,
+                          unitPrice: result.sellPrice,
                         ),
                       );
                     }
@@ -1297,23 +1297,23 @@ String _formatDateTime(DateTime date) {
   return '${_formatDate(date)}  $hour:$minute';
 }
 
-class ComponentPickerDialog extends StatefulWidget {
-  const ComponentPickerDialog({super.key});
+class SparePartPickerDialog extends StatefulWidget {
+  const SparePartPickerDialog({super.key});
 
   @override
-  State<ComponentPickerDialog> createState() => _ComponentPickerDialogState();
+  State<SparePartPickerDialog> createState() => _SparePartPickerDialogState();
 }
 
-class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
+class _SparePartPickerDialogState extends State<SparePartPickerDialog> {
   final TextEditingController searchController = TextEditingController();
 
   String query = '';
-  Compound? selectedComponent;
+  Compound? selectedSparePart;
 
-  void filterComponents(String value) {
+  void filterSpareParts(String value) {
     setState(() {
       query = value;
-      selectedComponent = null;
+      selectedSparePart = null;
     });
   }
 
@@ -1359,7 +1359,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
             /// Search
             TextField(
               controller: searchController,
-              onChanged: filterComponents,
+              onChanged: filterSpareParts,
               decoration: InputDecoration(
                 hintText: "ابحث عن مكون...",
                 prefixIcon: const Icon(Icons.search),
@@ -1380,14 +1380,14 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                   }
 
                   if (state is CompoundsError) {
-                    return _ComponentPickerError(message: state.message);
+                    return _SparePartPickerError(message: state.message);
                   }
 
                   final compounds = state is CompoundsLoaded
                       ? state.compounds
                       : <Compound>[];
                   final normalizedQuery = query.trim().toLowerCase();
-                  final filteredComponents = normalizedQuery.isEmpty
+                  final filteredSpareParts = normalizedQuery.isEmpty
                       ? compounds
                       : compounds
                             .where(
@@ -1401,23 +1401,23 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                             )
                             .toList();
 
-                  if (filteredComponents.isEmpty) {
+                  if (filteredSpareParts.isEmpty) {
                     return const Center(child: Text('لا توجد مكونات'));
                   }
 
                   return ListView.separated(
-                    itemCount: filteredComponents.length,
+                    itemCount: filteredSpareParts.length,
                     separatorBuilder: (context, index) =>
                         const Divider(height: 1),
                     itemBuilder: (context, index) {
-                      final item = filteredComponents[index];
-                      final isSelected = selectedComponent?.id == item.id;
+                      final item = filteredSpareParts[index];
+                      final isSelected = selectedSparePart?.id == item.id;
 
                       return InkWell(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () {
                           setState(() {
-                            selectedComponent = item;
+                            selectedSparePart = item;
                           });
                         },
                         child: Container(
@@ -1464,7 +1464,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                                     ],
                                     const SizedBox(height: 4),
                                     Text(
-                                      _formatMoney(item.cellPrice),
+                                      _formatMoney(item.sellPrice),
                                       style: TextStyle(
                                         color: Colors.grey.shade700,
                                       ),
@@ -1503,10 +1503,10 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: selectedComponent == null
+                    onPressed: selectedSparePart == null
                         ? null
                         : () {
-                            Navigator.pop(context, selectedComponent);
+                            Navigator.pop(context, selectedSparePart);
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
@@ -1524,10 +1524,10 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
   }
 }
 
-class _ComponentPickerError extends StatelessWidget {
+class _SparePartPickerError extends StatelessWidget {
   final String message;
 
-  const _ComponentPickerError({required this.message});
+  const _SparePartPickerError({required this.message});
 
   @override
   Widget build(BuildContext context) {

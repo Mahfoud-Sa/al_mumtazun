@@ -281,7 +281,7 @@ abstract class AppLocalizations {
   /// No description provided for @components.
   ///
   /// In en, this message translates to:
-  /// **'Components'**
+  /// **'Spare Parts'**
   String get components;
 
   /// No description provided for @invoices.

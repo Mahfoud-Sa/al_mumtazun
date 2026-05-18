@@ -36,12 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    await context.read<AuthCubit>().login(
+    final authCubit = context.read<AuthCubit>();
+
+    await authCubit.login(
       phoneNumber: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
 
-    final state = context.read<AuthCubit>().state;
+    final state = authCubit.state;
 
     if (mounted) {
       setState(() {
@@ -116,18 +118,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'محل المتميزون',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
+                    Expanded(
+                      child: Text(
+                        'محل المتميزون',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                     ),
-
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         TextButton.icon(
                           onPressed: () {
@@ -159,14 +164,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               builder: (context) {
                                 return AlertDialog(
                                   title: const Text(
-                                    "موقعنا",
+                                    'موقعنا',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: AppColors.onSurfaceVariant,
                                     ),
                                   ),
                                   content: const Text(
-                                    "حضرموت\\المكلا\\بويش",
+                                    'حضرموت / المكلا / بويش',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 16,
@@ -178,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: () {
                                         Navigator.pop(context);
                                       },
-                                      child: const Text("موافق"),
+                                      child: const Text('موافق'),
                                     ),
                                   ],
                                 );
@@ -210,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: Border.all(color: AppColors.outlineVariant),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -245,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 4),
 
                           Text(
-                            "يرجى ادخال البيانات الخاصة بك للدخول للنظام",
+                            'يرجى إدخال بيانات الدخول الخاصة بك للمتابعة',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.onSurfaceVariant,
@@ -259,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "اسم المستخدم او رقم الهاتف",
+                                'رقم الهاتف',
                                 style: theme.textTheme.labelLarge?.copyWith(
                                   color: AppColors.onSurfaceVariant,
                                 ),
@@ -273,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: AppColors.onSurfaceVariant,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: "م.ث: 771234567 او سالم احمد",
+                                  hintText: 'مثال: 771234567',
                                   prefixIcon: const Icon(
                                     Icons.person_outline,
                                     color: AppColors.outline,
@@ -306,9 +311,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                runSpacing: 4,
                                 children: [
                                   Text(
                                     'كلمة السر',
@@ -316,7 +321,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: AppColors.onSurfaceVariant,
                                     ),
                                   ),
-
                                   TextButton(
                                     onPressed: () {},
                                     style: TextButton.styleFrom(
@@ -393,10 +397,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.08),
+                                color: Colors.red.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: Colors.red.withOpacity(0.3),
+                                  color: Colors.red.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
@@ -451,7 +455,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(width: 8),
 
                               Text(
-                                "ذكرني",
+                                'تذكرني',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: AppColors.onSurfaceVariant,
                                 ),
@@ -487,19 +491,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
-                                          "تسجيل الدخول",
-                                          style: theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                              ),
-                                        ),
-
-                                        const SizedBox(width: 8),
-
                                         const Icon(Icons.login, size: 20),
+                                        const SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            'تسجيل الدخول',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                             ),
@@ -512,7 +519,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 16),
 
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 children: [
@@ -549,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 child: Text(
-                  '© 2026 غير مصرح الدخول الا باستخدام الترخيص من مشرف النظام',
+                  '© 2026 جميع الحقوق محفوظة لمحل المتميزون',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: const Color(0xFF8691A6),
                   ),

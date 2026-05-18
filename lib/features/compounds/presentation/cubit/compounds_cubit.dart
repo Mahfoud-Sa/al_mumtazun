@@ -16,6 +16,11 @@ class CompoundsCubit extends Cubit<CompoundsState> {
 
   int _currentPage = 1;
   int _currentSize = defaultPageSize;
+  String? _currentSearch;
+  double? _currentMinPrice;
+  double? _currentMaxPrice;
+  String _currentSortBy = 'id';
+  String _currentSortDirection = 'asc';
 
   CompoundsCubit({
     required this.getCompounds,
@@ -24,19 +29,45 @@ class CompoundsCubit extends Cubit<CompoundsState> {
     required this.deleteCompound,
   }) : super(const CompoundsInitial());
 
-  Future<void> fetch({int? page, int? size}) async {
+  Future<void> fetch({
+    int? page,
+    int? size,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    String? sortDirection,
+  }) async {
     final requestedPage = page ?? _currentPage;
     final requestedSize = size ?? _currentSize;
+    final requestedSearch = search ?? _currentSearch;
+    final requestedMinPrice = minPrice ?? _currentMinPrice;
+    final requestedMaxPrice = maxPrice ?? _currentMaxPrice;
+    final requestedSortBy = sortBy ?? _currentSortBy;
+    final requestedSortDirection = sortDirection ?? _currentSortDirection;
 
     emit(const CompoundsLoading());
     final result = await getCompounds(
-      GetCompoundsParams(page: requestedPage, size: requestedSize),
+      GetCompoundsParams(
+        page: requestedPage,
+        size: requestedSize,
+        search: requestedSearch,
+        minPrice: requestedMinPrice,
+        maxPrice: requestedMaxPrice,
+        sortBy: requestedSortBy,
+        sortDirection: requestedSortDirection,
+      ),
     );
     result.fold((failure) => emit(CompoundsError(failure.message)), (
       compoundPage,
     ) {
       _currentPage = compoundPage.page;
       _currentSize = compoundPage.size;
+      _currentSearch = requestedSearch;
+      _currentMinPrice = requestedMinPrice;
+      _currentMaxPrice = requestedMaxPrice;
+      _currentSortBy = requestedSortBy;
+      _currentSortDirection = requestedSortDirection;
       emit(
         CompoundsLoaded(
           compounds: compoundPage.compounds,
@@ -61,6 +92,30 @@ class CompoundsCubit extends Cubit<CompoundsState> {
     final current = state;
     if (current is! CompoundsLoaded || current.page <= 1) return;
     await fetch(page: current.page - 1, size: current.size);
+  }
+
+  Future<void> applyQuery({
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String sortBy = 'id',
+    String sortDirection = 'asc',
+  }) async {
+    _currentSearch = _blankToNull(search);
+    _currentMinPrice = minPrice;
+    _currentMaxPrice = maxPrice;
+    _currentSortBy = sortBy;
+    _currentSortDirection = sortDirection;
+    await fetch(page: 1, size: _currentSize);
+  }
+
+  Future<void> clearQuery() async {
+    _currentSearch = null;
+    _currentMinPrice = null;
+    _currentMaxPrice = null;
+    _currentSortBy = 'id';
+    _currentSortDirection = 'asc';
+    await fetch(page: 1, size: _currentSize);
   }
 
   Future<bool> addCompound(Compound compound) async {
@@ -146,4 +201,10 @@ class CompoundsCubit extends Cubit<CompoundsState> {
       },
     );
   }
+}
+
+String? _blankToNull(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
 }

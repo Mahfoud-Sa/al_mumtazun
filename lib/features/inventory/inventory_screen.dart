@@ -76,7 +76,7 @@ class _HeaderSection extends StatelessWidget {
                     width: 180,
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: 'Search components...',
+                        hintText: 'Search spare parts...',
                         border: InputBorder.none,
                         isCollapsed: true,
                       ),

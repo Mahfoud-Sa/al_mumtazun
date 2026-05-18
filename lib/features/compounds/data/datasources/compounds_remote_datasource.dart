@@ -5,7 +5,15 @@ import '../../domain/entities/compound_page.dart';
 import '../models/compound_model.dart';
 
 abstract class CompoundsRemoteDataSource {
-  Future<CompoundPage> getCompounds({required int page, required int size});
+  Future<CompoundPage> getCompounds({
+    required int page,
+    required int size,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    String? sortDirection,
+  });
   Future<CompoundModel> createCompound(CompoundModel compound);
   Future<CompoundModel> updateCompound(CompoundModel compound);
   Future<void> deleteCompound(int id);
@@ -18,17 +26,36 @@ class CompoundsRemoteDataSourceImpl implements CompoundsRemoteDataSource {
   CompoundsRemoteDataSourceImpl(this.client, {Uri? baseUri})
     : baseUri =
           baseUri ??
-          Uri.parse('http://al-mumtazun-api.runasp.net/api/Component');
+          Uri.parse('http://al-mumtazun-api.runasp.net/api/spareparts');
 
   @override
   Future<CompoundPage> getCompounds({
     required int page,
     required int size,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    String? sortDirection,
   }) async {
+    final queryParameters = <String, String>{
+      'page': page.toString(),
+      'size': size.toString(),
+    };
+    if (search != null && search.trim().isNotEmpty) {
+      queryParameters['search'] = search.trim();
+    }
+    if (minPrice != null) queryParameters['minPrice'] = minPrice.toString();
+    if (maxPrice != null) queryParameters['maxPrice'] = maxPrice.toString();
+    if (sortBy != null && sortBy.trim().isNotEmpty) {
+      queryParameters['sortBy'] = sortBy.trim();
+    }
+    if (sortDirection != null && sortDirection.trim().isNotEmpty) {
+      queryParameters['sortDirection'] = sortDirection.trim();
+    }
+
     final response = await client.get(
-      baseUri.replace(
-        queryParameters: {'page': page.toString(), 'size': size.toString()},
-      ),
+      baseUri.replace(queryParameters: queryParameters),
       headers: {'accept': 'text/plain'},
     );
 

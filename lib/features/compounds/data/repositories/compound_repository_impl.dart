@@ -50,9 +50,22 @@ class CompoundRepositoryImpl implements CompoundRepository {
   Future<Either<Failure, CompoundPage>> getAll({
     required int page,
     required int size,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    String? sortDirection,
   }) async {
     try {
-      final compoundsPage = await remote.getCompounds(page: page, size: size);
+      final compoundsPage = await remote.getCompounds(
+        page: page,
+        size: size,
+        search: search,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        sortBy: sortBy,
+        sortDirection: sortDirection,
+      );
       return Right(compoundsPage);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

@@ -12,13 +12,34 @@ class GetCompoundsUseCase implements UseCase<CompoundPage, GetCompoundsParams> {
 
   @override
   Future<Either<Failure, CompoundPage>> call(GetCompoundsParams params) {
-    return repository.getAll(page: params.page, size: params.size);
+    return repository.getAll(
+      page: params.page,
+      size: params.size,
+      search: params.search,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      sortBy: params.sortBy,
+      sortDirection: params.sortDirection,
+    );
   }
 }
 
 class GetCompoundsParams {
   final int page;
   final int size;
+  final String? search;
+  final double? minPrice;
+  final double? maxPrice;
+  final String? sortBy;
+  final String? sortDirection;
 
-  const GetCompoundsParams({required this.page, required this.size});
+  const GetCompoundsParams({
+    required this.page,
+    required this.size,
+    this.search,
+    this.minPrice,
+    this.maxPrice,
+    this.sortBy,
+    this.sortDirection,
+  });
 }

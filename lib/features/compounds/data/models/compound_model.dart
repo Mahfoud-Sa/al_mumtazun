@@ -5,7 +5,7 @@ class CompoundModel extends Compound {
     required super.id,
     required super.name,
     super.description,
-    required super.cellPrice,
+    required super.sellPrice,
     required super.date,
   });
 
@@ -14,7 +14,7 @@ class CompoundModel extends Compound {
       id: _readInt(json['id']),
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString(),
-      cellPrice: _readDouble(json['cellPrice']),
+      sellPrice: _readDouble(json['sellPrice']),
       date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
     );
   }
@@ -24,7 +24,7 @@ class CompoundModel extends Compound {
       id: compound.id,
       name: compound.name,
       description: compound.description,
-      cellPrice: compound.cellPrice,
+      sellPrice: compound.sellPrice,
       date: compound.date,
     );
   }
@@ -34,7 +34,7 @@ class CompoundModel extends Compound {
       'id': id,
       'name': name,
       'description': description,
-      'cellPrice': cellPrice,
+      'sellPrice': sellPrice,
       'date': date.toIso8601String().split('T').first,
     };
   }

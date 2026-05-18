@@ -73,7 +73,7 @@ class AppDrawer extends StatelessWidget {
                     Icons.admin_panel_settings_outlined,
                     color: colorScheme.primary,
                   ),
-                  title: const Text('لوحة الادارة'),
+                  title: const Text('لوحة الإدارة'),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -95,11 +95,11 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
                 const Divider(),
-                _buildSectionTitle(context, 'عنا'),
+                _buildSectionTitle(context, 'عن التطبيق'),
                 FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform().catchError(
                     (_) => PackageInfo(
-                      appName: 'نظام المتميزن',
+                      appName: 'نظام المتميزون',
                       packageName: 'com.GidTeam.app',
                       version: '1.0.0',
                       buildNumber: '1',
@@ -113,7 +113,7 @@ class AppDrawer extends StatelessWidget {
                         Icons.info_outline,
                         color: colorScheme.primary,
                       ),
-                      title: const Text('اصدار التطبيق'),
+                      title: const Text('إصدار التطبيق'),
                       subtitle: Text('v$version (Build $buildNumber)'),
                       onTap: () {
                         showAboutDialog(
@@ -126,7 +126,7 @@ class AppDrawer extends StatelessWidget {
                             color: colorScheme.secondary,
                           ),
                           applicationLegalese:
-                              '©تم تطوير هذا التطبيق بواسطة فريق GidTeam. جميع الحقوق محفوظة.',
+                              'تم تطوير هذا التطبيق بواسطة فريق GidTeam. جميع الحقوق محفوظة.',
                         );
                       },
                     );
