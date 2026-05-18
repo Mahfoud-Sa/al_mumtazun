@@ -306,40 +306,37 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
 
                           const SizedBox(height: 16),
-
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'كلمة السر',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {},
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'نسيت كلمة السر؟',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: AppColors.secondaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           // Password
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Wrap(
-                                alignment: WrapAlignment.spaceBetween,
-                                runSpacing: 4,
-                                children: [
-                                  Text(
-                                    'كلمة السر',
-                                    style: theme.textTheme.labelLarge?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: Text(
-                                      'نسيت كلمة السر؟',
-                                      style: theme.textTheme.labelLarge
-                                          ?.copyWith(
-                                            color: AppColors.secondaryContainer,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
                               const SizedBox(height: 4),
 
                               TextField(
