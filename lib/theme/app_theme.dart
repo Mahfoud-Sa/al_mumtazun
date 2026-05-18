@@ -98,7 +98,7 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: outlineVariant),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: card,
+        fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
@@ -155,8 +155,8 @@ class AppTheme {
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: surface,
-        foregroundColor: primary,
+        backgroundColor: primary,
+        foregroundColor: onPrimary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -164,13 +164,22 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: card,
         surfaceTintColor: Colors.transparent,
-        elevation: 1,
+        elevation: 0,
         shadowColor: AppColors.shadow,
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.xs)),
           side: BorderSide(color: outlineVariant),
         ),
         margin: EdgeInsets.zero,
+      ),
+      dataTableTheme: DataTableThemeData(
+        dividerThickness: 1,
+        headingTextStyle: AppTextStyles.labelStrong,
+        dataTextStyle: AppTextStyles.body,
+        decoration: BoxDecoration(
+          color: card,
+          border: Border(bottom: BorderSide(color: outline)),
+        ),
       ),
     );
   }

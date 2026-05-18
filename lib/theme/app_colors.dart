@@ -7,7 +7,7 @@ class AppColors {
   static const tertiary = Color(0xFF1A2B3C);
 
   static const background = Color(0xFFF7F9FB);
-  static const surface = Color(0xFFF7F9FB);
+  static const surface = Color(0xFFFFFFFF);
   static const surfaceContainer = Color(0xFFFFFFFF);
   static const surfaceContainerLow = Color(0xFFFFFFFF);
   static const surfaceContainerHigh = Color(0xFFF1F3F5);
