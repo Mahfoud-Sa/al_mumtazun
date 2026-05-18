@@ -46,7 +46,7 @@ class _SparePartsView extends StatelessWidget {
                 SizedBox(height: 24),
                 _SparePartsTable(),
                 SizedBox(height: 24),
-                _SparePartsInsights(),
+                //  _SparePartsInsights(),
               ],
             ),
           ),
