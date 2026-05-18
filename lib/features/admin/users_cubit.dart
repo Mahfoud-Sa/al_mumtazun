@@ -53,23 +53,52 @@ class UsersCubit extends Cubit<UsersState> {
 
   int _currentPage = 1;
   int _currentSize = defaultPageSize;
+  String? _currentSearch;
+  bool? _currentIsActive;
+  String? _currentRole;
+  String _currentSortBy = 'id';
+  String _currentSortDirection = 'asc';
 
   // ================= FETCH USERS =================
 
-  Future<void> fetchUsers({int? page, int? size}) async {
+  Future<void> fetchUsers({
+    int? page,
+    int? size,
+    String? search,
+    bool? isActive,
+    String? role,
+    String? sortBy,
+    String? sortDirection,
+  }) async {
     final requestedPage = page ?? _currentPage;
     final requestedSize = size ?? _currentSize;
+    final requestedSearch = search ?? _currentSearch;
+    final requestedIsActive = isActive ?? _currentIsActive;
+    final requestedRole = role ?? _currentRole;
+    final requestedSortBy = sortBy ?? _currentSortBy;
+    final requestedSortDirection = sortDirection ?? _currentSortDirection;
 
     emit(UsersLoading());
 
     try {
+      final queryParameters = <String, String>{
+        'page': requestedPage.toString(),
+        'size': requestedSize.toString(),
+        'sortBy': requestedSortBy,
+        'sortDirection': requestedSortDirection,
+      };
+      if (requestedSearch != null && requestedSearch.trim().isNotEmpty) {
+        queryParameters['search'] = requestedSearch.trim();
+      }
+      if (requestedIsActive != null) {
+        queryParameters['isActive'] = requestedIsActive.toString();
+      }
+      if (requestedRole != null && requestedRole.trim().isNotEmpty) {
+        queryParameters['role'] = requestedRole.trim();
+      }
+
       final resp = await http.get(
-        Uri.parse(baseUrl).replace(
-          queryParameters: {
-            'page': requestedPage.toString(),
-            'size': requestedSize.toString(),
-          },
-        ),
+        Uri.parse(baseUrl).replace(queryParameters: queryParameters),
         headers: {'accept': 'text/plain'},
       );
 
@@ -79,6 +108,13 @@ class UsersCubit extends Cubit<UsersState> {
         if (body is List) {
           _currentPage = requestedPage;
           _currentSize = requestedSize;
+          _rememberQuery(
+            search: requestedSearch,
+            isActive: requestedIsActive,
+            role: requestedRole,
+            sortBy: requestedSortBy,
+            sortDirection: requestedSortDirection,
+          );
           emit(
             UsersLoaded(
               users: body,
@@ -100,6 +136,13 @@ class UsersCubit extends Cubit<UsersState> {
 
           _currentPage = loadedPage;
           _currentSize = loadedSize;
+          _rememberQuery(
+            search: requestedSearch,
+            isActive: requestedIsActive,
+            role: requestedRole,
+            sortBy: requestedSortBy,
+            sortDirection: requestedSortDirection,
+          );
 
           emit(
             UsersLoaded(
@@ -115,6 +158,13 @@ class UsersCubit extends Cubit<UsersState> {
 
         _currentPage = requestedPage;
         _currentSize = requestedSize;
+        _rememberQuery(
+          search: requestedSearch,
+          isActive: requestedIsActive,
+          role: requestedRole,
+          sortBy: requestedSortBy,
+          sortDirection: requestedSortDirection,
+        );
         emit(
           UsersLoaded(
             users: [body],
@@ -143,6 +193,32 @@ class UsersCubit extends Cubit<UsersState> {
     final current = state;
     if (current is! UsersLoaded || current.page <= 1) return;
     await fetchUsers(page: current.page - 1, size: current.size);
+  }
+
+  Future<void> applyQuery({
+    String? search,
+    bool? isActive,
+    String? role,
+    int? size,
+    String sortBy = 'id',
+    String sortDirection = 'asc',
+  }) async {
+    _currentSearch = _blankToNull(search);
+    _currentIsActive = isActive;
+    _currentRole = _blankToNull(role);
+    _currentSortBy = sortBy;
+    _currentSortDirection = sortDirection;
+    await fetchUsers(page: 1, size: size ?? _currentSize);
+  }
+
+  Future<void> clearQuery() async {
+    _currentSearch = null;
+    _currentIsActive = null;
+    _currentRole = null;
+    _currentSize = defaultPageSize;
+    _currentSortBy = 'id';
+    _currentSortDirection = 'asc';
+    await fetchUsers(page: 1, size: defaultPageSize);
   }
 
   // ================= ACTIVATE USER =================
@@ -221,5 +297,25 @@ class UsersCubit extends Cubit<UsersState> {
   int _readInt(dynamic value, int fallback) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  String? _blankToNull(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
+  }
+
+  void _rememberQuery({
+    required String? search,
+    required bool? isActive,
+    required String? role,
+    required String sortBy,
+    required String sortDirection,
+  }) {
+    _currentSearch = search;
+    _currentIsActive = isActive;
+    _currentRole = role;
+    _currentSortBy = sortBy;
+    _currentSortDirection = sortDirection;
   }
 }

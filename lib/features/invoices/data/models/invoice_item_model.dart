@@ -31,21 +31,20 @@ class InvoiceItemModel extends InvoiceItem {
         : json['sparePartName']?.toString() ?? '';
 
     return InvoiceItemModel(
-      id: _readInt(json['id'], 0),
+      id: _readInt(json['id'] ?? json['invoiceItemId'], 0),
       invoiceId: _readInt(json['invoiceId'], 0),
       sparePartId: _readNullableInt(json['sparePartId']),
       sparePartName: sparePartName,
       quantity: _readInt(json['quantity'], 0),
-      unitPrice: _readDouble(json['unitPrice'], 0),
+      unitPrice: _readDouble(json['unitPrice'] ?? json['price'], 0),
     );
   }
 
   Map<String, dynamic> toCreateJson() {
     return {
-      'invoiceId': invoiceId,
-      if (sparePartId != null) 'sparePartId': sparePartId,
+      if (sparePartId != null && sparePartId! > 0) 'sparePartId': sparePartId,
       'quantity': quantity,
-      'unitPrice': unitPrice,
+      'price': unitPrice,
     };
   }
 

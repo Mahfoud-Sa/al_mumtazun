@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
+import '../../../invoices/domain/entities/invoice.dart';
 import '../../../invoices/domain/entities/invoice_item.dart';
 
 class ActivityLogEntry extends Equatable {
@@ -46,6 +47,8 @@ class DeviceDetailsState extends Equatable {
   final String? statusErrorMessage;
   final bool isSavingEngineerNote;
   final String? engineerNoteErrorMessage;
+  final Invoice? invoice;
+  final bool isLoadingInvoice;
   final bool isCreatingInvoice;
   final String? invoiceErrorMessage;
   final bool invoiceCreated;
@@ -75,6 +78,8 @@ class DeviceDetailsState extends Equatable {
     required this.statusErrorMessage,
     required this.isSavingEngineerNote,
     required this.engineerNoteErrorMessage,
+    required this.invoice,
+    required this.isLoadingInvoice,
     required this.isCreatingInvoice,
     required this.invoiceErrorMessage,
     required this.invoiceCreated,
@@ -100,31 +105,16 @@ class DeviceDetailsState extends Equatable {
       deliveryDate: device.createdAt.add(const Duration(days: 14)),
       problemDescription: device.problemDescription,
       internalNotes: device.internalNotes,
-      invoiceItems: const [
-        InvoiceItem(
-          id: 0,
-          invoiceId: 0,
-          sparePartId: null,
-          sparePartName: 'طقم جلدة الصمام الرئيسي',
-          quantity: 1,
-          unitPrice: 245,
-        ),
-        InvoiceItem(
-          id: 0,
-          invoiceId: 0,
-          sparePartId: null,
-          sparePartName: 'زيت هيدروليك صناعي',
-          quantity: 2,
-          unitPrice: 60,
-        ),
-      ],
-      repairLaborPrice: 450,
-      additionalCosts: 45,
+      invoiceItems: const [],
+      repairLaborPrice: 0,
+      additionalCosts: 0,
       discount: 0,
       isChangingStatus: false,
       statusErrorMessage: null,
       isSavingEngineerNote: false,
       engineerNoteErrorMessage: null,
+      invoice: null,
+      isLoadingInvoice: false,
       isCreatingInvoice: false,
       invoiceErrorMessage: null,
       invoiceCreated: false,
@@ -184,6 +174,9 @@ class DeviceDetailsState extends Equatable {
     bool? isSavingEngineerNote,
     String? engineerNoteErrorMessage,
     bool clearEngineerNoteError = false,
+    Invoice? invoice,
+    bool clearInvoice = false,
+    bool? isLoadingInvoice,
     bool? isCreatingInvoice,
     String? invoiceErrorMessage,
     bool clearInvoiceError = false,
@@ -224,6 +217,8 @@ class DeviceDetailsState extends Equatable {
       engineerNoteErrorMessage: clearEngineerNoteError
           ? null
           : engineerNoteErrorMessage ?? this.engineerNoteErrorMessage,
+      invoice: clearInvoice ? null : invoice ?? this.invoice,
+      isLoadingInvoice: isLoadingInvoice ?? this.isLoadingInvoice,
       isCreatingInvoice: isCreatingInvoice ?? this.isCreatingInvoice,
       invoiceErrorMessage: clearInvoiceError
           ? null
@@ -258,6 +253,8 @@ class DeviceDetailsState extends Equatable {
     statusErrorMessage,
     isSavingEngineerNote,
     engineerNoteErrorMessage,
+    invoice,
+    isLoadingInvoice,
     isCreatingInvoice,
     invoiceErrorMessage,
     invoiceCreated,

@@ -4,6 +4,8 @@ class ProfileUser extends Equatable {
   final int? id;
   final String fullName;
   final String phoneNumber;
+  final double salary;
+  final double workPercentage;
   final String birthDay;
   final String employeDate;
   final String address;
@@ -15,6 +17,8 @@ class ProfileUser extends Equatable {
     required this.id,
     required this.fullName,
     required this.phoneNumber,
+    this.salary = 0,
+    this.workPercentage = 0,
     required this.birthDay,
     required this.employeDate,
     required this.address,
@@ -27,6 +31,8 @@ class ProfileUser extends Equatable {
     int? id,
     String? fullName,
     String? phoneNumber,
+    double? salary,
+    double? workPercentage,
     String? birthDay,
     String? employeDate,
     String? address,
@@ -39,6 +45,8 @@ class ProfileUser extends Equatable {
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      salary: salary ?? this.salary,
+      workPercentage: workPercentage ?? this.workPercentage,
       birthDay: birthDay ?? this.birthDay,
       employeDate: employeDate ?? this.employeDate,
       address: address ?? this.address,
@@ -55,6 +63,8 @@ class ProfileUser extends Equatable {
     id,
     fullName,
     phoneNumber,
+    salary,
+    workPercentage,
     birthDay,
     employeDate,
     address,

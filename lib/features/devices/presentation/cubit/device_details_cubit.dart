@@ -8,12 +8,16 @@ import '../../domain/usecases/update_device_usecase.dart';
 import '../../../invoices/domain/entities/invoice.dart';
 import '../../../invoices/domain/entities/invoice_item.dart';
 import '../../../invoices/domain/usecases/create_invoice_usecase.dart';
+import '../../../invoices/domain/usecases/get_invoice_by_device_usecase.dart';
+import '../../../invoices/domain/usecases/update_invoice_usecase.dart';
 import 'device_details_state.dart';
 
 class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
   final ChangeDeviceStatusUseCase changeDeviceStatus;
   final UpdateDeviceUseCase updateDevice;
+  final GetInvoiceByDeviceUseCase getInvoiceByDevice;
   final CreateInvoiceUseCase createInvoice;
+  final UpdateInvoiceUseCase updateInvoice;
   final GetDeviceUsersUseCase getUsers;
   static const int defaultUsersPageSize = 10;
 
@@ -21,9 +25,34 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
     Device device, {
     required this.changeDeviceStatus,
     required this.updateDevice,
+    required this.getInvoiceByDevice,
     required this.createInvoice,
+    required this.updateInvoice,
     required this.getUsers,
   }) : super(DeviceDetailsState.initial(device));
+
+  Future<void> loadInvoice() async {
+    if (state.isLoadingInvoice) return;
+
+    final deviceId = int.tryParse(state.device.id);
+    if (deviceId == null) return;
+
+    emit(state.copyWith(isLoadingInvoice: true, clearInvoiceError: true));
+
+    final result = await getInvoiceByDevice(
+      GetInvoiceByDeviceParams(deviceId: deviceId),
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          isLoadingInvoice: false,
+          invoiceErrorMessage: failure.message,
+        ),
+      ),
+      (invoice) => emit(_invoiceLoadedState(invoice, isLoadingInvoice: false)),
+    );
+  }
 
   Future<void> loadUsers({bool refresh = false}) async {
     if (state.isLoadingUsers || state.isLoadingMoreUsers) return;
@@ -200,8 +229,16 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
       return;
     }
 
+    var existingInvoice = state.invoice;
+    if (existingInvoice == null) {
+      final result = await getInvoiceByDevice(
+        GetInvoiceByDeviceParams(deviceId: deviceId),
+      );
+      result.fold((_) {}, (invoice) => existingInvoice = invoice);
+    }
+
     final invoiceItems = _invoiceItemsForSubmission();
-    if (invoiceItems.isEmpty) {
+    if (invoiceItems.isEmpty && existingInvoice == null) {
       emit(
         state.copyWith(
           invoiceErrorMessage: 'أضف عنصرًا واحدًا على الأقل قبل تصدير الفاتورة',
@@ -212,10 +249,10 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
     }
 
     final invoice = Invoice(
-      id: 0,
+      id: existingInvoice?.id ?? 0,
       deviceId: deviceId,
       device: state.device,
-      customerId: 0,
+      customerId: existingInvoice?.customerId ?? 0,
       date: DateTime.now(),
       discount: state.discount,
       items: invoiceItems,
@@ -229,7 +266,12 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
       ),
     );
 
-    final result = await createInvoice(CreateInvoiceParams(invoice: invoice));
+    final existingInvoiceId = existingInvoice?.id;
+    final result = existingInvoiceId == null
+        ? await createInvoice(CreateInvoiceParams(invoice: invoice))
+        : await updateInvoice(
+            UpdateInvoiceParams(id: existingInvoiceId, invoice: invoice),
+          );
 
     result.fold(
       (failure) => emit(
@@ -239,10 +281,10 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
           invoiceCreated: false,
         ),
       ),
-      (_) => emit(
-        state.copyWith(
+      (savedInvoice) => emit(
+        _invoiceLoadedState(
+          savedInvoice,
           isCreatingInvoice: false,
-          clearInvoiceError: true,
           invoiceCreated: true,
         ),
       ),
@@ -291,32 +333,40 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
   }
 
   List<InvoiceItem> _invoiceItemsForSubmission() {
-    final items = <InvoiceItem>[...state.invoiceItems];
-    if (state.repairLaborPrice > 0) {
-      items.add(
-        InvoiceItem(
-          id: 0,
-          invoiceId: 0,
-          sparePartId: null,
-          sparePartName: 'أجرة الصيانة',
-          quantity: 1,
-          unitPrice: state.repairLaborPrice,
-        ),
+    final invoiceId = state.invoice?.id ?? 0;
+    return state.invoiceItems
+        .where((item) => item.sparePartId != null && item.sparePartId! > 0)
+        .map((item) => item.copyWith(invoiceId: invoiceId))
+        .toList();
+  }
+
+  DeviceDetailsState _invoiceLoadedState(
+    Invoice? invoice, {
+    bool? isLoadingInvoice,
+    bool? isCreatingInvoice,
+    bool? invoiceCreated,
+  }) {
+    if (invoice == null) {
+      return state.copyWith(
+        clearInvoice: true,
+        isLoadingInvoice: isLoadingInvoice,
+        isCreatingInvoice: isCreatingInvoice,
+        invoiceCreated: invoiceCreated,
+        clearInvoiceError: true,
       );
     }
-    if (state.additionalCosts > 0) {
-      items.add(
-        InvoiceItem(
-          id: 0,
-          invoiceId: 0,
-          sparePartId: null,
-          sparePartName: 'تكاليف إضافية',
-          quantity: 1,
-          unitPrice: state.additionalCosts,
-        ),
-      );
-    }
-    return items;
+
+    return state.copyWith(
+      invoice: invoice,
+      isLoadingInvoice: isLoadingInvoice,
+      isCreatingInvoice: isCreatingInvoice,
+      invoiceCreated: invoiceCreated,
+      invoiceItems: invoice.items,
+      repairLaborPrice: 0,
+      additionalCosts: 0,
+      discount: invoice.discount,
+      clearInvoiceError: true,
+    );
   }
 
   String _statusLabel(DeviceStatus status) {

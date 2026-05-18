@@ -1,7 +1,8 @@
+import 'dart:async';
+
+import 'package:engineering_ops_dashboard/features/admin/add_user_screen.dart';
 import 'package:engineering_ops_dashboard/features/admin/user_details_screen.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'users_cubit.dart';
 import '../../theme/app_colors.dart';
@@ -12,27 +13,23 @@ class AdminScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      //backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _HeaderSection(),
-            const SizedBox(height: 24),
-            _ContentGrid(),
-          ],
+    return BlocProvider(
+      create: (_) => UsersCubit()..fetchUsers(),
+      child: Scaffold(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: const [
+              _HeaderSection(),
+              SizedBox(height: 24),
+              _UsersQueryPanel(),
+              SizedBox(height: 16),
+              _ActivePersonnelTable(),
+            ],
+          ),
         ),
       ),
-      // floatingActionButton: MediaQuery.of(context).size.width < 1024
-      //     ? FloatingActionButton(
-      //         onPressed: () {},
-      //         backgroundColor: AppColors.secondary,
-      //         foregroundColor: Colors.white,
-      //         child: const Icon(Icons.person_add),
-      //       )
-      //     : null,
     );
   }
 }
@@ -50,55 +47,61 @@ class _HeaderSection extends StatelessWidget {
           ? CrossAxisAlignment.end
           : CrossAxisAlignment.start,
       children: [
-        IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.primary),
-          onPressed: () => HomeShell.openDrawer(context),
-        ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'اداره المستخدمين',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.menu, color: AppColors.primary),
+              onPressed: () => HomeShell.openDrawer(context),
             ),
-            SizedBox(height: 4),
-            Text(
-              "قم باداره المستخدمين و المهندسين في النظام عبر هذه الشاشة يمكنك اضافه مهندسين جدد و تعديل بياناتهم و حذفهم",
-              maxLines: 3,
-              style: TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'المستخدمون',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'إدارة المستخدمين والأدوار والحالة والتفاصيل',
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         if (!isWide) const SizedBox(height: 16),
-        Container(
-          width: isWide ? 384 : double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(color: AppColors.outlineVariant),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: const [
-              Icon(Icons.search, color: AppColors.outline, size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  style: TextStyle(color: Colors.black),
-                  decoration: InputDecoration(
-                    hintText: 'البحث بالاسم او الهويه ...',
-                    border: InputBorder.none,
-                    isCollapsed: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
+        SizedBox(
+          width: isWide ? 180 : double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              final created = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(builder: (_) => const AddUserScreen()),
+              );
+              if (created == true && context.mounted) {
+                context.read<UsersCubit>().fetchUsers(page: 1);
+              }
+            },
+            icon: const Icon(Icons.person_add),
+            label: const Text('إضافة مستخدم'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
+            ),
           ),
         ),
       ],
@@ -106,63 +109,26 @@ class _HeaderSection extends StatelessWidget {
   }
 }
 
-class _ContentGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 1024;
-
-    // Provide UsersCubit to children and fetch initial data
-    return BlocProvider(
-      create: (_) => UsersCubit()..fetchUsers(),
-      child: Builder(
-        builder: (context) {
-          if (isWide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Expanded(flex: 4, child: _AddEngineerForm()),
-                SizedBox(width: 24),
-                Expanded(flex: 8, child: _ActivePersonnelTable()),
-              ],
-            );
-          }
-
-          return Column(
-            children: const [
-              _AddEngineerForm(),
-              SizedBox(height: 24),
-              _ActivePersonnelTable(),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _AddEngineerForm extends StatefulWidget {
-  const _AddEngineerForm();
+class _UsersQueryPanel extends StatefulWidget {
+  const _UsersQueryPanel();
 
   @override
-  _AddEngineerFormState createState() => _AddEngineerFormState();
+  State<_UsersQueryPanel> createState() => _UsersQueryPanelState();
 }
 
-class _AddEngineerFormState extends State<_AddEngineerForm> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+class _UsersQueryPanelState extends State<_UsersQueryPanel> {
+  final TextEditingController _searchController = TextEditingController();
   final TextEditingController _roleController = TextEditingController();
-  final TextEditingController _birthController = TextEditingController();
-  final TextEditingController _employDateController = TextEditingController();
+  Timer? _searchDebounce;
+  bool? _isActive;
+  String _sortBy = 'id';
+  String _sortDirection = 'asc';
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
-    _phoneController.dispose();
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _roleController.dispose();
-    _birthController.dispose();
-    _employDateController.dispose();
     super.dispose();
   }
 
@@ -172,240 +138,249 @@ class _AddEngineerFormState extends State<_AddEngineerForm> {
       color: Colors.white,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: AppColors.outlineVariant),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: const [
-                Icon(Icons.person_add, color: AppColors.secondary),
-                SizedBox(width: 8),
-                Text(
-                  'اضافه مهندس جديد',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 720;
+            final controls = <Widget>[
+              _SearchBox(
+                controller: _searchController,
+                onChanged: _queueSearch,
+                onSubmitted: (_) => _applyQuery(),
+              ),
+              _RoleBox(
+                controller: _roleController,
+                onChanged: _queueSearch,
+                onSubmitted: _applyQuery,
+              ),
+              _StatusFilter(
+                value: _isActive,
+                onChanged: (value) {
+                  setState(() => _isActive = value);
+                  _applyQuery();
+                },
+              ),
+              _SortFilter(
+                sortBy: _sortBy,
+                sortDirection: _sortDirection,
+                onChanged: (sortBy, sortDirection) {
+                  setState(() {
+                    _sortBy = sortBy;
+                    _sortDirection = sortDirection;
+                  });
+                  _applyQuery();
+                },
+              ),
+              OutlinedButton.icon(
+                onPressed: _clearQuery,
+                icon: const Icon(Icons.filter_alt_off_outlined),
+                label: const Text('تصفية'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.outlineVariant),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildField(
-              "اسم المهندس",
-              "م.ث: محمد احمد علي",
-              controller: _nameController,
-            ),
-            _buildField(
-              "الموقع",
-              "م.ث:المكلا\\عدن\\تولبه",
-              controller: _locationController,
-            ),
-            _buildField(
-              "رقم الهاتف",
-              "م.ث: 771234567",
-              controller: _phoneController,
-            ),
-            _buildField("الدور", "م.ث: مهندس", controller: _roleController),
-            _buildDateField(
-              "تاريخ الميلاد",
-              "يوم/شهر/سنة",
-              controller: _birthController,
-            ),
-            _buildDateField(
-              "تاريخ التوظيف",
-              "يوم/شهر/سنة",
-              controller: _employDateController,
-            ),
-            const SizedBox(height: 16),
-            //   _buildField('EMPLOYEE ID', 'ENG-XXXX'),
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _submitEngineer(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'اضافه المهندس',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
               ),
-            ),
-          ],
+            ];
+
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: controls
+                    .map(
+                      (control) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: control,
+                      ),
+                    )
+                    .toList(),
+              );
+            }
+
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: controls,
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildField(
-    String label,
-    String hint, {
-    TextEditingController? controller,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        TextField(
-          controller: controller,
-          style: const TextStyle(color: Colors.black),
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: const Color(0xFFF7F9FB),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.secondary),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ),
-      ],
+  void _queueSearch(String _) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 450), _applyQuery);
+  }
+
+  void _applyQuery() {
+    _searchDebounce?.cancel();
+    context.read<UsersCubit>().applyQuery(
+      search: _searchController.text,
+      role: _roleController.text,
+      isActive: _isActive,
+      sortBy: _sortBy,
+      sortDirection: _sortDirection,
     );
   }
 
-  Widget _buildDateField(
-    String label,
-    String hint, {
-    required TextEditingController controller,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.5,
+  void _clearQuery() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    _roleController.clear();
+    setState(() {
+      _isActive = null;
+      _sortBy = 'id';
+      _sortDirection = 'asc';
+    });
+    context.read<UsersCubit>().clearQuery();
+  }
+}
+
+class _SearchBox extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
+
+  const _SearchBox({
+    required this.controller,
+    required this.onChanged,
+    required this.onSubmitted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 300,
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.search, color: AppColors.outline),
+          hintText: 'البحث بالاسم أو الهاتف',
+          filled: true,
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.outlineVariant),
           ),
-        ),
-        const SizedBox(height: 4),
-        TextField(
-          controller: controller,
-          readOnly: true,
-          style: const TextStyle(color: Colors.black),
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: const Color(0xFFF7F9FB),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.secondary),
-              borderRadius: BorderRadius.circular(4),
-            ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.secondary),
           ),
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime(1990),
-              firstDate: DateTime(1900),
-              lastDate: DateTime.now(),
-            );
-            if (picked != null) {
-              setState(() {
-                // store dates in ISO yyyy-MM-dd expected by the API
-                controller.text = picked.toIso8601String().split('T').first;
-              });
-            }
-          },
+          isDense: true,
         ),
-      ],
+      ),
     );
   }
+}
 
-  Future<void> _submitEngineer(BuildContext context) async {
-    final uri = Uri.parse('http://al-mumtazun-api.runasp.net/api/Users');
-    final payload = {
-      'id': 0,
-      'fullName': _nameController.text.trim(),
-      'phoneNumber': _phoneController.text.trim(),
-      'birthDay': _birthController.text.isEmpty
-          ? DateTime.now().toIso8601String().split('T').first
-          : _birthController.text,
-      'employeDate': _employDateController.text.isEmpty
-          ? DateTime.now().toIso8601String().split('T').first
-          : _employDateController.text,
-      'address': _locationController.text.trim(),
-      'role': _roleController.text.trim(),
-    };
+class _RoleBox extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onSubmitted;
 
-    try {
-      final resp = await http.post(
-        uri,
-        headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
-        body: json.encode(payload),
-      );
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('مهندس تم اضافته بنجاح')));
-        // clear form
-        _nameController.clear();
-        _locationController.clear();
-        _phoneController.clear();
-        _roleController.clear();
-        _birthController.clear();
-        _employDateController.clear();
-        // refresh users via cubit
-        try {
-          context.read<UsersCubit>().fetchUsers();
-        } catch (_) {}
-      } else {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطأ: ${resp.statusCode} ${resp.reasonPhrase}'),
+  const _RoleBox({
+    required this.controller,
+    required this.onChanged,
+    required this.onSubmitted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 180,
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        onSubmitted: (_) => onSubmitted(),
+        style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.badge_outlined),
+          hintText: 'الدور',
+          filled: true,
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.outlineVariant),
           ),
-        );
-      }
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('فشل بالاتصال: $e')));
-    }
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.secondary),
+          ),
+          isDense: true,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusFilter extends StatelessWidget {
+  final bool? value;
+  final ValueChanged<bool?> onChanged;
+
+  const _StatusFilter({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<bool?>(
+      value: value,
+      hint: const Text('الحالة'),
+      items: const [
+        DropdownMenuItem<bool?>(value: null, child: Text('الكل')),
+        DropdownMenuItem<bool?>(value: true, child: Text('نشط')),
+        DropdownMenuItem<bool?>(value: false, child: Text('غير نشط')),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _SortFilter extends StatelessWidget {
+  final String sortBy;
+  final String sortDirection;
+  final void Function(String sortBy, String sortDirection) onChanged;
+
+  const _SortFilter({
+    required this.sortBy,
+    required this.sortDirection,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final value = '$sortBy:$sortDirection';
+    return DropdownButton<String>(
+      value: value,
+      items: const [
+        DropdownMenuItem(value: 'id:asc', child: Text('الرقم تصاعدي')),
+        DropdownMenuItem(value: 'id:desc', child: Text('الرقم تنازلي')),
+        DropdownMenuItem(value: 'fullName:asc', child: Text('الاسم تصاعدي')),
+        DropdownMenuItem(value: 'fullName:desc', child: Text('الاسم تنازلي')),
+        DropdownMenuItem(value: 'salary:asc', child: Text('الراتب تصاعدي')),
+        DropdownMenuItem(value: 'salary:desc', child: Text('الراتب تنازلي')),
+      ],
+      onChanged: (next) {
+        if (next == null) return;
+        final parts = next.split(':');
+        onChanged(parts[0], parts[1]);
+      },
+    );
   }
 }
 
@@ -423,24 +398,41 @@ class _ActivePersonnelTable extends StatelessWidget {
 
   Color _statusColor(String status) {
     final s = status.toUpperCase();
-    if (s.contains('INACTIVE') || s.contains('OFF') || s.contains('OFFLINE')) {
+    if (status.contains('غير نشط') ||
+        s.contains('INACTIVE') ||
+        s.contains('OFF') ||
+        s.contains('OFFLINE')) {
       return AppColors.outline;
     }
-    if (s.contains('ACTIVE')) return AppColors.green;
+    if (status.contains('نشط') || s.contains('ACTIVE')) return AppColors.green;
     if (s.contains('ON')) return AppColors.secondaryContainer;
     return AppColors.onSurfaceVariant;
   }
 
   Color _statusBg(String status) {
     final s = status.toUpperCase();
-    if (s.contains('INACTIVE') || s.contains('OFF') || s.contains('OFFLINE')) {
+    if (status.contains('غير نشط') ||
+        s.contains('INACTIVE') ||
+        s.contains('OFF') ||
+        s.contains('OFFLINE')) {
       return AppColors.surfaceContainerHighest;
     }
-    if (s.contains('ACTIVE')) return AppColors.greenBg;
+    if (status.contains('نشط') || s.contains('ACTIVE'))
+      return AppColors.greenBg;
     if (s.contains('ON')) {
       return AppColors.secondaryContainer.withValues(alpha: 0.2);
     }
     return AppColors.surface;
+  }
+
+  double _readDouble(String value) {
+    return double.tryParse(value.trim().replaceAll(',', '.')) ?? 0;
+  }
+
+  String _dateOrToday(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isNotEmpty) return trimmed;
+    return DateTime.now().toIso8601String().split('T').first;
   }
 
   @override
@@ -461,7 +453,7 @@ class _ActivePersonnelTable extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  "المهندسين",
+                  "المستخدمون",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -481,7 +473,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        'TOTAL $total',
+                        'الإجمالي $total',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -506,7 +498,7 @@ class _ActivePersonnelTable extends StatelessWidget {
               if (state is UsersError) {
                 return Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Text('خطأ في جلب البيانات: ${state.message}'),
+                  child: Text('فشل تحميل المستخدمين: ${state.message}'),
                 );
               }
 
@@ -522,7 +514,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                   columns: const [
                     DataColumn(
                       label: Text(
-                        'المهندس',
+                        'المستخدم',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -532,7 +524,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'رقم الهوية',
+                        'الرقم',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -542,7 +534,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'الوظيفة',
+                        'الدور',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -562,7 +554,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     ),
                     DataColumn(
                       label: Text(
-                        'العمليات',
+                        'الإجراءات',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -576,7 +568,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     final u = entry.value as Map<String, dynamic>;
                     final name = (u['fullName'] ?? u['name'] ?? '') as String;
                     final initials = _initialsFromName(
-                      name.isEmpty ? '—' : name,
+                      name.isEmpty ? '-' : name,
                     );
                     final userId = (u['employeeId'] ?? u['id'] ?? '')
                         .toString();
@@ -584,7 +576,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                     final isActive = u['isActive'] == true;
                     final status =
                         (u['status'] ?? u['state'])?.toString() ??
-                        (isActive ? 'ACTIVE' : 'INACTIVE');
+                        (isActive ? 'نشط' : 'غير نشط');
                     return DataRow(
                       color: WidgetStateProperty.all(
                         i.isOdd ? AppColors.surfaceContainerLow : Colors.white,
@@ -743,6 +735,27 @@ class _ActivePersonnelTable extends StatelessWidget {
                                     text: u['phoneNumber']?.toString() ?? '',
                                   );
 
+                                  final salaryController =
+                                      TextEditingController(
+                                        text: (u['salary'] ?? 0).toString(),
+                                      );
+
+                                  final workPercentageController =
+                                      TextEditingController(
+                                        text: (u['workPercentage'] ?? 0)
+                                            .toString(),
+                                      );
+
+                                  final birthController = TextEditingController(
+                                    text: u['birthDay']?.toString() ?? '',
+                                  );
+
+                                  final employDateController =
+                                      TextEditingController(
+                                        text:
+                                            u['employeDate']?.toString() ?? '',
+                                      );
+
                                   showDialog(
                                     context: context,
                                     builder: (_) {
@@ -774,7 +787,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                                                   ),
                                                   decoration:
                                                       const InputDecoration(
-                                                        labelText: 'الوظيفة',
+                                                        labelText: 'الدور',
                                                       ),
                                                 ),
 
@@ -803,6 +816,66 @@ class _ActivePersonnelTable extends StatelessWidget {
                                                         labelText: 'رقم الهاتف',
                                                       ),
                                                 ),
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller: salaryController,
+                                                  keyboardType:
+                                                      const TextInputType.numberWithOptions(
+                                                        decimal: true,
+                                                      ),
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: 'الراتب',
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller:
+                                                      workPercentageController,
+                                                  keyboardType:
+                                                      const TextInputType.numberWithOptions(
+                                                        decimal: true,
+                                                      ),
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: 'نسبة العمل',
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller: birthController,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            'تاريخ الميلاد',
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+
+                                                TextField(
+                                                  controller:
+                                                      employDateController,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            'تاريخ التوظيف',
+                                                      ),
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -822,16 +895,34 @@ class _ActivePersonnelTable extends StatelessWidget {
                                                   .updateUser(
                                                     id: int.parse(userId),
                                                     data: {
-                                                      'id': int.parse(userId),
-                                                      'fullName':
-                                                          nameController.text,
-                                                      'role':
-                                                          roleController.text,
-                                                      'address':
-                                                          addressController
-                                                              .text,
+                                                      'fullName': nameController
+                                                          .text
+                                                          .trim(),
                                                       'phoneNumber':
-                                                          phoneController.text,
+                                                          phoneController.text
+                                                              .trim(),
+                                                      'salary': _readDouble(
+                                                        salaryController.text,
+                                                      ),
+                                                      'workPercentage': _readDouble(
+                                                        workPercentageController
+                                                            .text,
+                                                      ),
+                                                      'birthDay': _dateOrToday(
+                                                        birthController.text,
+                                                      ),
+                                                      'employeDate':
+                                                          _dateOrToday(
+                                                            employDateController
+                                                                .text,
+                                                          ),
+                                                      'address':
+                                                          addressController.text
+                                                              .trim(),
+                                                      'role': roleController
+                                                          .text
+                                                          .trim(),
+                                                      'isActive': isActive,
                                                     },
                                                   );
 
@@ -876,7 +967,7 @@ class _ActivePersonnelTable extends StatelessWidget {
 
                                             const SizedBox(height: 8),
 
-                                            Text('الوظيفة: $role'),
+                                            Text('الدور: $role'),
 
                                             const SizedBox(height: 8),
 
@@ -1007,7 +1098,7 @@ class _ActivePersonnelTable extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final summary = Text(
-                      'Showing $start-$end of $totalCount | Page $page of $totalPages',
+                      'عرض $start-$end من $totalCount | الصفحة $page من $totalPages',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

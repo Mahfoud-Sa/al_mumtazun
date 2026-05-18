@@ -136,6 +136,13 @@ class UserDetailsPage extends StatelessWidget {
                     user['phoneNumber']?.toString() ?? '-',
                   ),
 
+                  _infoTile('Salary', user['salary']?.toString() ?? '0'),
+
+                  _infoTile(
+                    'Work Percentage',
+                    user['workPercentage']?.toString() ?? '0',
+                  ),
+
                   _infoTile('العنوان', user['address']?.toString() ?? '-'),
 
                   _infoTile('العمر', '$age سنة'),

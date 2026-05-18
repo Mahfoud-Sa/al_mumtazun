@@ -8,7 +8,10 @@ import '../models/invoice_model.dart';
 
 abstract class InvoicesRemoteDataSource {
   Future<InvoicePage> getInvoices({required int page, required int size});
+  Future<InvoiceModel> getInvoiceById(int id);
+  Future<InvoiceModel?> getInvoiceByDeviceId(int deviceId);
   Future<InvoiceModel> createInvoice(InvoiceModel invoice);
+  Future<InvoiceModel> updateInvoice(int id, InvoiceModel invoice);
 }
 
 class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
@@ -25,30 +28,64 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
     final response = await client.post(
       baseUri,
       headers: {'accept': '*/*', 'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "deviceId": 1,
-        "customerId": 1,
-        "date": DateTime.now().toIso8601String(),
-        "discount": 5,
-        "items": [
-          {"quantity": 2, "unitPrice": 100},
-          {"quantity": 1, "unitPrice": 250},
-        ],
-      }), //jsonEncode(invoice.toCreateJson()),
+      body: jsonEncode(invoice.toCreateJson()),
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
+      throw Exception(_errorMessage(response));
     }
 
-    if (response.body.trim().isEmpty) return invoice;
+    final created = response.body.trim().isEmpty
+        ? invoice
+        : _decodeInvoice(response.body, fallback: invoice);
 
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map<String, dynamic>) {
-      return InvoiceModel.fromJson(decoded);
+    return created.id == 0 ? created : getInvoiceById(created.id);
+  }
+
+  @override
+  Future<InvoiceModel> getInvoiceById(int id) async {
+    final response = await client.get(
+      baseUri.replace(path: '${baseUri.path}/$id'),
+      headers: {'accept': '*/*'},
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(_errorMessage(response));
     }
 
-    return invoice;
+    return _decodeInvoice(response.body);
+  }
+
+  @override
+  Future<InvoiceModel?> getInvoiceByDeviceId(int deviceId) async {
+    final invoicesPage = await getInvoices(page: 1, size: 100);
+
+    for (final invoice in invoicesPage.invoices) {
+      if (invoice.deviceId == deviceId) {
+        return InvoiceModel.fromEntity(invoice);
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  Future<InvoiceModel> updateInvoice(int id, InvoiceModel invoice) async {
+    final response = await client.put(
+      baseUri.replace(path: '${baseUri.path}/$id'),
+      headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+      body: jsonEncode(invoice.toCreateJson()),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(_errorMessage(response));
+    }
+
+    final updated = response.body.trim().isEmpty
+        ? invoice
+        : _decodeInvoice(response.body, fallback: invoice);
+
+    return getInvoiceById(updated.id == 0 ? id : updated.id);
   }
 
   @override
@@ -59,7 +96,7 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
     final response = await _getInvoicesResponse(page: page, size: size);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('HTTP ${response.statusCode} ${response.reasonPhrase}');
+      throw Exception(_errorMessage(response));
     }
 
     if (response.body.trim().isEmpty) {
@@ -156,5 +193,28 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
   int _readInt(dynamic value, int fallback) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  String _errorMessage(http.Response response) {
+    final body = response.body.trim();
+    final status = 'HTTP ${response.statusCode} ${response.reasonPhrase}';
+    return body.isEmpty ? status : '$status: $body';
+  }
+
+  InvoiceModel _decodeInvoice(String body, {InvoiceModel? fallback}) {
+    if (body.trim().isEmpty) {
+      if (fallback != null) return fallback;
+      throw Exception('Empty invoice response');
+    }
+
+    final decoded = jsonDecode(body);
+    if (decoded is Map<String, dynamic>) {
+      final data = decoded['data'] ?? decoded['invoice'];
+      if (data is Map<String, dynamic>) return InvoiceModel.fromJson(data);
+      return InvoiceModel.fromJson(decoded);
+    }
+
+    if (fallback != null) return fallback;
+    throw Exception('Unexpected invoice response format');
   }
 }

@@ -13,12 +13,38 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   InvoiceRepositoryImpl(this.remote);
 
   @override
+  Future<Either<Failure, Invoice?>> getInvoiceByDeviceId(int deviceId) async {
+    try {
+      final invoice = await remote.getInvoiceByDeviceId(deviceId);
+      return Right(invoice);
+    } catch (error) {
+      return Left(ServerFailure(error.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Invoice>> createInvoice(Invoice invoice) async {
     try {
       final created = await remote.createInvoice(
         InvoiceModel.fromEntity(invoice),
       );
       return Right(created);
+    } catch (error) {
+      return Left(ServerFailure(error.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Invoice>> updateInvoice({
+    required int id,
+    required Invoice invoice,
+  }) async {
+    try {
+      final updated = await remote.updateInvoice(
+        id,
+        InvoiceModel.fromEntity(invoice),
+      );
+      return Right(updated);
     } catch (error) {
       return Left(ServerFailure(error.toString()));
     }

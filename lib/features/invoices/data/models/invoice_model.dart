@@ -30,7 +30,7 @@ class InvoiceModel extends Invoice {
     final items = json['items'];
 
     return InvoiceModel(
-      id: _readInt(json['id'], 0),
+      id: _readInt(json['id'] ?? json['invoiceId'], 0),
       deviceId: _readInt(json['deviceId'], 0),
       device: device is Map<String, dynamic>
           ? DeviceModel.fromJson(device)

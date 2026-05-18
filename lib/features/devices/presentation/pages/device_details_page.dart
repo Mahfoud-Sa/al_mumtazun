@@ -785,7 +785,7 @@ class _BillingSection extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          "القكع المراد تبديلها / إصلاحها",
+                          "القطع المراد تبديلها / إصلاحها",
                           style: AppTextStyles.labelStrong,
                         ),
                       ),
@@ -880,12 +880,14 @@ class _BillingSection extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: state.isCreatingInvoice
+                          onPressed:
+                              state.isLoadingInvoice || state.isCreatingInvoice
                               ? null
                               : context
                                     .read<DeviceDetailsCubit>()
                                     .exportInvoice,
-                          icon: state.isCreatingInvoice
+                          icon:
+                              state.isLoadingInvoice || state.isCreatingInvoice
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
@@ -893,11 +895,21 @@ class _BillingSection extends StatelessWidget {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Icon(Icons.description_outlined),
+                              : Icon(
+                                  state.invoice == null
+                                      ? Icons.description_outlined
+                                      : Icons.edit_document,
+                                ),
                           label: Text(
-                            state.isCreatingInvoice
-                                ? 'جاري تصدير الفاتورة...'
-                                : 'تصدير الفاتورة',
+                            state.isLoadingInvoice
+                                ? 'جاري التحقق من الفاتورة...'
+                                : state.isCreatingInvoice
+                                ? state.invoice == null
+                                      ? 'جاري إنشاء الفاتورة...'
+                                      : 'جاري تحديث الفاتورة...'
+                                : state.invoice == null
+                                ? 'إنشاء الفاتورة'
+                                : 'تحديث الفاتورة',
                           ),
                         ),
                       ),
@@ -1005,11 +1017,12 @@ class _MoneyField extends StatelessWidget {
         SizedBox(
           width: 120,
           child: TextFormField(
+            key: ValueKey('$label-${value.toStringAsFixed(2)}'),
             initialValue: value.toStringAsFixed(2),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textAlign: TextAlign.end,
             onChanged: onChanged,
-            decoration: const InputDecoration(prefixText: '\$ '),
+            decoration: const InputDecoration(suffixText: ' ريال يمني'),
           ),
         ),
       ],
@@ -1272,7 +1285,7 @@ Color _statusColor(DeviceStatus status) {
   }
 }
 
-String _formatMoney(double value) => '\$${value.toStringAsFixed(2)}';
+String _formatMoney(double value) => '${value.toStringAsFixed(2)} ريال يمني';
 
 String _formatDate(DateTime date) {
   return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -1328,7 +1341,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    "Select Component",
+                    "اختيار مكون",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -1348,7 +1361,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
               controller: searchController,
               onChanged: filterComponents,
               decoration: InputDecoration(
-                hintText: "Search components...",
+                hintText: "ابحث عن مكون...",
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 border: OutlineInputBorder(
@@ -1389,7 +1402,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                             .toList();
 
                   if (filteredComponents.isEmpty) {
-                    return const Center(child: Text('No components found'));
+                    return const Center(child: Text('لا توجد مكونات'));
                   }
 
                   return ListView.separated(
@@ -1430,7 +1443,9 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      item.name.isEmpty ? 'Unnamed' : item.name,
+                                      item.name.isEmpty
+                                          ? 'بدون اسم'
+                                          : item.name,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -1482,7 +1497,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text("Cancel"),
+                    child: const Text("إلغاء"),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1497,7 +1512,7 @@ class _ComponentPickerDialogState extends State<ComponentPickerDialog> {
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text("Add"),
+                    child: const Text("إضافة"),
                   ),
                 ),
               ],
@@ -1533,7 +1548,7 @@ class _ComponentPickerError extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () => context.read<CompoundsCubit>().fetch(size: 100),
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Retry'),
+              label: const Text('إعادة المحاولة'),
             ),
           ],
         ),

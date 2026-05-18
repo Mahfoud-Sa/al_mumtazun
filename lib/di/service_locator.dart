@@ -42,7 +42,9 @@ import '../features/invoices/data/datasources/invoices_remote_datasource.dart';
 import '../features/invoices/data/repositories/invoice_repository_impl.dart';
 import '../features/invoices/domain/repositories/invoice_repository.dart';
 import '../features/invoices/domain/usecases/create_invoice_usecase.dart';
+import '../features/invoices/domain/usecases/get_invoice_by_device_usecase.dart';
 import '../features/invoices/domain/usecases/get_invoices_usecase.dart';
+import '../features/invoices/domain/usecases/update_invoice_usecase.dart';
 import '../features/invoices/presentation/cubit/invoices_cubit.dart';
 
 // Devices
@@ -182,8 +184,14 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<GetInvoicesUseCase>(
     () => GetInvoicesUseCase(getIt<InvoiceRepository>()),
   );
+  getIt.registerLazySingleton<GetInvoiceByDeviceUseCase>(
+    () => GetInvoiceByDeviceUseCase(getIt<InvoiceRepository>()),
+  );
   getIt.registerLazySingleton<CreateInvoiceUseCase>(
     () => CreateInvoiceUseCase(getIt<InvoiceRepository>()),
+  );
+  getIt.registerLazySingleton<UpdateInvoiceUseCase>(
+    () => UpdateInvoiceUseCase(getIt<InvoiceRepository>()),
   );
   getIt.registerFactory<InvoicesCubit>(
     () => InvoicesCubit(getInvoices: getIt<GetInvoicesUseCase>()),
@@ -224,13 +232,18 @@ Future<void> configureDependencies() async {
     ),
   );
   getIt.registerFactoryParam<DeviceDetailsCubit, Device, void>(
-    (device, _) => DeviceDetailsCubit(
-      device,
-      changeDeviceStatus: getIt<ChangeDeviceStatusUseCase>(),
-      updateDevice: getIt<UpdateDeviceUseCase>(),
-      createInvoice: getIt<CreateInvoiceUseCase>(),
-      getUsers: getIt<GetDeviceUsersUseCase>(),
-    )..loadUsers(refresh: true),
+    (device, _) =>
+        DeviceDetailsCubit(
+            device,
+            changeDeviceStatus: getIt<ChangeDeviceStatusUseCase>(),
+            updateDevice: getIt<UpdateDeviceUseCase>(),
+            getInvoiceByDevice: getIt<GetInvoiceByDeviceUseCase>(),
+            createInvoice: getIt<CreateInvoiceUseCase>(),
+            updateInvoice: getIt<UpdateInvoiceUseCase>(),
+            getUsers: getIt<GetDeviceUsersUseCase>(),
+          )
+          ..loadUsers(refresh: true)
+          ..loadInvoice(),
   );
 
   // Roles

@@ -5,6 +5,8 @@ class ProfileUserModel extends ProfileUser {
     required super.id,
     required super.fullName,
     required super.phoneNumber,
+    super.salary = 0,
+    super.workPercentage = 0,
     required super.birthDay,
     required super.employeDate,
     required super.address,
@@ -18,6 +20,8 @@ class ProfileUserModel extends ProfileUser {
       id: _readInt(json['id'] ?? json['userId']),
       fullName: _readString(json['fullName'] ?? json['name']),
       phoneNumber: _readString(json['phoneNumber']),
+      salary: _readDouble(json['salary']),
+      workPercentage: _readDouble(json['workPercentage']),
       birthDay: _readString(json['birthDay']),
       employeDate: _readString(json['employeDate']),
       address: _readString(json['address']),
@@ -34,6 +38,8 @@ class ProfileUserModel extends ProfileUser {
       id: user.id,
       fullName: user.fullName,
       phoneNumber: user.phoneNumber,
+      salary: user.salary,
+      workPercentage: user.workPercentage,
       birthDay: user.birthDay,
       employeDate: user.employeDate,
       address: user.address,
@@ -47,6 +53,8 @@ class ProfileUserModel extends ProfileUser {
     'id': id,
     'fullName': fullName,
     'phoneNumber': phoneNumber,
+    'salary': salary,
+    'workPercentage': workPercentage,
     'birthDay': birthDay,
     'employeDate': employeDate,
     'address': address,
@@ -61,6 +69,11 @@ class ProfileUserModel extends ProfileUser {
   }
 
   static String _readString(dynamic value) => value?.toString() ?? '';
+
+  static double _readDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? 0;
+  }
 
   static String? _readNullableString(dynamic value) {
     final text = value?.toString().trim();
