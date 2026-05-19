@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../localization/l10n.dart';
 import '../../localization/locale_cubit.dart';
@@ -21,8 +22,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _rememberDevice = false;
   bool _obscurePassword = true;
+  late final Future<PackageInfo> _packageInfoFuture;
 
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _packageInfoFuture = PackageInfo.fromPlatform().catchError(
+      (_) => PackageInfo(
+        appName: 'Engineering Ops Dashboard',
+        packageName: 'com.GidTeam.app',
+        version: '1.0.0',
+        buildNumber: '1',
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -556,6 +571,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: const Color(0xFF8691A6),
                   ),
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(32, 0, 32, 12),
+                color: AppColors.surfaceContainer,
+                alignment: AlignmentDirectional.centerEnd,
+                child: FutureBuilder<PackageInfo>(
+                  future: _packageInfoFuture,
+                  builder: (context, snapshot) {
+                    final version = snapshot.data?.version ?? '1.0.0';
+                    final buildNumber = snapshot.data?.buildNumber ?? '1';
+
+                    return Center(
+                      child: Text(
+                        'v$version (Build $buildNumber)',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

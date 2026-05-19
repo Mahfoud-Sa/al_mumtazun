@@ -16,127 +16,139 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Drawer(
-      backgroundColor: colorScheme.surface,
-      child: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                ListTile(
-                  leading: Icon(
-                    Icons.account_circle_outlined,
-                    color: colorScheme.primary,
-                  ),
-                  title: const Text('الملف الشخصي'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ProfilePage()),
-                    );
-                  },
-                ),
-                // const Divider(),
-                // _buildSectionTitle(context, 'Settings'),
-                // BlocBuilder<ThemeCubit, ThemeState>(
-                //   builder: (context, state) {
-                //     return SwitchListTile(
-                //       secondary: Icon(
-                //         state.isDarkMode
-                //             ? Icons.dark_mode
-                //             : Icons.light_mode_outlined,
-                //         color: colorScheme.primary,
-                //       ),
-                //       title: const Text('Dark Mode'),
-                //       value: state.isDarkMode,
-                //       onChanged: context.read<ThemeCubit>().setDarkMode,
-                //       activeThumbColor: colorScheme.secondary,
-                //     );
-                //   },
-                // ),
-                const Divider(),
-                _buildSectionTitle(context, 'النظام'),
-                // ListTile(
-                //   leading: Icon(
-                //     Icons.developer_mode,
-                //     color: colorScheme.primary,
-                //   ),
-                //   title: const Text('Developer Options'),
-                //   onTap: () {
-                //     // Navigate to developer options.
-                //   },
-                // ),
-                ListTile(
-                  leading: Icon(
-                    Icons.admin_panel_settings_outlined,
-                    color: colorScheme.primary,
-                  ),
-                  title: const Text('لوحة الإدارة'),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) {
-                          return AdminScreen();
-                        },
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.logout, color: colorScheme.primary),
-                  title: const Text('تسجيل الخروج'),
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    try {
-                      context.read<AuthCubit>().logout();
-                    } catch (_) {}
-                  },
-                ),
-                const Divider(),
-                _buildSectionTitle(context, 'عن التطبيق'),
-                FutureBuilder<PackageInfo>(
-                  future: PackageInfo.fromPlatform().catchError(
-                    (_) => PackageInfo(
-                      appName: 'نظام المتميزون',
-                      packageName: 'com.GidTeam.app',
-                      version: '1.0.0',
-                      buildNumber: '1',
+    return BlocProvider(
+      create: (_) => getIt<ProfileCubit>()..loadProfile(),
+      child: Drawer(
+        backgroundColor: colorScheme.surface,
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.account_circle_outlined,
+                      color: colorScheme.primary,
                     ),
+                    title: const Text('الملف الشخصي'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
+                    },
                   ),
-                  builder: (context, snapshot) {
-                    final version = snapshot.data?.version ?? '1.0.0';
-                    final buildNumber = snapshot.data?.buildNumber ?? '1';
-                    return ListTile(
-                      leading: Icon(
-                        Icons.info_outline,
-                        color: colorScheme.primary,
+                  // const Divider(),
+                  // _buildSectionTitle(context, 'Settings'),
+                  // BlocBuilder<ThemeCubit, ThemeState>(
+                  //   builder: (context, state) {
+                  //     return SwitchListTile(
+                  //       secondary: Icon(
+                  //         state.isDarkMode
+                  //             ? Icons.dark_mode
+                  //             : Icons.light_mode_outlined,
+                  //         color: colorScheme.primary,
+                  //       ),
+                  //       title: const Text('Dark Mode'),
+                  //       value: state.isDarkMode,
+                  //       onChanged: context.read<ThemeCubit>().setDarkMode,
+                  //       activeThumbColor: colorScheme.secondary,
+                  //     );
+                  //   },
+                  // ),
+                  const Divider(),
+                  _buildSectionTitle(context, 'النظام'),
+                  // ListTile(
+                  //   leading: Icon(
+                  //     Icons.developer_mode,
+                  //     color: colorScheme.primary,
+                  //   ),
+                  //   title: const Text('Developer Options'),
+                  //   onTap: () {
+                  //     // Navigate to developer options.
+                  //   },
+                  // ),
+                  BlocBuilder<ProfileCubit, ProfileState>(
+                    builder: (context, state) {
+                      if (!_canOpenAdmin(state.profile?.role)) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return ListTile(
+                        leading: Icon(
+                          Icons.admin_panel_settings_outlined,
+                          color: colorScheme.primary,
+                        ),
+                        title: const Text('لوحة الإدارة'),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) {
+                                return AdminScreen();
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.logout, color: colorScheme.primary),
+                    title: const Text('تسجيل الخروج'),
+                    onTap: () async {
+                      Navigator.of(context).pop();
+                      try {
+                        context.read<AuthCubit>().logout();
+                      } catch (_) {}
+                    },
+                  ),
+                  const Divider(),
+                  _buildSectionTitle(context, 'عن التطبيق'),
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform().catchError(
+                      (_) => PackageInfo(
+                        appName: 'نظام المتميزون',
+                        packageName: 'com.GidTeam.app',
+                        version: '1.0.0',
+                        buildNumber: '1',
                       ),
-                      title: const Text('إصدار التطبيق'),
-                      subtitle: Text('v$version (Build $buildNumber)'),
-                      onTap: () {
-                        showAboutDialog(
-                          context: context,
-                          applicationName: 'نظام المتميزون',
-                          applicationVersion: 'v$version (Build $buildNumber)',
-                          applicationIcon: Icon(
-                            Icons.engineering,
-                            size: 48,
-                            color: colorScheme.secondary,
-                          ),
-                          applicationLegalese:
-                              'تم تطوير هذا التطبيق بواسطة فريق GidTeam. جميع الحقوق محفوظة.',
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
+                    ),
+                    builder: (context, snapshot) {
+                      final version = snapshot.data?.version ?? '1.0.0';
+                      final buildNumber = snapshot.data?.buildNumber ?? '1';
+                      return ListTile(
+                        leading: Icon(
+                          Icons.info_outline,
+                          color: colorScheme.primary,
+                        ),
+                        title: const Text('إصدار التطبيق'),
+                        subtitle: Text('v$version (Build $buildNumber)'),
+                        onTap: () {
+                          showAboutDialog(
+                            context: context,
+                            applicationName: 'نظام المتميزون',
+                            applicationVersion:
+                                'v$version (Build $buildNumber)',
+                            applicationIcon: Icon(
+                              Icons.engineering,
+                              size: 48,
+                              color: colorScheme.secondary,
+                            ),
+                            applicationLegalese:
+                                'تم تطوير هذا التطبيق بواسطة فريق GidTeam. جميع الحقوق محفوظة.',
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          _buildFooter(context),
-        ],
+            _buildFooter(context),
+          ],
+        ),
       ),
     );
   }
@@ -144,100 +156,97 @@ class AppDrawer extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return BlocProvider(
-      create: (_) => getIt<ProfileCubit>()..loadProfile(),
-      child: BlocBuilder<ProfileCubit, ProfileState>(
-        builder: (context, state) {
-          final profile = state.profile;
-          final name = _displayValue(profile?.fullName, 'المستخدم');
-          final phoneNumber = _displayValue(
-            profile?.phoneNumber,
-            'رقم الهاتف غير متوفر',
-          );
-          final role = _displayValue(profile?.role, 'الدور غير متوفر');
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        final profile = state.profile;
+        final name = _displayValue(profile?.fullName, 'المستخدم');
+        final phoneNumber = _displayValue(
+          profile?.phoneNumber,
+          'رقم الهاتف غير متوفر',
+        );
+        final role = _displayValue(profile?.role, 'الدور غير متوفر');
 
-          return DrawerHeader(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLow,
-              border: Border(
-                bottom: BorderSide(color: colorScheme.outlineVariant),
-              ),
+        return DrawerHeader(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            border: Border(
+              bottom: BorderSide(color: colorScheme.outlineVariant),
             ),
-            margin: EdgeInsets.zero,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: state.isLoading && profile == null
-                        ? SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colorScheme.onPrimary,
-                            ),
-                          )
-                        : Text(
-                            _initials(name),
-                            style: TextStyle(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
+          ),
+          margin: EdgeInsets.zero,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: state.isLoading && profile == null
+                      ? SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
                           ),
-                  ),
+                        )
+                      : Text(
+                          _initials(name),
+                          style: TextStyle(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: colorScheme.primary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: colorScheme.primary,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        phoneNumber,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      phoneNumber,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        role,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.secondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      role,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.secondary,
                       ),
-                    ],
-                  ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -258,6 +267,11 @@ class AppDrawer extends StatelessWidget {
     final first = parts.first.characters.first;
     final second = parts.length > 1 ? parts.last.characters.first : '';
     return (first + second).toUpperCase();
+  }
+
+  bool _canOpenAdmin(String? role) {
+    final normalized = role?.trim().toLowerCase();
+    return normalized == 'admin' || normalized == 'مطور';
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {

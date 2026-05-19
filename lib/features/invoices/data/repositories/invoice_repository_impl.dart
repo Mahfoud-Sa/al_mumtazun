@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_page.dart';
+import '../../domain/entities/invoice_query.dart';
 import '../../domain/repositories/invoice_repository.dart';
 import '../datasources/invoices_remote_datasource.dart';
 import '../models/invoice_model.dart';
@@ -51,12 +52,21 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteInvoice(int id) async {
+    try {
+      await remote.deleteInvoice(id);
+      return const Right(null);
+    } catch (error) {
+      return Left(ServerFailure(error.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, InvoicePage>> getInvoices({
-    required int page,
-    required int size,
+    required InvoiceQuery query,
   }) async {
     try {
-      final invoicesPage = await remote.getInvoices(page: page, size: size);
+      final invoicesPage = await remote.getInvoices(query: query);
       return Right(invoicesPage);
     } catch (error) {
       return Left(ServerFailure(error.toString()));

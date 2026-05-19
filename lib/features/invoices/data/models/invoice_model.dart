@@ -10,6 +10,8 @@ class InvoiceModel extends Invoice {
     required super.customerId,
     required super.date,
     required super.discount,
+    super.responseSubTotal,
+    super.responseTotal,
     required super.items,
   });
 
@@ -21,6 +23,8 @@ class InvoiceModel extends Invoice {
       customerId: invoice.customerId,
       date: invoice.date,
       discount: invoice.discount,
+      responseSubTotal: invoice.responseSubTotal,
+      responseTotal: invoice.responseTotal,
       items: invoice.items,
     );
   }
@@ -29,15 +33,26 @@ class InvoiceModel extends Invoice {
     final device = json['device'];
     final items = json['items'];
 
+    final deviceName = json['deviceName']?.toString();
+    final customerName = json['customerName']?.toString();
+
     return InvoiceModel(
       id: _readInt(json['id'] ?? json['invoiceId'], 0),
       deviceId: _readInt(json['deviceId'], 0),
       device: device is Map<String, dynamic>
           ? DeviceModel.fromJson(device)
-          : null,
+          : deviceName == null
+          ? null
+          : DeviceModel.fromJson({
+              'id': json['deviceId'],
+              'deviceName': deviceName,
+              'customerName': customerName ?? '',
+            }),
       customerId: _readInt(json['customerId'], 0),
       date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
       discount: _readDouble(json['discount'], 0),
+      responseSubTotal: _readNullableDouble(json['subTotal']),
+      responseTotal: _readNullableDouble(json['total']),
       items: items is List
           ? items
                 .whereType<Map<String, dynamic>>()
@@ -67,5 +82,11 @@ class InvoiceModel extends Invoice {
   static double _readDouble(dynamic value, double fallback) {
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  static double? _readNullableDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }

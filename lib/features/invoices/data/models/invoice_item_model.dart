@@ -8,6 +8,7 @@ class InvoiceItemModel extends InvoiceItem {
     required super.sparePartName,
     required super.quantity,
     required super.unitPrice,
+    super.responseTotal,
   });
 
   factory InvoiceItemModel.fromEntity(InvoiceItem item) {
@@ -18,6 +19,7 @@ class InvoiceItemModel extends InvoiceItem {
       sparePartName: item.sparePartName,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
+      responseTotal: item.responseTotal,
     );
   }
 
@@ -37,14 +39,15 @@ class InvoiceItemModel extends InvoiceItem {
       sparePartName: sparePartName,
       quantity: _readInt(json['quantity'], 0),
       unitPrice: _readDouble(json['unitPrice'] ?? json['price'], 0),
+      responseTotal: _readNullableDouble(json['total']),
     );
   }
 
   Map<String, dynamic> toCreateJson() {
     return {
-      if (sparePartId != null && sparePartId! > 0) 'sparePartId': sparePartId,
+      'sparePartId': sparePartId ?? 0,
       'quantity': quantity,
-      'price': unitPrice,
+      'unitPrice': unitPrice,
     };
   }
 
@@ -62,5 +65,11 @@ class InvoiceItemModel extends InvoiceItem {
   static double _readDouble(dynamic value, double fallback) {
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  static double? _readNullableDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }

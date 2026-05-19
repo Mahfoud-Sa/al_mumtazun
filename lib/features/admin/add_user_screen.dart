@@ -40,128 +40,131 @@ class _AddUserScreenState extends State<AddUserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.primary),
-        title: const Text(
-          'Add User',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F7FB),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: AppColors.primary),
+          title: const Text(
+            'إضافة مستخدم',
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: Card(
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: AppColors.outlineVariant),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(Icons.person_add, color: AppColors.secondary),
-                        SizedBox(width: 8),
-                        Text(
-                          'Add New User',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Card(
+                color: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppColors.outlineVariant),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.person_add, color: AppColors.secondary),
+                          SizedBox(width: 8),
+                          Text(
+                            'إضافة مستخدم جديد',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _buildField(
-                      'Full Name',
-                      'Example: Mohammad Ahmad',
-                      controller: _nameController,
-                    ),
-                    _buildField(
-                      'Address',
-                      'Example: المكلا',
-                      controller: _locationController,
-                    ),
-                    _buildField(
-                      'Phone Number',
-                      'Example: 771234567',
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    _buildField(
-                      'Role',
-                      'Example: Engineer',
-                      controller: _roleController,
-                    ),
-                    _buildField(
-                      'Salary',
-                      '0',
-                      controller: _salaryController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                        ],
                       ),
-                    ),
-                    _buildField(
-                      'Work Percentage',
-                      '0',
-                      controller: _workPercentageController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                      const SizedBox(height: 24),
+                      _buildField(
+                        'الاسم الكامل',
+                        'مثال: محمد أحمد',
+                        controller: _nameController,
                       ),
-                    ),
-                    _buildDateField(
-                      'Birth Day',
-                      'yyyy-MM-dd',
-                      controller: _birthController,
-                    ),
-                    _buildDateField(
-                      'Employe Date',
-                      'yyyy-MM-dd',
-                      controller: _employDateController,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _isSubmitting
-                            ? null
-                            : () => _submitUser(context),
-                        icon: _isSubmitting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(Icons.save),
-                        label: const Text('Save User'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.secondary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                      _buildField(
+                        'العنوان',
+                        'مثال: المكلا',
+                        controller: _locationController,
+                      ),
+                      _buildField(
+                        'رقم الهاتف',
+                        'مثال: 771234567',
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      _buildField(
+                        'الدور الوظيفي',
+                        'مثال: مهندس',
+                        controller: _roleController,
+                      ),
+                      _buildField(
+                        'الراتب',
+                        '0',
+                        controller: _salaryController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
                       ),
-                    ),
-                  ],
+                      _buildField(
+                        'نسبة العمل',
+                        '0',
+                        controller: _workPercentageController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                      _buildDateField(
+                        'تاريخ الميلاد',
+                        'yyyy-MM-dd',
+                        controller: _birthController,
+                      ),
+                      _buildDateField(
+                        'تاريخ التوظيف',
+                        'yyyy-MM-dd',
+                        controller: _employDateController,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => _submitUser(context),
+                          icon: _isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.save),
+                          label: const Text('حفظ المستخدم'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.secondary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -306,22 +309,20 @@ class _AddUserScreenState extends State<AddUserScreen> {
 
       if (resp.statusCode >= 200 && resp.statusCode < 300) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User added successfully')),
+          const SnackBar(content: Text('تمت إضافة المستخدم بنجاح')),
         );
         Navigator.pop(context, true);
         return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${resp.statusCode} ${resp.reasonPhrase}'),
-        ),
+        SnackBar(content: Text('خطأ: ${resp.statusCode} ${resp.reasonPhrase}')),
       );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Connection failed: $e')));
+      ).showSnackBar(SnackBar(content: Text('فشل الاتصال: $e')));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

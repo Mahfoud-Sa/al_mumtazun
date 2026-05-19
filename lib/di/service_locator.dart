@@ -42,6 +42,7 @@ import '../features/invoices/data/datasources/invoices_remote_datasource.dart';
 import '../features/invoices/data/repositories/invoice_repository_impl.dart';
 import '../features/invoices/domain/repositories/invoice_repository.dart';
 import '../features/invoices/domain/usecases/create_invoice_usecase.dart';
+import '../features/invoices/domain/usecases/delete_invoice_usecase.dart';
 import '../features/invoices/domain/usecases/get_invoice_by_device_usecase.dart';
 import '../features/invoices/domain/usecases/get_invoices_usecase.dart';
 import '../features/invoices/domain/usecases/update_invoice_usecase.dart';
@@ -193,8 +194,16 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<UpdateInvoiceUseCase>(
     () => UpdateInvoiceUseCase(getIt<InvoiceRepository>()),
   );
+  getIt.registerLazySingleton<DeleteInvoiceUseCase>(
+    () => DeleteInvoiceUseCase(getIt<InvoiceRepository>()),
+  );
   getIt.registerFactory<InvoicesCubit>(
-    () => InvoicesCubit(getInvoices: getIt<GetInvoicesUseCase>()),
+    () => InvoicesCubit(
+      getInvoices: getIt<GetInvoicesUseCase>(),
+      createInvoice: getIt<CreateInvoiceUseCase>(),
+      updateInvoice: getIt<UpdateInvoiceUseCase>(),
+      deleteInvoice: getIt<DeleteInvoiceUseCase>(),
+    ),
   );
 
   // Devices

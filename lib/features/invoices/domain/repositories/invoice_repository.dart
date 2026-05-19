@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/invoice.dart';
 import '../entities/invoice_page.dart';
+import '../entities/invoice_query.dart';
 
 abstract class InvoiceRepository {
   Future<Either<Failure, Invoice?>> getInvoiceByDeviceId(int deviceId);
@@ -11,8 +12,8 @@ abstract class InvoiceRepository {
     required int id,
     required Invoice invoice,
   });
+  Future<Either<Failure, void>> deleteInvoice(int id);
   Future<Either<Failure, InvoicePage>> getInvoices({
-    required int page,
-    required int size,
+    required InvoiceQuery query,
   });
 }

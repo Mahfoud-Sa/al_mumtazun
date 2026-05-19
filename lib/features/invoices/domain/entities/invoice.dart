@@ -10,6 +10,8 @@ class Invoice extends Equatable {
   final int customerId;
   final DateTime date;
   final double discount;
+  final double? responseSubTotal;
+  final double? responseTotal;
   final List<InvoiceItem> items;
 
   const Invoice({
@@ -19,12 +21,16 @@ class Invoice extends Equatable {
     required this.customerId,
     required this.date,
     required this.discount,
+    this.responseSubTotal,
+    this.responseTotal,
     required this.items,
   });
 
-  double get subTotal => items.fold(0, (sum, item) => sum + item.total);
+  double get subTotal =>
+      responseSubTotal ?? items.fold(0, (sum, item) => sum + item.total);
 
   double get total {
+    if (responseTotal != null) return responseTotal!;
     final value = subTotal - discount;
     return value < 0 ? 0 : value;
   }
@@ -37,6 +43,8 @@ class Invoice extends Equatable {
     customerId,
     date,
     discount,
+    responseSubTotal,
+    responseTotal,
     items,
   ];
 }

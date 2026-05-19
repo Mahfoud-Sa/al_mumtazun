@@ -7,6 +7,7 @@ class InvoiceItem extends Equatable {
   final String sparePartName;
   final int quantity;
   final double unitPrice;
+  final double? responseTotal;
 
   const InvoiceItem({
     required this.id,
@@ -15,6 +16,7 @@ class InvoiceItem extends Equatable {
     required this.sparePartName,
     required this.quantity,
     required this.unitPrice,
+    this.responseTotal,
   });
 
   InvoiceItem copyWith({
@@ -24,6 +26,8 @@ class InvoiceItem extends Equatable {
     String? sparePartName,
     int? quantity,
     double? unitPrice,
+    double? responseTotal,
+    bool clearResponseTotal = false,
   }) {
     return InvoiceItem(
       id: id ?? this.id,
@@ -32,10 +36,13 @@ class InvoiceItem extends Equatable {
       sparePartName: sparePartName ?? this.sparePartName,
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
+      responseTotal: clearResponseTotal
+          ? null
+          : responseTotal ?? this.responseTotal,
     );
   }
 
-  double get total => quantity * unitPrice;
+  double get total => responseTotal ?? quantity * unitPrice;
 
   @override
   List<Object?> get props => [
@@ -45,5 +52,6 @@ class InvoiceItem extends Equatable {
     sparePartName,
     quantity,
     unitPrice,
+    responseTotal,
   ];
 }

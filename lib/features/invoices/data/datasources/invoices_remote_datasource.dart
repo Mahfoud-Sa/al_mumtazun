@@ -4,14 +4,16 @@ import 'package:http/http.dart' as http;
 
 import '../../../../core/clients/http_client.dart';
 import '../../domain/entities/invoice_page.dart';
+import '../../domain/entities/invoice_query.dart';
 import '../models/invoice_model.dart';
 
 abstract class InvoicesRemoteDataSource {
-  Future<InvoicePage> getInvoices({required int page, required int size});
+  Future<InvoicePage> getInvoices({required InvoiceQuery query});
   Future<InvoiceModel> getInvoiceById(int id);
   Future<InvoiceModel?> getInvoiceByDeviceId(int deviceId);
   Future<InvoiceModel> createInvoice(InvoiceModel invoice);
   Future<InvoiceModel> updateInvoice(int id, InvoiceModel invoice);
+  Future<void> deleteInvoice(int id);
 }
 
 class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
@@ -39,7 +41,7 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
         ? invoice
         : _decodeInvoice(response.body, fallback: invoice);
 
-    return created.id == 0 ? created : getInvoiceById(created.id);
+    return created;
   }
 
   @override
@@ -58,7 +60,9 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
 
   @override
   Future<InvoiceModel?> getInvoiceByDeviceId(int deviceId) async {
-    final invoicesPage = await getInvoices(page: 1, size: 100);
+    final invoicesPage = await getInvoices(
+      query: InvoiceQuery(deviceId: deviceId, size: 100),
+    );
 
     for (final invoice in invoicesPage.invoices) {
       if (invoice.deviceId == deviceId) {
@@ -85,15 +89,24 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
         ? invoice
         : _decodeInvoice(response.body, fallback: invoice);
 
-    return getInvoiceById(updated.id == 0 ? id : updated.id);
+    return updated;
   }
 
   @override
-  Future<InvoicePage> getInvoices({
-    required int page,
-    required int size,
-  }) async {
-    final response = await _getInvoicesResponse(page: page, size: size);
+  Future<void> deleteInvoice(int id) async {
+    final response = await client.delete(
+      baseUri.replace(path: '${baseUri.path}/$id'),
+      headers: {'accept': '*/*'},
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(_errorMessage(response));
+    }
+  }
+
+  @override
+  Future<InvoicePage> getInvoices({required InvoiceQuery query}) async {
+    final response = await _getInvoicesResponse(query: query);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_errorMessage(response));
@@ -102,8 +115,8 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
     if (response.body.trim().isEmpty) {
       return InvoicePage(
         invoices: const [],
-        page: page,
-        size: size,
+        page: query.page,
+        size: query.size,
         totalCount: 0,
         totalPages: 1,
       );
@@ -117,10 +130,10 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
           .toList();
       return InvoicePage(
         invoices: invoices,
-        page: page,
-        size: size,
+        page: query.page,
+        size: query.size,
         totalCount: invoices.length,
-        totalPages: invoices.length < size ? page : page + 1,
+        totalPages: invoices.length < query.size ? query.page : query.page + 1,
       );
     }
 
@@ -133,23 +146,23 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
             .toList();
         return InvoicePage(
           invoices: invoices,
-          page: _readInt(decoded['page'] ?? decoded['pageNumber'], page),
-          size: _readInt(decoded['size'] ?? decoded['pageSize'], size),
+          page: _readInt(decoded['page'] ?? decoded['pageNumber'], query.page),
+          size: _readInt(decoded['size'] ?? decoded['pageSize'], query.size),
           totalCount: _readInt(
             decoded['totalCount'] ?? decoded['count'] ?? decoded['total'],
             invoices.length,
           ),
           totalPages: _readInt(
             decoded['totalPages'] ?? decoded['pages'],
-            invoices.length < size ? page : page + 1,
+            invoices.length < query.size ? query.page : query.page + 1,
           ).clamp(1, 999999),
         );
       }
 
       return InvoicePage(
         invoices: [InvoiceModel.fromJson(decoded)],
-        page: page,
-        size: size,
+        page: query.page,
+        size: query.size,
         totalCount: 1,
         totalPages: 1,
       );
@@ -159,10 +172,9 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
   }
 
   Future<http.Response> _getInvoicesResponse({
-    required int page,
-    required int size,
+    required InvoiceQuery query,
   }) async {
-    final queryParameters = {'page': page.toString(), 'size': size.toString()};
+    final queryParameters = query.toQueryParameters();
     final response = await client.get(
       baseUri.replace(queryParameters: queryParameters),
       headers: {'accept': '*/*'},
