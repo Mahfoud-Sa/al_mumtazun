@@ -351,5 +351,7 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<ThemeCubit>(() => ThemeCubit(getIt<ThemeRepository>()));
   getIt.registerFactory<HomeCubit>(() => HomeCubit());
-  getIt.registerFactory<DashboardCubit>(() => DashboardCubit());
+  getIt.registerFactory<DashboardCubit>(
+    () => DashboardCubit(getIt<AppHttpClient>()),
+  );
 }

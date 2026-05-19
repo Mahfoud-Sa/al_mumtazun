@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
+import '../../di/service_locator.dart';
 import '../../localization/l10n.dart';
 import '../../theme/app_colors.dart';
 import 'state/dashboard_cubit.dart';
@@ -17,7 +18,7 @@ class DashboardScreen extends StatelessWidget {
     final l10n = context.l10n;
 
     return BlocProvider(
-      create: (_) => DashboardCubit(),
+      create: (_) => getIt<DashboardCubit>()..fetch(),
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, dash) {
           return LayoutBuilder(
@@ -28,82 +29,143 @@ class DashboardScreen extends StatelessWidget {
               final horizontalPadding = isLarge ? 32.0 : 16.0;
 
               return Scaffold(
-                body: CustomScrollView(
-                  slivers: [
-                    // ======================================================
-                    // APP BAR
-                    // ======================================================
-                    SliverAppBar(
-                      pinned: true,
-                      backgroundColor: AppColors.surface,
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 0,
-                      toolbarHeight: 64,
-                      titleSpacing: horizontalPadding,
-                      title: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.menu,
-                              color: AppColors.primary,
-                            ),
-                            onPressed: () => HomeShell.openDrawer(context),
-                          ),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: Text(
-                              l10n.dashboard,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.headlineMedium!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ======================================================
-                    // BODY
-                    // ======================================================
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        horizontalPadding,
-                        24,
-                        horizontalPadding,
-                        96,
-                      ),
-                      sliver: SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                body: RefreshIndicator(
+                  onRefresh: () => context.read<DashboardCubit>().refresh(),
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      // ======================================================
+                      // APP BAR
+                      // ======================================================
+                      SliverAppBar(
+                        pinned: true,
+                        backgroundColor: AppColors.surface,
+                        surfaceTintColor: Colors.transparent,
+                        elevation: 0,
+                        toolbarHeight: 64,
+                        titleSpacing: horizontalPadding,
+                        title: Row(
                           children: [
-                            _HeaderRow(
-                              isStacked: !(isLarge || isMedium),
-                              rangeIndex: dash.rangeIndex,
-                              onRangeChanged: (i) => context
-                                  .read<DashboardCubit>()
-                                  .setRangeIndex(i),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.menu,
+                                color: AppColors.primary,
+                              ),
+                              onPressed: () => HomeShell.openDrawer(context),
                             ),
-                            const SizedBox(height: 24),
-
-                            _BentoGrid(
-                              isLarge: isLarge,
-                              isMedium: isMedium,
-                              state: dash,
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                l10n.dashboard,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium!
+                                    .copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+
+                      // ======================================================
+                      // BODY
+                      // ======================================================
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          24,
+                          horizontalPadding,
+                          96,
+                        ),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _HeaderRow(
+                                isStacked: !(isLarge || isMedium),
+                                rangeIndex: dash.rangeIndex,
+                                onRangeChanged: (i) => context
+                                    .read<DashboardCubit>()
+                                    .setRangeIndex(i),
+                              ),
+                              if (dash.isLoading) ...[
+                                const SizedBox(height: 16),
+                                const LinearProgressIndicator(),
+                              ],
+                              if (dash.errorMessage != null) ...[
+                                const SizedBox(height: 16),
+                                _DashboardErrorBanner(
+                                  message: dash.errorMessage!,
+                                  onRetry: () =>
+                                      context.read<DashboardCubit>().fetch(),
+                                ),
+                              ],
+                              const SizedBox(height: 24),
+
+                              _BentoGrid(
+                                isLarge: isLarge,
+                                isMedium: isMedium,
+                                state: dash,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _DashboardErrorBanner extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _DashboardErrorBanner({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.errorContainer,
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.error),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: AppColors.onErrorContainer,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('إعادة المحاولة'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: const BorderSide(color: AppColors.error),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -414,7 +476,7 @@ class _TotalIncomeCard extends StatelessWidget {
 
             // BIG VALUE
             Text(
-              _formatCurrency(state.totalIncome),
+              _formatCurrency(state.monthlyIncome),
               style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
@@ -444,10 +506,53 @@ class _TotalIncomeCard extends StatelessWidget {
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(child: Text(l10n.incomeChart)),
+              child: state.incomeChart.isEmpty
+                  ? Center(child: Text(l10n.incomeChart))
+                  : _IncomeMiniChart(data: state.incomeChart),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _IncomeMiniChart extends StatelessWidget {
+  final List<DashboardIncomePoint> data;
+
+  const _IncomeMiniChart({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = data.fold<double>(
+      0,
+      (max, item) => item.value > max ? item.value : max,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (final item in data.take(14)) ...[
+            Expanded(
+              child: Tooltip(
+                message: '${item.label}: ${_formatCurrency(item.value)}',
+                child: FractionallySizedBox(
+                  heightFactor: maxValue <= 0 ? 0 : (item.value / maxValue),
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+        ],
       ),
     );
   }
@@ -633,8 +738,12 @@ class _CriticalLogsCard extends StatelessWidget {
           for (final log in logs)
             _logItem(
               icon: log.icon,
-              title: _logTitle(l10n, log.type),
-              subtitle: _logSubtitle(l10n, log.type),
+              title: log.title.trim().isEmpty
+                  ? _logTitle(l10n, log.type)
+                  : log.title,
+              subtitle: log.subtitle.trim().isEmpty
+                  ? _logSubtitle(l10n, log.type)
+                  : log.subtitle,
               color: log.color,
             ),
         ],
@@ -766,18 +875,9 @@ class _HeaderRow extends StatelessWidget {
       ],
     );
 
-    // // RIGHT SIDE (RANGE SELECTOR)
-    // final right = _RangeSelector(
-    //   selectedIndex: rangeIndex,
-    //   onChanged: onRangeChanged,
-    // );
-    final right = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(l10n.thisMonth),
+    final right = _RangeSelector(
+      selectedIndex: rangeIndex,
+      onChanged: onRangeChanged,
     );
     // RESPONSIVE LAYOUT
     if (isStacked) {
@@ -795,6 +895,52 @@ class _HeaderRow extends StatelessWidget {
         const SizedBox(width: 12),
         right,
       ],
+    );
+  }
+}
+
+class _RangeSelector extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  const _RangeSelector({required this.selectedIndex, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    const labels = ['أسبوع', 'شهر', 'سنة'];
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        border: Border.all(color: AppColors.outlineVariant),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var index = 0; index < labels.length; index++)
+            TextButton(
+              onPressed: selectedIndex == index ? null : () => onChanged(index),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(64, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                foregroundColor: selectedIndex == index
+                    ? Colors.white
+                    : AppColors.onSurface,
+                disabledForegroundColor: Colors.white,
+                backgroundColor: selectedIndex == index
+                    ? AppColors.secondary
+                    : Colors.transparent,
+                disabledBackgroundColor: AppColors.secondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              child: Text(labels[index]),
+            ),
+        ],
+      ),
     );
   }
 }
