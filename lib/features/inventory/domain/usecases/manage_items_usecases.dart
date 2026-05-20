@@ -19,7 +19,8 @@ class CreateItemUseCase implements UseCase<Item, Item> {
   CreateItemUseCase(this.repository);
 
   @override
-  Future<Either<Failure, Item>> call(Item params) async => repository.create(params);
+  Future<Either<Failure, Item>> call(Item params) async =>
+      repository.create(params);
 }
 
 class UpdateItemUseCase implements UseCase<Item, Item> {
@@ -27,7 +28,8 @@ class UpdateItemUseCase implements UseCase<Item, Item> {
   UpdateItemUseCase(this.repository);
 
   @override
-  Future<Either<Failure, Item>> call(Item params) async => repository.update(params);
+  Future<Either<Failure, Item>> call(Item params) async =>
+      repository.update(params);
 }
 
 class DeleteItemUseCase implements UseCase<bool, String> {
@@ -35,5 +37,6 @@ class DeleteItemUseCase implements UseCase<bool, String> {
   DeleteItemUseCase(this.repository);
 
   @override
-  Future<Either<Failure, bool>> call(String params) async => repository.delete(params);
+  Future<Either<Failure, bool>> call(String params) async =>
+      repository.delete(params);
 }

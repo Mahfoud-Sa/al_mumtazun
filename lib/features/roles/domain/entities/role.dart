@@ -5,7 +5,19 @@ class Role extends Equatable {
   final String name;
   final List<String> permissions;
 
-  const Role({required this.id, required this.name, this.permissions = const []});
+  const Role({
+    required this.id,
+    required this.name,
+    this.permissions = const [],
+  });
+
+  Role copyWith({String? id, String? name, List<String>? permissions}) {
+    return Role(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      permissions: permissions ?? this.permissions,
+    );
+  }
 
   @override
   List<Object?> get props => [id, name, permissions];

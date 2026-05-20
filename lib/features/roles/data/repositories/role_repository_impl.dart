@@ -14,7 +14,12 @@ class RoleRepositoryImpl implements RoleRepository {
   Future<Either<Failure, Role>> create(Role role) async {
     try {
       final roles = await local.getRoles();
-      final model = RoleModel(id: role.id, name: role.name, permissions: role.permissions);
+      final model = RoleModel.fromEntity(role);
+      roles.removeWhere(
+        (current) =>
+            current.id == role.id ||
+            current.name.trim().toLowerCase() == role.name.trim().toLowerCase(),
+      );
       roles.add(model);
       await local.saveRoles(roles);
       return Right(model);
@@ -61,8 +66,12 @@ class RoleRepositoryImpl implements RoleRepository {
     try {
       final roles = await local.getRoles();
       final idx = roles.indexWhere((r) => r.id == role.id);
-      final model = RoleModel(id: role.id, name: role.name, permissions: role.permissions);
-      if (idx >= 0) roles[idx] = model;
+      final model = RoleModel.fromEntity(role);
+      if (idx >= 0) {
+        roles[idx] = model;
+      } else {
+        roles.add(model);
+      }
       await local.saveRoles(roles);
       return Right(model);
     } catch (e) {

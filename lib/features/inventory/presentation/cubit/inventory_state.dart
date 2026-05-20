@@ -7,7 +7,9 @@ abstract class InventoryState extends Equatable {
 }
 
 class InventoryInitial extends InventoryState {}
+
 class InventoryLoading extends InventoryState {}
+
 class InventoryLoaded extends InventoryState {
   final List<Item> items;
   InventoryLoaded(this.items);

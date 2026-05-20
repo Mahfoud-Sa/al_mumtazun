@@ -14,7 +14,12 @@ class ItemRepositoryImpl implements ItemRepository {
   Future<Either<Failure, Item>> create(Item item) async {
     try {
       final list = await local.getItems();
-      final model = ItemModel(id: item.id, name: item.name, description: item.description, quantity: item.quantity);
+      final model = ItemModel(
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+      );
       list.add(model);
       await local.saveItems(list);
       return Right(model);
@@ -61,7 +66,12 @@ class ItemRepositoryImpl implements ItemRepository {
     try {
       final list = await local.getItems();
       final idx = list.indexWhere((i) => i.id == item.id);
-      final model = ItemModel(id: item.id, name: item.name, description: item.description, quantity: item.quantity);
+      final model = ItemModel(
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+      );
       if (idx >= 0) list[idx] = model;
       await local.saveItems(list);
       return Right(model);

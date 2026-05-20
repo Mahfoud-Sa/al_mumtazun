@@ -18,7 +18,9 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
     final s = prefs.getString(_kItemsKey);
     if (s == null) return [];
     final list = (json.decode(s) as List<dynamic>);
-    return list.map((e) => ItemModel.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => ItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

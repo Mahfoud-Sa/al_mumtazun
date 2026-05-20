@@ -9,7 +9,8 @@ class CreateRoleUseCase implements UseCase<Role, Role> {
   CreateRoleUseCase(this.repository);
 
   @override
-  Future<Either<Failure, Role>> call(Role params) async => repository.create(params);
+  Future<Either<Failure, Role>> call(Role params) async =>
+      repository.create(params);
 }
 
 class UpdateRoleUseCase implements UseCase<Role, Role> {
@@ -17,7 +18,8 @@ class UpdateRoleUseCase implements UseCase<Role, Role> {
   UpdateRoleUseCase(this.repository);
 
   @override
-  Future<Either<Failure, Role>> call(Role params) async => repository.update(params);
+  Future<Either<Failure, Role>> call(Role params) async =>
+      repository.update(params);
 }
 
 class DeleteRoleUseCase implements UseCase<bool, String> {
@@ -25,5 +27,6 @@ class DeleteRoleUseCase implements UseCase<bool, String> {
   DeleteRoleUseCase(this.repository);
 
   @override
-  Future<Either<Failure, bool>> call(String params) async => repository.delete(params);
+  Future<Either<Failure, bool>> call(String params) async =>
+      repository.delete(params);
 }

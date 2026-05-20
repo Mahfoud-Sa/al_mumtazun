@@ -6,9 +6,19 @@ class Item extends Equatable {
   final String? description;
   final int quantity;
 
-  const Item({required this.id, required this.name, this.description, this.quantity = 0});
+  const Item({
+    required this.id,
+    required this.name,
+    this.description,
+    this.quantity = 0,
+  });
 
-  Item copyWith({String? id, String? name, String? description, int? quantity}) {
+  Item copyWith({
+    String? id,
+    String? name,
+    String? description,
+    int? quantity,
+  }) {
     return Item(
       id: id ?? this.id,
       name: name ?? this.name,

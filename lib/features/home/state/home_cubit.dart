@@ -5,4 +5,3 @@ class HomeCubit extends Cubit<int> {
 
   void setIndex(int index) => emit(index);
 }
-

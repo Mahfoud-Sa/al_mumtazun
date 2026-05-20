@@ -43,7 +43,11 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, User>> register(String name, String email, String password) async {
+  Future<Either<Failure, User>> register(
+    String name,
+    String email,
+    String password,
+  ) async {
     try {
       final model = await remote.register(name, email, password);
       await local.cacheCurrentUser(model);

@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../core/clients/http_client.dart';
+import '../../di/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../localization/l10n.dart';
 
@@ -218,7 +219,10 @@ class _EntryFormState extends State<_EntryForm> {
     setState(() => _isLoadingUsers = true);
     final uri = Uri.parse('http://al-mumtazun-api.runasp.net/api/Users');
     try {
-      final resp = await http.get(uri, headers: {'accept': 'text/plain'});
+      final resp = await getIt<AppHttpClient>().get(
+        uri,
+        headers: {'accept': 'text/plain'},
+      );
       if (resp.statusCode >= 200 && resp.statusCode < 300) {
         final data = json.decode(resp.body);
         if (data is List) {
@@ -456,7 +460,7 @@ class _EntryFormState extends State<_EntryForm> {
     };
 
     try {
-      final resp = await http.post(
+      final resp = await getIt<AppHttpClient>().post(
         uri,
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
         body: json.encode(payload),

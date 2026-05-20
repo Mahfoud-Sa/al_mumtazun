@@ -8,8 +8,10 @@ import '../localization/locale_repository.dart';
 import '../theme/theme_cubit.dart';
 import '../theme/theme_repository.dart';
 import '../core/clients/http_client.dart';
+import '../core/storage/secure_auth_storage.dart';
 
 // Auth
+import '../features/auth/auth_cubit.dart';
 import '../features/auth/data/datasources/auth_local_datasource.dart';
 import '../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../features/auth/data/repositories/user_repository_impl.dart';
@@ -17,7 +19,6 @@ import '../features/auth/domain/repositories/user_repository.dart';
 import '../features/auth/domain/usecases/login_usecase.dart';
 import '../features/auth/domain/usecases/logout_usecase.dart';
 import '../features/auth/domain/usecases/get_current_user_usecase.dart';
-import '../features/auth/presentation/cubit/auth_cubit.dart';
 
 // Compounds
 import '../features/compounds/data/datasources/compounds_remote_datasource.dart';
@@ -95,7 +96,12 @@ Future<void> configureDependencies() async {
   getIt.registerSingleton<ThemeRepository>(ThemeRepository(prefs));
 
   // Core clients
-  getIt.registerLazySingleton<AppHttpClient>(() => AppHttpClient());
+  getIt.registerLazySingleton<SecureAuthStorage>(
+    () => const SecureAuthStorage(),
+  );
+  getIt.registerLazySingleton<AppHttpClient>(
+    () => AppHttpClient(authStorage: getIt<SecureAuthStorage>()),
+  );
 
   // Auth
   getIt.registerLazySingleton<AuthLocalDataSource>(
@@ -121,9 +127,8 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<AuthCubit>(
     () => AuthCubit(
-      loginUseCase: getIt<LoginUseCase>(),
-      logoutUseCase: getIt<LogoutUseCase>(),
-      getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
+      httpClient: getIt<AppHttpClient>(),
+      storage: getIt<SecureAuthStorage>(),
     ),
   );
 
@@ -314,7 +319,7 @@ Future<void> configureDependencies() async {
     () => ProfileLocalDataSourceImpl(getIt<SharedPreferences>()),
   );
   getIt.registerLazySingleton<ProfileRemoteDataSource>(
-    () => ProfileRemoteDataSourceImpl(),
+    () => ProfileRemoteDataSourceImpl(client: getIt<AppHttpClient>()),
   );
   getIt.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(

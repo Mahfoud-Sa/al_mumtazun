@@ -16,11 +16,12 @@ class RolesLocalDataSourceImpl implements RolesLocalDataSource {
   @override
   Future<List<RoleModel>> getRoles() async {
     final s = prefs.getString(_kRolesKey);
-    if (s == null) return [];
+    if (s == null) return _defaultRoles;
     final list = (json.decode(s) as List<dynamic>);
-    return list
+    final roles = list
         .map((e) => RoleModel.fromJson(e as Map<String, dynamic>))
         .toList();
+    return roles.isEmpty ? _defaultRoles : roles;
   }
 
   @override
@@ -28,4 +29,44 @@ class RolesLocalDataSourceImpl implements RolesLocalDataSource {
     final s = json.encode(roles.map((r) => r.toJson()).toList());
     await prefs.setString(_kRolesKey, s);
   }
+
+  static const _defaultRoles = [
+    RoleModel(
+      id: 'admin',
+      name: 'Admin',
+      permissions: [
+        'dashboard.view',
+        'devices.manage',
+        'invoices.manage',
+        'spare_parts.manage',
+        'users.manage',
+        'roles.manage',
+        'profile.manage',
+      ],
+    ),
+    RoleModel(
+      id: 'engineer',
+      name: 'Engineer',
+      permissions: [
+        'dashboard.view',
+        'devices.view',
+        'devices.update_status',
+        'devices.add_notes',
+        'invoices.view',
+        'spare_parts.view',
+        'profile.manage',
+      ],
+    ),
+    RoleModel(
+      id: 'reception',
+      name: 'Reception',
+      permissions: [
+        'dashboard.view',
+        'devices.manage',
+        'invoices.manage',
+        'spare_parts.view',
+        'profile.manage',
+      ],
+    ),
+  ];
 }

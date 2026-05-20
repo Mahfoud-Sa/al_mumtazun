@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import '../../../../core/clients/http_client.dart';
 
 import '../models/profile_user_model.dart';
 
@@ -18,13 +18,11 @@ abstract class ProfileRemoteDataSource {
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
-  static const baseUrl =
-      'https://http://al-mumtazun-api.runasp.net/api/Profile';
+  static const baseUrl = 'http://al-mumtazun-api.runasp.net/api/Profile';
 
-  final http.Client client;
+  final AppHttpClient client;
 
-  ProfileRemoteDataSourceImpl({http.Client? client})
-    : client = client ?? http.Client();
+  ProfileRemoteDataSourceImpl({required this.client});
 
   @override
   Future<ProfileUserModel> getUser(int id) async {

@@ -1,95 +1,211 @@
 import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+import '../../core/clients/http_client.dart';
+import '../../core/storage/secure_auth_storage.dart';
+import 'data/models/auth_session_model.dart';
+import 'domain/entities/user.dart';
 
 class AuthState {
   final bool isLoggedIn;
   final bool isLoading;
+  final bool isInitialized;
   final String? error;
+  final User? user;
+  final DateTime? expiresAt;
 
-  AuthState({required this.isLoggedIn, required this.isLoading, this.error});
+  const AuthState({
+    required this.isLoggedIn,
+    required this.isLoading,
+    required this.isInitialized,
+    this.error,
+    this.user,
+    this.expiresAt,
+  });
 
   factory AuthState.initial() {
-    return AuthState(isLoggedIn: false, isLoading: false, error: null);
+    return const AuthState(
+      isLoggedIn: false,
+      isLoading: false,
+      isInitialized: false,
+    );
   }
 
-  AuthState copyWith({bool? isLoggedIn, bool? isLoading, String? error}) {
+  AuthState copyWith({
+    bool? isLoggedIn,
+    bool? isLoading,
+    bool? isInitialized,
+    String? error,
+    User? user,
+    DateTime? expiresAt,
+    bool clearError = false,
+    bool clearUser = false,
+  }) {
     return AuthState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      isInitialized: isInitialized ?? this.isInitialized,
+      error: clearError ? null : error ?? this.error,
+      user: clearUser ? null : user ?? this.user,
+      expiresAt: clearUser ? null : expiresAt ?? this.expiresAt,
     );
   }
+
+  bool hasRole(String role) => user?.hasRole(role) ?? false;
+  bool hasAnyRole(Iterable<String> roles) => roles.any(hasRole);
 }
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit() : super(AuthState.initial());
-
   static const String baseUrl = 'http://al-mumtazun-api.runasp.net/api/Auth';
-  static const String _profileCacheKey = 'cached_profile_user';
-  static const String _profileImageUrlKey = 'profile_image_url';
+
+  final AppHttpClient httpClient;
+  final SecureAuthStorage storage;
+
+  AuthCubit({required this.httpClient, required this.storage})
+    : super(AuthState.initial());
+
+  Future<void> loadCurrent() async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    final session = await storage.readSession();
+
+    if (session == null || session.token.isEmpty || _isExpired(session)) {
+      await storage.clear();
+      emit(
+        state.copyWith(
+          isLoggedIn: false,
+          isLoading: false,
+          isInitialized: true,
+          clearUser: true,
+        ),
+      );
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        isLoggedIn: true,
+        isLoading: false,
+        isInitialized: true,
+        user: session.user,
+        expiresAt: session.expiresAt,
+        clearError: true,
+      ),
+    );
+  }
 
   Future<void> login({
     required String phoneNumber,
     required String password,
   }) async {
-    emit(state.copyWith(isLoading: true, error: null));
+    emit(
+      state.copyWith(isLoading: true, isInitialized: true, clearError: true),
+    );
 
     try {
-      final response = await http.post(
+      final response = await httpClient.post(
         Uri.parse('$baseUrl/login'),
         headers: {'Content-Type': 'application/json', 'accept': '*/*'},
         body: jsonEncode({'phoneNumber': phoneNumber, 'password': password}),
       );
 
-      if (response.statusCode == 200) {
-        if (response.body.isNotEmpty) {
-          final data = jsonDecode(response.body);
-          if (data is Map<String, dynamic>) {
-            final profileData = data['user'] is Map<String, dynamic>
-                ? data['user'] as Map<String, dynamic>
-                : data;
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString(_profileCacheKey, jsonEncode(profileData));
-            if (data["isActive"] == false) {
-              // Save the token securely for future authenticated requests
-              // For example, using flutter_secure_storage or shared_preferences
-            }
-          }
+      final data = response.body.trim().isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(response.body);
+
+      if (response.statusCode >= 200 &&
+          response.statusCode < 300 &&
+          data is Map<String, dynamic>) {
+        final success = data['success'];
+        if (success == false) {
+          throw Exception(_messageFrom(data, 'فشل تسجيل الدخول'));
         }
-        emit(state.copyWith(isLoggedIn: true, isLoading: false, error: null));
-      } else {
-        String message = "فشل تسجيل الدخول";
+
+        final session = AuthSessionModel.fromJson(data);
+        if (session.token.isEmpty) {
+          throw Exception('لم يرجع الخادم رمز الدخول.');
+        }
+        if (!session.user.isActive) {
+          await storage.clear();
+          throw Exception('هذا الحساب غير مفعل.');
+        }
+        if (session.isExpired) {
+          await storage.clear();
+          throw Exception(
+            'انتهت صلاحية جلسة الدخول. expiresAt=${session.expiresAt.toUtc().toIso8601String()} now=${DateTime.now().toUtc().toIso8601String()}',
+          );
+        }
 
         try {
-          final data = jsonDecode(response.body);
-
-          if (data["message"] != null) {
-            message = data["message"];
-          }
-        } catch (_) {}
-
+          await storage.saveSession(session);
+        } catch (_) {
+          // The session is still valid for this runtime. Startup persistence will
+          // be unavailable until secure storage is healthy on the device.
+        }
         emit(
-          state.copyWith(isLoggedIn: false, isLoading: false, error: message),
+          state.copyWith(
+            isLoggedIn: true,
+            isLoading: false,
+            isInitialized: true,
+            user: session.user,
+            expiresAt: session.expiresAt,
+            clearError: true,
+          ),
         );
+        return;
       }
-    } catch (e) {
+
+      final message = data is Map<String, dynamic>
+          ? _messageFrom(data, 'فشل تسجيل الدخول')
+          : 'فشل تسجيل الدخول';
       emit(
         state.copyWith(
           isLoggedIn: false,
           isLoading: false,
-          error: "حدث خطأ في الاتصال بالخادم",
+          isInitialized: true,
+          error: message,
+          clearUser: true,
+        ),
+      );
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isLoggedIn: false,
+          isLoading: false,
+          isInitialized: true,
+          error: error.toString().replaceFirst('Exception: ', ''),
+          clearUser: true,
         ),
       );
     }
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_profileCacheKey);
-    await prefs.remove(_profileImageUrlKey);
-    emit(AuthState.initial());
+    emit(state.copyWith(isLoading: true, clearError: true));
+    await storage.clear();
+    emit(
+      state.copyWith(
+        isLoggedIn: false,
+        isLoading: false,
+        isInitialized: true,
+        clearUser: true,
+      ),
+    );
+  }
+
+  bool _isExpired(AuthSessionModel session) {
+    if (session.isExpired) return true;
+    try {
+      return JwtDecoder.isExpired(session.token);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  String _messageFrom(Map<String, dynamic> data, String fallback) {
+    return data['message']?.toString().trim().isNotEmpty == true
+        ? data['message'].toString()
+        : fallback;
   }
 }

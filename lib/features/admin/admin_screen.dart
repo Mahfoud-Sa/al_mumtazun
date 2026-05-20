@@ -5,16 +5,23 @@ import 'package:engineering_ops_dashboard/features/admin/user_details_screen.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'users_cubit.dart';
+import '../../di/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../home/home_shell.dart';
+import '../roles/presentation/cubit/roles_cubit.dart';
+import '../roles/presentation/cubit/roles_state.dart';
+import '../roles/presentation/pages/roles_page.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => UsersCubit()..fetchUsers(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => UsersCubit()..fetchUsers()),
+        BlocProvider(create: (_) => getIt<RolesCubit>()..fetch()),
+      ],
       child: Scaffold(
         body: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -80,6 +87,35 @@ class _HeaderSection extends StatelessWidget {
           ],
         ),
         if (!isWide) const SizedBox(height: 16),
+        SizedBox(
+          width: isWide ? 160 : double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              await Navigator.push<void>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider(
+                    create: (_) => getIt<RolesCubit>(),
+                    child: const RolesPage(),
+                  ),
+                ),
+              );
+              if (context.mounted) context.read<RolesCubit>().fetch();
+            },
+            icon: const Icon(Icons.admin_panel_settings_outlined),
+            label: const Text('الأدوار'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.outlineVariant),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+        if (isWide) const SizedBox(width: 12),
+        if (!isWide) const SizedBox(height: 12),
         SizedBox(
           width: isWide ? 180 : double.infinity,
           child: ElevatedButton.icon(
@@ -384,6 +420,52 @@ class _SortFilter extends StatelessWidget {
   }
 }
 
+class _RolePickerField extends StatelessWidget {
+  final TextEditingController controller;
+
+  const _RolePickerField({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RolesCubit, RolesState>(
+      builder: (context, state) {
+        final roles = state is RolesLoaded ? state.roles : const [];
+        if (roles.isEmpty) {
+          return TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.black),
+            decoration: const InputDecoration(labelText: 'الدور'),
+          );
+        }
+
+        final values = roles.map((role) => role.name).toSet().toList()..sort();
+        final current = values.contains(controller.text)
+            ? controller.text
+            : null;
+
+        return DropdownButtonFormField<String>(
+          initialValue: current,
+          decoration: const InputDecoration(
+            labelText: 'الدور',
+            border: OutlineInputBorder(),
+          ),
+          items: values
+              .map(
+                (roleName) => DropdownMenuItem<String>(
+                  value: roleName,
+                  child: Text(roleName),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) controller.text = value;
+          },
+        );
+      },
+    );
+  }
+}
+
 class _ActivePersonnelTable extends StatelessWidget {
   const _ActivePersonnelTable();
 
@@ -417,8 +499,9 @@ class _ActivePersonnelTable extends StatelessWidget {
         s.contains('OFFLINE')) {
       return AppColors.surfaceContainerHighest;
     }
-    if (status.contains('نشط') || s.contains('ACTIVE'))
+    if (status.contains('نشط') || s.contains('ACTIVE')) {
       return AppColors.greenBg;
+    }
     if (s.contains('ON')) {
       return AppColors.secondaryContainer.withValues(alpha: 0.2);
     }
@@ -780,15 +863,8 @@ class _ActivePersonnelTable extends StatelessWidget {
 
                                                 const SizedBox(height: 12),
 
-                                                TextField(
+                                                _RolePickerField(
                                                   controller: roleController,
-                                                  style: const TextStyle(
-                                                    color: Colors.black,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText: 'الدور',
-                                                      ),
                                                 ),
 
                                                 const SizedBox(height: 12),

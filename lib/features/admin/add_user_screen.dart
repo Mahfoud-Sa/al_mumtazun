@@ -1,9 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/clients/http_client.dart';
+import '../../di/service_locator.dart';
 import '../../theme/app_colors.dart';
+import '../roles/presentation/cubit/roles_cubit.dart';
+import '../roles/presentation/cubit/roles_state.dart';
 
 class AddUserScreen extends StatefulWidget {
   const AddUserScreen({super.key});
@@ -40,136 +44,207 @@ class _AddUserScreenState extends State<AddUserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: AppColors.primary),
-          title: const Text(
-            'إضافة مستخدم',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
+    return BlocProvider(
+      create: (_) => getIt<RolesCubit>()..fetch(),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF5F7FB),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: AppColors.primary),
+            title: const Text(
+              'إضافة مستخدم',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child: Card(
-                color: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.outlineVariant),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.person_add, color: AppColors.secondary),
-                          SizedBox(width: 8),
-                          Text(
-                            'إضافة مستخدم جديد',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: Card(
+                  color: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.person_add, color: AppColors.secondary),
+                            SizedBox(width: 8),
+                            Text(
+                              'إضافة مستخدم جديد',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _buildField(
+                          'الاسم الكامل',
+                          'مثال: محمد أحمد',
+                          controller: _nameController,
+                        ),
+                        _buildField(
+                          'العنوان',
+                          'مثال: المكلا',
+                          controller: _locationController,
+                        ),
+                        _buildField(
+                          'رقم الهاتف',
+                          'مثال: 771234567',
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        _buildRoleField(),
+                        _buildField(
+                          'الراتب',
+                          '0',
+                          controller: _salaryController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildField(
-                        'الاسم الكامل',
-                        'مثال: محمد أحمد',
-                        controller: _nameController,
-                      ),
-                      _buildField(
-                        'العنوان',
-                        'مثال: المكلا',
-                        controller: _locationController,
-                      ),
-                      _buildField(
-                        'رقم الهاتف',
-                        'مثال: 771234567',
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                      ),
-                      _buildField(
-                        'الدور الوظيفي',
-                        'مثال: مهندس',
-                        controller: _roleController,
-                      ),
-                      _buildField(
-                        'الراتب',
-                        '0',
-                        controller: _salaryController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
                         ),
-                      ),
-                      _buildField(
-                        'نسبة العمل',
-                        '0',
-                        controller: _workPercentageController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
+                        _buildField(
+                          'نسبة العمل',
+                          '0',
+                          controller: _workPercentageController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                         ),
-                      ),
-                      _buildDateField(
-                        'تاريخ الميلاد',
-                        'yyyy-MM-dd',
-                        controller: _birthController,
-                      ),
-                      _buildDateField(
-                        'تاريخ التوظيف',
-                        'yyyy-MM-dd',
-                        controller: _employDateController,
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _isSubmitting
-                              ? null
-                              : () => _submitUser(context),
-                          icon: _isSubmitting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.save),
-                          label: const Text('حفظ المستخدم'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.secondary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        _buildDateField(
+                          'تاريخ الميلاد',
+                          'yyyy-MM-dd',
+                          controller: _birthController,
+                        ),
+                        _buildDateField(
+                          'تاريخ التوظيف',
+                          'yyyy-MM-dd',
+                          controller: _employDateController,
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _isSubmitting
+                                ? null
+                                : () => _submitUser(context),
+                            icon: _isSubmitting
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.save),
+                            label: const Text('حفظ المستخدم'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.secondary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRoleField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: BlocBuilder<RolesCubit, RolesState>(
+        builder: (context, state) {
+          final roles = state is RolesLoaded ? state.roles : const [];
+          if (roles.isEmpty) {
+            return _buildField(
+              'الدور الوظيفي',
+              'مثال: مهندس',
+              controller: _roleController,
+            );
+          }
+
+          final values = roles.map((role) => role.name).toSet().toList()
+            ..sort();
+          final current = values.contains(_roleController.text)
+              ? _roleController.text
+              : null;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'الدور الوظيفي',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurfaceVariant,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              DropdownButtonFormField<String>(
+                initialValue: current,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFFF7F9FB),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                      color: AppColors.outlineVariant,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: AppColors.secondary),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                items: values
+                    .map(
+                      (roleName) => DropdownMenuItem<String>(
+                        value: roleName,
+                        child: Text(roleName),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) _roleController.text = value;
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -299,7 +374,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
     };
 
     try {
-      final resp = await http.post(
+      final resp = await getIt<AppHttpClient>().post(
         uri,
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
         body: json.encode(payload),

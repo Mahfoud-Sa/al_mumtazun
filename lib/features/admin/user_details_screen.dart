@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../core/clients/http_client.dart';
+import '../../di/service_locator.dart';
 import '../../theme/app_colors.dart';
 
 class UserDetailsPage extends StatelessWidget {
@@ -407,7 +408,7 @@ class UserDetailsPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  final response = await http.post(
+                  final response = await getIt<AppHttpClient>().post(
                     Uri.parse(
                       'http://al-mumtazun-api.runasp.net/api/Users/reset-password/$userId',
                     ),

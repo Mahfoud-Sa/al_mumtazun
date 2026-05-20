@@ -7,12 +7,18 @@ abstract class RolesState extends Equatable {
 }
 
 class RolesInitial extends RolesState {}
+
 class RolesLoading extends RolesState {}
+
 class RolesLoaded extends RolesState {
   final List<Role> roles;
   RolesLoaded(this.roles);
   @override
   List<Object?> get props => [roles];
+}
+
+class RolesSaving extends RolesLoaded {
+  RolesSaving(super.roles);
 }
 
 class RolesError extends RolesState {

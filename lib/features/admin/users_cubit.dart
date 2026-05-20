@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'package:engineering_ops_dashboard/core/clients/http_client.dart';
+import 'package:engineering_ops_dashboard/di/service_locator.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 
 // ================= STATES =================
 
@@ -46,8 +47,11 @@ class UsersError extends UsersState {
 // ================= CUBIT =================
 
 class UsersCubit extends Cubit<UsersState> {
-  UsersCubit() : super(UsersInitial());
+  UsersCubit({AppHttpClient? client})
+    : client = client ?? getIt<AppHttpClient>(),
+      super(UsersInitial());
 
+  final AppHttpClient client;
   final String baseUrl = 'http://al-mumtazun-api.runasp.net/api/Users';
   static const int defaultPageSize = 10;
 
@@ -97,7 +101,7 @@ class UsersCubit extends Cubit<UsersState> {
         queryParameters['role'] = requestedRole.trim();
       }
 
-      final resp = await http.get(
+      final resp = await client.get(
         Uri.parse(baseUrl).replace(queryParameters: queryParameters),
         headers: {'accept': 'text/plain'},
       );
@@ -225,7 +229,7 @@ class UsersCubit extends Cubit<UsersState> {
 
   Future<bool> activateUser(int id) async {
     try {
-      final resp = await http.post(
+      final resp = await client.post(
         Uri.parse('$baseUrl/toggleActive/$id'),
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
       );
@@ -248,7 +252,7 @@ class UsersCubit extends Cubit<UsersState> {
 
   Future<bool> deactivateUser(int id) async {
     try {
-      final resp = await http.post(
+      final resp = await client.post(
         Uri.parse('$baseUrl/toggleActive/$id'),
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
       );
@@ -274,7 +278,7 @@ class UsersCubit extends Cubit<UsersState> {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final resp = await http.put(
+      final resp = await client.put(
         Uri.parse('$baseUrl/$id'),
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
         body: jsonEncode(data),

@@ -5,9 +5,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../di/service_locator.dart';
 import '../auth/auth_cubit.dart';
+import '../auth/role_guard.dart';
 import '../profile/presentation/cubit/profile_cubit.dart';
-import '../profile/presentation/cubit/profile_state.dart';
 import '../profile/presentation/pages/profile_page.dart';
+import '../roles/presentation/cubit/roles_cubit.dart';
+import '../roles/presentation/pages/roles_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -70,9 +72,9 @@ class AppDrawer extends StatelessWidget {
                   //     // Navigate to developer options.
                   //   },
                   // ),
-                  BlocBuilder<ProfileCubit, ProfileState>(
+                  BlocBuilder<AuthCubit, AuthState>(
                     builder: (context, state) {
-                      if (!_canOpenAdmin(state.profile?.role)) {
+                      if (!_canOpenAdmin(state.user?.role)) {
                         return const SizedBox.shrink();
                       }
 
@@ -83,10 +85,45 @@ class AppDrawer extends StatelessWidget {
                         ),
                         title: const Text('لوحة الإدارة'),
                         onTap: () {
+                          Navigator.of(context).pop();
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) {
-                                return AdminScreen();
+                                return RoleGuard(
+                                  allowedRoles: const ['Admin'],
+                                  child: AdminScreen(),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  BlocBuilder<AuthCubit, AuthState>(
+                    builder: (context, state) {
+                      if (!_canOpenAdmin(state.user?.role)) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return ListTile(
+                        leading: Icon(
+                          Icons.security_outlined,
+                          color: colorScheme.primary,
+                        ),
+                        title: const Text('الأدوار والصلاحيات'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) {
+                                return RoleGuard(
+                                  allowedRoles: const ['Admin'],
+                                  child: BlocProvider(
+                                    create: (_) => getIt<RolesCubit>(),
+                                    child: const RolesPage(),
+                                  ),
+                                );
                               },
                             ),
                           );
@@ -156,15 +193,18 @@ class AppDrawer extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return BlocBuilder<ProfileCubit, ProfileState>(
+    return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
-        final profile = state.profile;
-        final name = _displayValue(profile?.fullName, 'المستخدم');
+        final user = state.user;
+        final name = _displayValue(user?.fullName, 'المستخدم');
         final phoneNumber = _displayValue(
-          profile?.phoneNumber,
+          user?.phoneNumber,
           'رقم الهاتف غير متوفر',
         );
-        final role = _displayValue(profile?.role, 'الدور غير متوفر');
+        final role = _displayValue(
+          user?.roleDisplayName ?? user?.role,
+          'الدور غير متوفر',
+        );
 
         return DrawerHeader(
           decoration: BoxDecoration(
@@ -185,7 +225,7 @@ class AppDrawer extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: state.isLoading && profile == null
+                  child: state.isLoading && user == null
                       ? SizedBox.square(
                           dimension: 18,
                           child: CircularProgressIndicator(

@@ -862,7 +862,11 @@ class _PathCard extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 14,
                       backgroundColor: const Color(0xFF1A2B3C),
-                      child: const Icon(Icons.person, size: 16, color: Colors.white),
+                      child: const Icon(
+                        Icons.person,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
