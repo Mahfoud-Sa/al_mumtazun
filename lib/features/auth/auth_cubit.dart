@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -110,9 +111,8 @@ class AuthCubit extends Cubit<AuthState> {
         body: jsonEncode({'phoneNumber': phoneNumber, 'password': password}),
       );
 
-      final data = response.body.trim().isEmpty
-          ? <String, dynamic>{}
-          : jsonDecode(response.body);
+      final body = response.body.trim();
+      final data = _decodeResponseBody(body);
 
       if (response.statusCode >= 200 &&
           response.statusCode < 300 &&
@@ -156,9 +156,12 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
 
-      final message = data is Map<String, dynamic>
-          ? _messageFrom(data, 'فشل تسجيل الدخول')
-          : 'فشل تسجيل الدخول';
+      final message = _messageFromResponse(
+        data: data,
+        body: body,
+        statusCode: response.statusCode,
+        fallback: 'فشل تسجيل الدخول',
+      );
       emit(
         state.copyWith(
           isLoggedIn: false,
@@ -174,7 +177,7 @@ class AuthCubit extends Cubit<AuthState> {
           isLoggedIn: false,
           isLoading: false,
           isInitialized: true,
-          error: error.toString().replaceFirst('Exception: ', ''),
+          error: _messageFromError(error),
           clearUser: true,
         ),
       );
@@ -203,9 +206,95 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Object? _decodeResponseBody(String body) {
+    if (body.isEmpty) return null;
+    try {
+      return jsonDecode(body);
+    } catch (_) {
+      return body;
+    }
+  }
+
+  String _messageFromResponse({
+    required Object? data,
+    required String body,
+    required int statusCode,
+    required String fallback,
+  }) {
+    final message = _messageFromData(data);
+    if (message != null) return message;
+
+    if (body.isNotEmpty) return body;
+
+    return statusCode > 0 ? '$fallback (HTTP $statusCode)' : fallback;
+  }
+
+  String _messageFromError(Object error) {
+    if (error is DioException) {
+      final response = error.response;
+      final responseBody = response?.data?.toString().trim() ?? '';
+      final data = response?.data is String
+          ? _decodeResponseBody(responseBody)
+          : response?.data;
+
+      return _messageFromResponse(
+        data: data,
+        body: responseBody,
+        statusCode: response?.statusCode ?? 0,
+        fallback: error.message ?? 'فشل تسجيل الدخول',
+      );
+    }
+
+    return error.toString().replaceFirst('Exception: ', '');
+  }
+
   String _messageFrom(Map<String, dynamic> data, String fallback) {
-    return data['message']?.toString().trim().isNotEmpty == true
-        ? data['message'].toString()
-        : fallback;
+    return _messageFromData(data) ?? fallback;
+  }
+
+  String? _messageFromData(Object? data) {
+    if (data == null) return null;
+
+    if (data is String) {
+      final message = data.trim();
+      return message.isEmpty ? null : message;
+    }
+
+    if (data is List) {
+      final messages = data
+          .map(_messageFromData)
+          .whereType<String>()
+          .where((message) => message.trim().isNotEmpty)
+          .toList();
+      return messages.isEmpty ? null : messages.join('\n');
+    }
+
+    if (data is Map) {
+      for (final key in const [
+        'message',
+        'error',
+        'errorMessage',
+        'detail',
+        'title',
+        'description',
+      ]) {
+        final message = _messageFromData(data[key]);
+        if (message != null) return message;
+      }
+
+      final errors = data['errors'];
+      if (errors is Map) {
+        final messages = <String>[];
+        for (final entry in errors.entries) {
+          final message = _messageFromData(entry.value);
+          if (message != null) messages.add('${entry.key}: $message');
+        }
+        if (messages.isNotEmpty) return messages.join('\n');
+      }
+
+      return _messageFromData(errors);
+    }
+
+    return null;
   }
 }

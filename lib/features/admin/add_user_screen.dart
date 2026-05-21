@@ -20,7 +20,6 @@ class _AddUserScreenState extends State<AddUserScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _roleController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
   final TextEditingController _workPercentageController =
       TextEditingController();
@@ -28,13 +27,13 @@ class _AddUserScreenState extends State<AddUserScreen> {
   final TextEditingController _employDateController = TextEditingController();
 
   bool _isSubmitting = false;
+  int? _selectedRoleId;
 
   @override
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
     _phoneController.dispose();
-    _roleController.dispose();
     _salaryController.dispose();
     _workPercentageController.dispose();
     _birthController.dispose();
@@ -184,17 +183,12 @@ class _AddUserScreenState extends State<AddUserScreen> {
         builder: (context, state) {
           final roles = state is RolesLoaded ? state.roles : const [];
           if (roles.isEmpty) {
-            return _buildField(
-              'الدور الوظيفي',
-              'مثال: مهندس',
-              controller: _roleController,
-            );
+            return const Text('لا توجد أدوار متاحة');
           }
 
-          final values = roles.map((role) => role.name).toSet().toList()
-            ..sort();
-          final current = values.contains(_roleController.text)
-              ? _roleController.text
+          final roleIds = roles.map((role) => role.id).toSet();
+          final current = roleIds.contains(_selectedRoleId)
+              ? _selectedRoleId
               : null;
 
           return Column(
@@ -210,7 +204,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
+              DropdownButtonFormField<int>(
                 initialValue: current,
                 decoration: InputDecoration(
                   filled: true,
@@ -230,16 +224,16 @@ class _AddUserScreenState extends State<AddUserScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                items: values
+                items: roles
                     .map(
-                      (roleName) => DropdownMenuItem<String>(
-                        value: roleName,
-                        child: Text(roleName),
+                      (role) => DropdownMenuItem<int>(
+                        value: role.id,
+                        child: Text(role.name),
                       ),
                     )
                     .toList(),
                 onChanged: (value) {
-                  if (value != null) _roleController.text = value;
+                  if (value != null) setState(() => _selectedRoleId = value);
                 },
               ),
             ],
@@ -367,10 +361,10 @@ class _AddUserScreenState extends State<AddUserScreen> {
       'phoneNumber': _phoneController.text.trim(),
       'salary': _readDouble(_salaryController.text),
       'workPercentage': _readDouble(_workPercentageController.text),
-      'birthDay': _dateOrToday(_birthController.text),
-      'employeDate': _dateOrToday(_employDateController.text),
+      'birthDay': _dateOrNull(_birthController.text),
+      'employeDate': _dateOrNull(_employDateController.text),
       'address': _locationController.text.trim(),
-      'role': _roleController.text.trim(),
+      'roleId': _selectedRoleId ?? 0,
     };
 
     try {
@@ -407,9 +401,9 @@ class _AddUserScreenState extends State<AddUserScreen> {
     return double.tryParse(value.trim().replaceAll(',', '.')) ?? 0;
   }
 
-  String _dateOrToday(String value) {
+  String? _dateOrNull(String value) {
     final trimmed = value.trim();
-    if (trimmed.isNotEmpty) return trimmed;
-    return DateTime.now().toIso8601String().split('T').first;
+    if (trimmed.isEmpty) return null;
+    return DateTime.tryParse(trimmed)?.toIso8601String() ?? trimmed;
   }
 }

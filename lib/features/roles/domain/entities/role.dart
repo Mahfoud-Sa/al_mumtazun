@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class Role extends Equatable {
-  final String id;
+  final int id;
   final String name;
   final List<String> permissions;
 
@@ -11,7 +11,7 @@ class Role extends Equatable {
     this.permissions = const [],
   });
 
-  Role copyWith({String? id, String? name, List<String>? permissions}) {
+  Role copyWith({int? id, String? name, List<String>? permissions}) {
     return Role(
       id: id ?? this.id,
       name: name ?? this.name,

@@ -22,11 +22,11 @@ class UpdateRoleUseCase implements UseCase<Role, Role> {
       repository.update(params);
 }
 
-class DeleteRoleUseCase implements UseCase<bool, String> {
+class DeleteRoleUseCase implements UseCase<bool, int> {
   final RoleRepository repository;
   DeleteRoleUseCase(this.repository);
 
   @override
-  Future<Either<Failure, bool>> call(String params) async =>
+  Future<Either<Failure, bool>> call(int params) async =>
       repository.delete(params);
 }

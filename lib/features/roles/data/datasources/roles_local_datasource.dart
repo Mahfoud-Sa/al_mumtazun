@@ -32,7 +32,7 @@ class RolesLocalDataSourceImpl implements RolesLocalDataSource {
 
   static const _defaultRoles = [
     RoleModel(
-      id: 'admin',
+      id: 1,
       name: 'Admin',
       permissions: [
         'dashboard.view',
@@ -45,7 +45,7 @@ class RolesLocalDataSourceImpl implements RolesLocalDataSource {
       ],
     ),
     RoleModel(
-      id: 'engineer',
+      id: 2,
       name: 'Engineer',
       permissions: [
         'dashboard.view',
@@ -58,7 +58,7 @@ class RolesLocalDataSourceImpl implements RolesLocalDataSource {
       ],
     ),
     RoleModel(
-      id: 'reception',
+      id: 3,
       name: 'Reception',
       permissions: [
         'dashboard.view',

@@ -29,7 +29,7 @@ class RoleRepositoryImpl implements RoleRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> delete(String id) async {
+  Future<Either<Failure, bool>> delete(int id) async {
     try {
       final roles = await local.getRoles();
       roles.removeWhere((r) => r.id == id);
@@ -51,7 +51,7 @@ class RoleRepositoryImpl implements RoleRepository {
   }
 
   @override
-  Future<Either<Failure, Role>> getById(String id) async {
+  Future<Either<Failure, Role>> getById(int id) async {
     try {
       final roles = await local.getRoles();
       final r = roles.firstWhere((x) => x.id == id);

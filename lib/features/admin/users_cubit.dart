@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:engineering_ops_dashboard/core/clients/http_client.dart';
+import 'package:engineering_ops_dashboard/core/models/paginated_response.dart';
 import 'package:engineering_ops_dashboard/di/service_locator.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'user_model.dart';
 
 // ================= STATES =================
 
@@ -17,7 +19,7 @@ class UsersInitial extends UsersState {}
 class UsersLoading extends UsersState {}
 
 class UsersLoaded extends UsersState {
-  final List<dynamic> users;
+  final List<UserModel> users;
   final int page;
   final int size;
   final int totalCount;
@@ -59,9 +61,10 @@ class UsersCubit extends Cubit<UsersState> {
   int _currentSize = defaultPageSize;
   String? _currentSearch;
   bool? _currentIsActive;
-  String? _currentRole;
+  int? _currentRoleId;
   String _currentSortBy = 'id';
   String _currentSortDirection = 'asc';
+  bool _isFetching = false;
 
   // ================= FETCH USERS =================
 
@@ -70,19 +73,26 @@ class UsersCubit extends Cubit<UsersState> {
     int? size,
     String? search,
     bool? isActive,
-    String? role,
+    int? roleId,
     String? sortBy,
     String? sortDirection,
+    bool append = false,
   }) async {
+    if (_isFetching) return;
+
     final requestedPage = page ?? _currentPage;
     final requestedSize = size ?? _currentSize;
     final requestedSearch = search ?? _currentSearch;
     final requestedIsActive = isActive ?? _currentIsActive;
-    final requestedRole = role ?? _currentRole;
+    final requestedRoleId = roleId ?? _currentRoleId;
     final requestedSortBy = sortBy ?? _currentSortBy;
     final requestedSortDirection = sortDirection ?? _currentSortDirection;
+    final previous = append && state is UsersLoaded
+        ? state as UsersLoaded
+        : null;
 
-    emit(UsersLoading());
+    _isFetching = true;
+    if (!append) emit(UsersLoading());
 
     try {
       final queryParameters = <String, String>{
@@ -97,8 +107,8 @@ class UsersCubit extends Cubit<UsersState> {
       if (requestedIsActive != null) {
         queryParameters['isActive'] = requestedIsActive.toString();
       }
-      if (requestedRole != null && requestedRole.trim().isNotEmpty) {
-        queryParameters['role'] = requestedRole.trim();
+      if (requestedRoleId != null) {
+        queryParameters['roleId'] = requestedRoleId.toString();
       }
 
       final resp = await client.get(
@@ -110,51 +120,60 @@ class UsersCubit extends Cubit<UsersState> {
         final body = json.decode(resp.body);
 
         if (body is List) {
+          final users = body
+              .whereType<Map<String, dynamic>>()
+              .map(UserModel.fromJson)
+              .toList();
+          final loadedUsers = previous == null
+              ? users
+              : [...previous.users, ...users];
           _currentPage = requestedPage;
           _currentSize = requestedSize;
           _rememberQuery(
             search: requestedSearch,
             isActive: requestedIsActive,
-            role: requestedRole,
+            roleId: requestedRoleId,
             sortBy: requestedSortBy,
             sortDirection: requestedSortDirection,
           );
           emit(
             UsersLoaded(
-              users: body,
+              users: loadedUsers,
               page: requestedPage,
               size: requestedSize,
-              totalCount: body.length,
-              totalPages: body.isEmpty ? 1 : 1,
+              totalCount: loadedUsers.length,
+              totalPages: users.isEmpty ? 1 : 1,
             ),
           );
           return;
         }
 
-        if (body is Map && body['data'] is List) {
-          final users = body['data'] as List<dynamic>;
-          final loadedPage = _readInt(body['page'], requestedPage);
-          final loadedSize = _readInt(body['size'], requestedSize);
-          final totalCount = _readInt(body['totalCount'], users.length);
-          final totalPages = _readInt(body['totalPages'], 1);
+        if (body is Map<String, dynamic> && body['data'] is List) {
+          final page = PaginatedResponse<UserModel>.fromJson(
+            body,
+            UserModel.fromJson,
+          );
+          final loadedUsers = previous == null
+              ? page.data
+              : [...previous.users, ...page.data];
 
-          _currentPage = loadedPage;
-          _currentSize = loadedSize;
+          _currentPage = page.page;
+          _currentSize = page.size;
           _rememberQuery(
             search: requestedSearch,
             isActive: requestedIsActive,
-            role: requestedRole,
+            roleId: requestedRoleId,
             sortBy: requestedSortBy,
             sortDirection: requestedSortDirection,
           );
 
           emit(
             UsersLoaded(
-              users: users,
-              page: loadedPage,
-              size: loadedSize,
-              totalCount: totalCount,
-              totalPages: totalPages < 1 ? 1 : totalPages,
+              users: loadedUsers,
+              page: page.page,
+              size: page.size,
+              totalCount: page.totalCount,
+              totalPages: page.totalPages,
             ),
           );
           return;
@@ -162,19 +181,23 @@ class UsersCubit extends Cubit<UsersState> {
 
         _currentPage = requestedPage;
         _currentSize = requestedSize;
+        final user = UserModel.fromJson(body as Map<String, dynamic>);
+        final loadedUsers = previous == null
+            ? [user]
+            : [...previous.users, user];
         _rememberQuery(
           search: requestedSearch,
           isActive: requestedIsActive,
-          role: requestedRole,
+          roleId: requestedRoleId,
           sortBy: requestedSortBy,
           sortDirection: requestedSortDirection,
         );
         emit(
           UsersLoaded(
-            users: [body],
+            users: loadedUsers,
             page: requestedPage,
             size: requestedSize,
-            totalCount: 1,
+            totalCount: loadedUsers.length,
             totalPages: 1,
           ),
         );
@@ -184,13 +207,19 @@ class UsersCubit extends Cubit<UsersState> {
       emit(UsersError('HTTP ${resp.statusCode} ${resp.reasonPhrase}'));
     } catch (e) {
       emit(UsersError(e.toString()));
+    } finally {
+      _isFetching = false;
     }
   }
 
-  Future<void> nextPage() async {
+  Future<void> nextPage({bool append = false}) async {
     final current = state;
     if (current is! UsersLoaded || current.page >= current.totalPages) return;
-    await fetchUsers(page: current.page + 1, size: current.size);
+    await fetchUsers(
+      page: current.page + 1,
+      size: current.size,
+      append: append,
+    );
   }
 
   Future<void> previousPage() async {
@@ -202,14 +231,14 @@ class UsersCubit extends Cubit<UsersState> {
   Future<void> applyQuery({
     String? search,
     bool? isActive,
-    String? role,
+    int? roleId,
     int? size,
     String sortBy = 'id',
     String sortDirection = 'asc',
   }) async {
     _currentSearch = _blankToNull(search);
     _currentIsActive = isActive;
-    _currentRole = _blankToNull(role);
+    _currentRoleId = roleId;
     _currentSortBy = sortBy;
     _currentSortDirection = sortDirection;
     await fetchUsers(page: 1, size: size ?? _currentSize);
@@ -218,7 +247,7 @@ class UsersCubit extends Cubit<UsersState> {
   Future<void> clearQuery() async {
     _currentSearch = null;
     _currentIsActive = null;
-    _currentRole = null;
+    _currentRoleId = null;
     _currentSize = defaultPageSize;
     _currentSortBy = 'id';
     _currentSortDirection = 'asc';
@@ -298,11 +327,6 @@ class UsersCubit extends Cubit<UsersState> {
     }
   }
 
-  int _readInt(dynamic value, int fallback) {
-    if (value is int) return value;
-    return int.tryParse(value?.toString() ?? '') ?? fallback;
-  }
-
   String? _blankToNull(String? value) {
     final trimmed = value?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
@@ -312,13 +336,13 @@ class UsersCubit extends Cubit<UsersState> {
   void _rememberQuery({
     required String? search,
     required bool? isActive,
-    required String? role,
+    required int? roleId,
     required String sortBy,
     required String sortDirection,
   }) {
     _currentSearch = search;
     _currentIsActive = isActive;
-    _currentRole = role;
+    _currentRoleId = roleId;
     _currentSortBy = sortBy;
     _currentSortDirection = sortDirection;
   }

@@ -45,7 +45,7 @@ class RolesCubit extends Cubit<RolesState> {
     );
   }
 
-  Future<bool> removeRole(String id) async {
+  Future<bool> removeRole(int id) async {
     final currentRoles = state is RolesLoaded
         ? (state as RolesLoaded).roles
         : const <Role>[];

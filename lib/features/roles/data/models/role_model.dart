@@ -9,7 +9,7 @@ class RoleModel extends Role {
 
   factory RoleModel.fromJson(Map<String, dynamic> json) {
     return RoleModel(
-      id: json['id']?.toString() ?? '',
+      id: _readInt(json['id']),
       name: json['name']?.toString() ?? '',
       permissions:
           (json['permissions'] as List<dynamic>?)
@@ -32,4 +32,20 @@ class RoleModel extends Role {
     'name': name,
     'permissions': permissions,
   };
+
+  static int _readInt(dynamic value) {
+    if (value is int) return value;
+    final text = value?.toString() ?? '';
+    final parsed = int.tryParse(text);
+    if (parsed != null) return parsed;
+    switch (text.trim().toLowerCase()) {
+      case 'admin':
+        return 1;
+      case 'engineer':
+        return 2;
+      case 'reception':
+        return 3;
+    }
+    return 0;
+  }
 }

@@ -18,7 +18,7 @@ class UserRepositoryImpl implements UserRepository {
       await local.cacheCurrentUser(model);
       return Right(model);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_cleanErrorMessage(e)));
     }
   }
 
@@ -28,7 +28,7 @@ class UserRepositoryImpl implements UserRepository {
       await local.clearUser();
       return const Right(null);
     } catch (e) {
-      return Left(CacheFailure(e.toString()));
+      return Left(CacheFailure(_cleanErrorMessage(e)));
     }
   }
 
@@ -38,7 +38,7 @@ class UserRepositoryImpl implements UserRepository {
       final user = await local.getCurrentUser();
       return Right(user);
     } catch (e) {
-      return Left(CacheFailure(e.toString()));
+      return Left(CacheFailure(_cleanErrorMessage(e)));
     }
   }
 
@@ -53,7 +53,11 @@ class UserRepositoryImpl implements UserRepository {
       await local.cacheCurrentUser(model);
       return Right(model);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_cleanErrorMessage(e)));
     }
+  }
+
+  String _cleanErrorMessage(Object error) {
+    return error.toString().replaceFirst('Exception: ', '');
   }
 }

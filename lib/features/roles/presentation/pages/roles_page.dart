@@ -213,21 +213,13 @@ class _RolesPageState extends State<RolesPage> {
     return grouped;
   }
 
-  String _roleIdFromName(String name) {
-    final normalized = name
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'^-+|-+$'), '');
-    if (normalized.isNotEmpty) return normalized;
-    return DateTime.now().millisecondsSinceEpoch.toString();
-  }
+  int _roleIdFromName(String name) => DateTime.now().millisecondsSinceEpoch;
 }
 
 class _RoleDialog extends StatefulWidget {
   final Role? role;
   final Map<String, List<PermissionOption>> permissionGroups;
-  final String Function(String name) roleIdFromName;
+  final int Function(String name) roleIdFromName;
 
   const _RoleDialog({
     required this.role,
