@@ -37,6 +37,7 @@ class CompoundsCubit extends Cubit<CompoundsState> {
     double? maxPrice,
     String? sortBy,
     String? sortDirection,
+    bool append = false,
   }) async {
     final requestedPage = page ?? _currentPage;
     final requestedSize = size ?? _currentSize;
@@ -46,7 +47,18 @@ class CompoundsCubit extends Cubit<CompoundsState> {
     final requestedSortBy = sortBy ?? _currentSortBy;
     final requestedSortDirection = sortDirection ?? _currentSortDirection;
 
-    emit(const CompoundsLoading());
+    final current = state;
+    final currentLoaded = current is CompoundsLoaded ? current : null;
+    if (append && currentLoaded != null) {
+      if (currentLoaded.isLoadingMore ||
+          currentLoaded.page >= currentLoaded.totalPages) {
+        return;
+      }
+      emit(currentLoaded.copyWith(isLoadingMore: true));
+    } else {
+      emit(const CompoundsLoading());
+    }
+
     final result = await getCompounds(
       GetCompoundsParams(
         page: requestedPage,
@@ -58,26 +70,36 @@ class CompoundsCubit extends Cubit<CompoundsState> {
         sortDirection: requestedSortDirection,
       ),
     );
-    result.fold((failure) => emit(CompoundsError(failure.message)), (
-      compoundPage,
-    ) {
-      _currentPage = compoundPage.page;
-      _currentSize = compoundPage.size;
-      _currentSearch = requestedSearch;
-      _currentMinPrice = requestedMinPrice;
-      _currentMaxPrice = requestedMaxPrice;
-      _currentSortBy = requestedSortBy;
-      _currentSortDirection = requestedSortDirection;
-      emit(
-        CompoundsLoaded(
-          compounds: compoundPage.compounds,
-          page: compoundPage.page,
-          size: compoundPage.size,
-          totalCount: compoundPage.totalCount,
-          totalPages: compoundPage.totalPages,
-        ),
-      );
-    });
+    result.fold(
+      (failure) {
+        if (append && currentLoaded != null) {
+          emit(currentLoaded.copyWith(isLoadingMore: false));
+        } else {
+          emit(CompoundsError(failure.message));
+        }
+      },
+      (compoundPage) {
+        _currentPage = compoundPage.page;
+        _currentSize = compoundPage.size;
+        _currentSearch = requestedSearch;
+        _currentMinPrice = requestedMinPrice;
+        _currentMaxPrice = requestedMaxPrice;
+        _currentSortBy = requestedSortBy;
+        _currentSortDirection = requestedSortDirection;
+        final compounds = append && currentLoaded != null
+            ? [...currentLoaded.compounds, ...compoundPage.compounds]
+            : compoundPage.compounds;
+        emit(
+          CompoundsLoaded(
+            compounds: compounds,
+            page: compoundPage.page,
+            size: compoundPage.size,
+            totalCount: compoundPage.totalCount,
+            totalPages: compoundPage.totalPages,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> nextPage() async {
@@ -86,6 +108,16 @@ class CompoundsCubit extends Cubit<CompoundsState> {
       return;
     }
     await fetch(page: current.page + 1, size: current.size);
+  }
+
+  Future<void> loadNextPage() async {
+    final current = state;
+    if (current is! CompoundsLoaded ||
+        current.isLoadingMore ||
+        current.page >= current.totalPages) {
+      return;
+    }
+    await fetch(page: current.page + 1, size: current.size, append: true);
   }
 
   Future<void> previousPage() async {
@@ -130,6 +162,7 @@ class CompoundsCubit extends Cubit<CompoundsState> {
         totalCount: currentLoaded?.totalCount ?? 0,
         totalPages: currentLoaded?.totalPages ?? 1,
         isSubmitting: true,
+        isLoadingMore: currentLoaded?.isLoadingMore ?? false,
       ),
     );
     final result = await createCompound(compound);

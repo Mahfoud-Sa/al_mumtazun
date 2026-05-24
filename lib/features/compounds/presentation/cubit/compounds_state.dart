@@ -24,6 +24,7 @@ class CompoundsLoaded extends CompoundsState {
   final int totalCount;
   final int totalPages;
   final bool isSubmitting;
+  final bool isLoadingMore;
 
   const CompoundsLoaded({
     required this.compounds,
@@ -32,6 +33,7 @@ class CompoundsLoaded extends CompoundsState {
     required this.totalCount,
     required this.totalPages,
     this.isSubmitting = false,
+    this.isLoadingMore = false,
   });
 
   CompoundsLoaded copyWith({
@@ -41,6 +43,7 @@ class CompoundsLoaded extends CompoundsState {
     int? totalCount,
     int? totalPages,
     bool? isSubmitting,
+    bool? isLoadingMore,
   }) {
     return CompoundsLoaded(
       compounds: compounds ?? this.compounds,
@@ -49,6 +52,7 @@ class CompoundsLoaded extends CompoundsState {
       totalCount: totalCount ?? this.totalCount,
       totalPages: totalPages ?? this.totalPages,
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 
@@ -60,6 +64,7 @@ class CompoundsLoaded extends CompoundsState {
     totalCount,
     totalPages,
     isSubmitting,
+    isLoadingMore,
   ];
 }
 

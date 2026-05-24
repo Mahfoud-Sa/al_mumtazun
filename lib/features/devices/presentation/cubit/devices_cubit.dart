@@ -99,6 +99,19 @@ class DevicesCubit extends Cubit<DevicesState> {
     );
   }
 
+  Future<void> goToPage(int page) {
+    final target = page.clamp(1, state.totalPages);
+    return _fetchExactPage(target);
+  }
+
+  Future<void> previousPage() {
+    return goToPage(state.page - 1);
+  }
+
+  Future<void> nextPage() {
+    return goToPage(state.page + 1);
+  }
+
   void updateSearch(String query) {
     emit(
       state.copyWith(
@@ -173,6 +186,50 @@ class DevicesCubit extends Cubit<DevicesState> {
 
   void clearSubmitFlag() {
     emit(state.copyWith(submitSucceeded: false));
+  }
+
+  Future<void> _fetchExactPage(int page) async {
+    if (state.isLoading || state.isLoadingMore) return;
+
+    emit(
+      state.copyWith(
+        isLoading: true,
+        isLoadingMore: false,
+        hasReachedEnd: false,
+        clearError: true,
+      ),
+    );
+    final result = await getDevices(
+      GetDevicesParams(page: page, size: state.size),
+    );
+
+    result.fold(
+      (failure) =>
+          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+      (devicePage) {
+        final devices = devicePage.devices;
+        emit(
+          state.copyWith(
+            devices: devices,
+            visibleDevices: _applyFilters(
+              devices: devices,
+              query: state.searchQuery,
+              statusFilter: state.statusFilter,
+              sortNewestFirst: state.sortNewestFirst,
+            ),
+            isLoading: false,
+            page: devicePage.page,
+            size: devicePage.size,
+            totalCount: devicePage.totalCount,
+            totalPages: devicePage.totalPages,
+            hasReachedEnd:
+                devicePage.page >= devicePage.totalPages ||
+                devicePage.devices.length < devicePage.size,
+            clearError: true,
+          ),
+        );
+      },
+    );
   }
 
   List<Device> _applyFilters({

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/index_view_toggle.dart';
 import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../home/home_shell.dart';
@@ -23,8 +24,40 @@ class CompoundsPage extends StatelessWidget {
   }
 }
 
-class _SparePartsView extends StatelessWidget {
+class _SparePartsView extends StatefulWidget {
   const _SparePartsView();
+
+  @override
+  State<_SparePartsView> createState() => _SparePartsViewState();
+}
+
+class _SparePartsViewState extends State<_SparePartsView> {
+  final _scrollController = ScrollController();
+  IndexViewMode _viewMode = IndexViewMode.list;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_viewMode != IndexViewMode.grid) return;
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 360) {
+      context.read<CompoundsCubit>().loadNextPage();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +66,28 @@ class _SparePartsView extends StatelessWidget {
       body: Directionality(
         textDirection: TextDirection.rtl,
         child: RefreshIndicator(
-          onRefresh: () => context.read<CompoundsCubit>().fetch(),
+          onRefresh: () => context.read<CompoundsCubit>().fetch(page: 1),
           child: SingleChildScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: const [
-                _SparePartsHeader(),
-                SizedBox(height: 24),
-                _SparePartsFilters(),
-                SizedBox(height: 24),
-                _SparePartsTable(),
-                SizedBox(height: 24),
-                //  _SparePartsInsights(),
+              children: [
+                const _SparePartsHeader(),
+                const SizedBox(height: 24),
+                const _SparePartsFilters(),
+                const SizedBox(height: 16),
+                IndexViewControls(
+                  viewMode: _viewMode,
+                  onViewModeChanged: (mode) {
+                    setState(() => _viewMode = mode);
+                    context.read<CompoundsCubit>().fetch(page: 1);
+                  },
+                ),
+                const SizedBox(height: 24),
+                _SparePartsTable(viewMode: _viewMode),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -525,7 +566,9 @@ class _QuickFilterButton extends StatelessWidget {
 }
 
 class _SparePartsTable extends StatelessWidget {
-  const _SparePartsTable();
+  final IndexViewMode viewMode;
+
+  const _SparePartsTable({required this.viewMode});
 
   @override
   Widget build(BuildContext context) {
@@ -566,75 +609,266 @@ class _SparePartsTable extends StatelessWidget {
 
           return Column(
             children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowColor: WidgetStateProperty.all(AppColors.primary),
-                  dataRowMinHeight: 56,
-                  dataRowMaxHeight: 64,
-                  columnSpacing: 32,
-                  columns: const [
-                    DataColumn(label: _HeaderCell('الرقم')),
-                    DataColumn(label: _HeaderCell('اسم القطعة')),
-                    DataColumn(label: _HeaderCell('الوصف')),
-                    DataColumn(label: _HeaderCell('سعر البيع')),
-                    DataColumn(label: _HeaderCell('آخر تحديث')),
-                    DataColumn(label: _HeaderCell('الإجراءات')),
-                  ],
-                  rows: loaded.compounds.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final part = entry.value;
-                    return DataRow(
-                      color: WidgetStateProperty.all(
-                        index.isEven ? Colors.white : AppColors.surface,
-                      ),
-                      cells: [
-                        DataCell(Text('#${part.id}')),
-                        DataCell(
-                          Text(
-                            part.name.isEmpty ? '-' : part.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          SizedBox(
-                            width: 240,
-                            child: Text(
-                              part.description?.trim().isNotEmpty == true
-                                  ? part.description!
-                                  : '-',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            _formatMoney(part.sellPrice),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.secondary,
-                            ),
-                          ),
-                        ),
-                        DataCell(Text(_formatDate(part.date))),
-                        DataCell(_PartActions(part: part)),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
+              if (viewMode == IndexViewMode.grid)
+                _SparePartsGrid(parts: loaded.compounds)
+              else
+                _SparePartsRows(parts: loaded.compounds),
               const Divider(height: 1, color: AppColors.outlineVariant),
-              const _SparePartsPaginationFooter(),
+              if (viewMode == IndexViewMode.list)
+                const _SparePartsPaginationFooter()
+              else
+                _SparePartsGridFooter(loaded: loaded),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _SparePartsGridFooter extends StatelessWidget {
+  final CompoundsLoaded loaded;
+
+  const _SparePartsGridFooter({required this.loaded});
+
+  @override
+  Widget build(BuildContext context) {
+    if (loaded.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        loaded.page >= loaded.totalPages
+            ? 'تم تحميل كل قطع الغيار'
+            : 'مرر للأسفل لتحميل المزيد',
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+class _SparePartsRows extends StatelessWidget {
+  final List<Compound> parts;
+
+  const _SparePartsRows({required this.parts});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowColor: WidgetStateProperty.all(AppColors.primary),
+        dataRowMinHeight: 56,
+        dataRowMaxHeight: 64,
+        columnSpacing: 32,
+        columns: const [
+          DataColumn(label: _HeaderCell('الرقم')),
+          DataColumn(label: _HeaderCell('اسم القطعة')),
+          DataColumn(label: _HeaderCell('الوصف')),
+          DataColumn(label: _HeaderCell('سعر البيع')),
+          DataColumn(label: _HeaderCell('آخر تحديث')),
+          DataColumn(label: _HeaderCell('الإجراءات')),
+        ],
+        rows: parts.asMap().entries.map((entry) {
+          final index = entry.key;
+          final part = entry.value;
+          return DataRow(
+            color: WidgetStateProperty.all(
+              index.isEven ? Colors.white : AppColors.surface,
+            ),
+            cells: [
+              DataCell(Text('#${part.id}')),
+              DataCell(
+                Text(
+                  part.name.isEmpty ? '-' : part.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+              DataCell(
+                SizedBox(
+                  width: 240,
+                  child: Text(
+                    part.description?.trim().isNotEmpty == true
+                        ? part.description!
+                        : '-',
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: AppColors.onSurfaceVariant),
+                  ),
+                ),
+              ),
+              DataCell(
+                Text(
+                  _formatMoney(part.sellPrice),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ),
+              DataCell(Text(_formatDate(part.date))),
+              DataCell(_PartActions(part: part)),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _SparePartsGrid extends StatelessWidget {
+  final List<Compound> parts;
+
+  const _SparePartsGrid({required this.parts});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final columns = constraints.maxWidth >= 1080
+              ? 3
+              : constraints.maxWidth >= 680
+              ? 2
+              : 1;
+
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              mainAxisExtent: 220,
+            ),
+            itemCount: parts.length,
+            itemBuilder: (context, index) {
+              return _SparePartCard(part: parts[index]);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SparePartCard extends StatelessWidget {
+  final Compound part;
+
+  const _SparePartCard({required this.part});
+
+  @override
+  Widget build(BuildContext context) {
+    final description = part.description?.trim();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.outlineVariant),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  part.name.isEmpty ? '-' : part.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '#${part.id}',
+                style: const TextStyle(color: AppColors.onSurfaceVariant),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            description?.isNotEmpty == true ? description! : 'لا يوجد وصف',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.onSurfaceVariant),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Expanded(
+                child: _PartMeta(
+                  label: 'سعر البيع',
+                  value: _formatMoney(part.sellPrice),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _PartMeta(
+                  label: 'آخر تحديث',
+                  value: _formatDate(part.date),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 24, color: AppColors.outlineVariant),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _PartActions(part: part),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PartMeta extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _PartMeta({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.secondary,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1005,131 +1239,6 @@ class _SparePartsPaginationFooter extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _SparePartsInsights extends StatelessWidget {
-  const _SparePartsInsights();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<CompoundsCubit, CompoundsState>(
-      builder: (context, state) {
-        final parts = state is CompoundsLoaded ? state.compounds : <Compound>[];
-        final totalValue = parts.fold<double>(
-          0,
-          (sum, part) => sum + part.sellPrice,
-        );
-        final lowPriceCount = parts
-            .where((part) => part.sellPrice < 100)
-            .length;
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final cards = [
-              _InsightCard(
-                label: 'قيمة المخزون',
-                value: _formatMoney(totalValue),
-                icon: Icons.trending_up,
-                accent: AppColors.secondary,
-              ),
-              _InsightCard(
-                label: 'قطع بسعر منخفض',
-                value: lowPriceCount.toString(),
-                icon: Icons.warning_amber_outlined,
-                accent: AppColors.error,
-              ),
-              _InsightCard(
-                label: 'إجمالي النتائج',
-                value: (state is CompoundsLoaded ? state.totalCount : 0)
-                    .toString(),
-                icon: Icons.inventory_2_outlined,
-                accent: AppColors.primary,
-              ),
-            ];
-
-            if (constraints.maxWidth < 760) {
-              return Column(
-                children: [
-                  for (var i = 0; i < cards.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 12),
-                    cards[i],
-                  ],
-                ],
-              );
-            }
-
-            return Row(
-              children: [
-                for (var i = 0; i < cards.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 16),
-                  Expanded(child: cards[i]),
-                ],
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _InsightCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color accent;
-
-  const _InsightCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          right: BorderSide(color: accent, width: 4),
-          top: const BorderSide(color: AppColors.outlineVariant),
-          left: const BorderSide(color: AppColors.outlineVariant),
-          bottom: const BorderSide(color: AppColors.outlineVariant),
-        ),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Icon(icon, color: accent),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

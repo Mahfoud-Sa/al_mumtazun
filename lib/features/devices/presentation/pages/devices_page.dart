@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/index_view_toggle.dart';
 import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
@@ -33,6 +34,7 @@ class _DevicesView extends StatefulWidget {
 
 class _DevicesViewState extends State<_DevicesView> {
   final _scrollController = ScrollController();
+  IndexViewMode _viewMode = IndexViewMode.grid;
 
   @override
   void initState() {
@@ -49,6 +51,7 @@ class _DevicesViewState extends State<_DevicesView> {
   }
 
   void _onScroll() {
+    if (_viewMode != IndexViewMode.grid) return;
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 360) {
@@ -91,12 +94,20 @@ class _DevicesViewState extends State<_DevicesView> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: const [
-                  _DevicesHeader(),
-                  SizedBox(height: AppSpacing.xl),
-                  _SearchAndActions(),
-                  SizedBox(height: AppSpacing.xl),
-                  _DeviceGrid(),
+                children: [
+                  const _DevicesHeader(),
+                  const SizedBox(height: AppSpacing.xl),
+                  const _SearchAndActions(),
+                  const SizedBox(height: AppSpacing.md),
+                  IndexViewControls(
+                    viewMode: _viewMode,
+                    onViewModeChanged: (mode) {
+                      setState(() => _viewMode = mode);
+                      context.read<DevicesCubit>().fetch(refresh: true);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  _DevicesIndex(viewMode: _viewMode),
                 ],
               ),
             ),
@@ -136,7 +147,7 @@ class _DevicesHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'ط§ظ„ظ‚ط§ط¦ظ…ط©',
+              tooltip: 'القائمة',
               icon: const Icon(Icons.menu, color: AppColors.primary),
               onPressed: () => HomeShell.openDrawer(context),
             ),
@@ -356,8 +367,10 @@ class _FilterMenu extends StatelessWidget {
   }
 }
 
-class _DeviceGrid extends StatelessWidget {
-  const _DeviceGrid();
+class _DevicesIndex extends StatelessWidget {
+  final IndexViewMode viewMode;
+
+  const _DevicesIndex({required this.viewMode});
 
   @override
   Widget build(BuildContext context) {
@@ -370,46 +383,38 @@ class _DeviceGrid extends StatelessWidget {
           );
         }
 
-        final cards = [
-          ...state.visibleDevices.map((device) => _DeviceCard(device: device)),
-          _RegisterDeviceCard(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => BlocProvider.value(
-                  value: context.read<DevicesCubit>(),
-                  child: const RegisterDevicePage(),
-                ),
+        void registerAction() {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => BlocProvider.value(
+                value: context.read<DevicesCubit>(),
+                child: const RegisterDevicePage(),
               ),
             ),
-          ),
-        ];
+          );
+        }
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final columns = width >= 1024
-                ? 3
-                : width >= 640
-                ? 2
-                : 1;
             return Column(
               children: [
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: AppSpacing.xl,
-                    mainAxisSpacing: AppSpacing.xl,
-                    mainAxisExtent: 238,
+                if (viewMode == IndexViewMode.list)
+                  _DeviceRows(devices: state.visibleDevices)
+                else
+                  _DeviceGrid(
+                    devices: state.visibleDevices,
+                    maxWidth: constraints.maxWidth,
+                    onRegister: registerAction,
                   ),
-                  itemCount: cards.length,
-                  itemBuilder: (context, index) => cards[index],
-                ),
                 if (state.isLoadingMore)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
                     child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (viewMode == IndexViewMode.list)
+                  const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.lg),
+                    child: _DevicesPagination(),
                   )
                 else if (state.devices.isNotEmpty)
                   Padding(
@@ -426,6 +431,291 @@ class _DeviceGrid extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _DevicesPagination extends StatelessWidget {
+  const _DevicesPagination();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DevicesCubit, DevicesState>(
+      builder: (context, state) {
+        if (state.totalCount == 0 && state.devices.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final start = state.devices.isEmpty
+            ? 0
+            : ((state.page - 1) * state.size) + 1;
+        final end = state.devices.isEmpty
+            ? 0
+            : (((state.page - 1) * state.size) + state.devices.length).clamp(
+                start,
+                state.totalCount,
+              );
+
+        return Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: AppColors.outlineVariant),
+            borderRadius: BorderRadius.circular(AppSpacing.xs),
+          ),
+          child: Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.sm,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'عرض $start-$end من ${state.totalCount} | صفحة ${state.page} من ${state.totalPages}',
+                style: AppTextStyles.labelStrong,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: state.page <= 1 || state.isLoading
+                        ? null
+                        : context.read<DevicesCubit>().previousPage,
+                    icon: const Icon(Icons.chevron_right, size: 18),
+                    label: const Text('السابق'),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  OutlinedButton.icon(
+                    onPressed: state.page >= state.totalPages || state.isLoading
+                        ? null
+                        : context.read<DevicesCubit>().nextPage,
+                    icon: const Icon(Icons.chevron_left, size: 18),
+                    label: const Text('التالي'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DeviceGrid extends StatelessWidget {
+  final List<Device> devices;
+  final double maxWidth;
+  final VoidCallback onRegister;
+
+  const _DeviceGrid({
+    required this.devices,
+    required this.maxWidth,
+    required this.onRegister,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final columns = maxWidth >= 1024
+        ? 3
+        : maxWidth >= 640
+        ? 2
+        : 1;
+    final cards = [
+      ...devices.map((device) => _DeviceCard(device: device)),
+      _RegisterDeviceCard(onTap: onRegister),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        crossAxisSpacing: AppSpacing.xl,
+        mainAxisSpacing: AppSpacing.xl,
+        mainAxisExtent: 238,
+      ),
+      itemCount: cards.length,
+      itemBuilder: (context, index) => cards[index],
+    );
+  }
+}
+
+class _DeviceRows extends StatelessWidget {
+  final List<Device> devices;
+
+  const _DeviceRows({required this.devices});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth < 760 ? 760.0 : constraints.maxWidth;
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: width,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: AppColors.outlineVariant),
+                borderRadius: BorderRadius.circular(AppSpacing.xs),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.md,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surfaceContainerHigh,
+                      border: Border(
+                        bottom: BorderSide(color: AppColors.outline),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'الجهاز',
+                            style: AppTextStyles.labelStrong,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'الماركة',
+                            style: AppTextStyles.labelStrong,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'العميل',
+                            style: AppTextStyles.labelStrong,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 150,
+                          child: Text(
+                            'الحالة',
+                            style: AppTextStyles.labelStrong,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 132,
+                          child: Text(
+                            'إجراءات',
+                            style: AppTextStyles.labelStrong,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  for (var index = 0; index < devices.length; index++)
+                    _DeviceRow(
+                      device: devices[index],
+                      showDivider: index < devices.length - 1,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DeviceRow extends StatelessWidget {
+  final Device device;
+  final bool showDivider;
+
+  const _DeviceRow({required this.device, required this.showDivider});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _openDetails(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          border: showDivider
+              ? const Border(
+                  bottom: BorderSide(color: AppColors.outlineVariant),
+                )
+              : null,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    device.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelStrong.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    device.serialNumber,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.label,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Text(
+                device.brand,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                device.customerName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: 150, child: _StatusBadge(status: device.status)),
+            SizedBox(
+              width: 132,
+              child: TextButton.icon(
+                onPressed: () => _openDetails(context),
+                icon: const Icon(Icons.chevron_right, size: 18),
+                label: const Text('التفاصيل'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.secondary,
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  textStyle: AppTextStyles.labelStrong,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DeviceDetailsPage(device: device),
+      ),
     );
   }
 }
