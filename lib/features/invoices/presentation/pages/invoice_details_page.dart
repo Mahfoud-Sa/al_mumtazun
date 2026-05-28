@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../domain/entities/invoice.dart';
@@ -13,12 +12,13 @@ class InvoiceDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final device = invoice.device;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
           title: Text('تفاصيل الفاتورة #${invoice.id}'),
           leading: IconButton(
@@ -26,8 +26,8 @@ class InvoiceDetailsPage extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back),
           ),
-          shape: const Border(
-            bottom: BorderSide(color: AppColors.outlineVariant),
+          shape: Border(
+            bottom: BorderSide(color: colorScheme.outlineVariant),
           ),
         ),
         body: SafeArea(
@@ -120,11 +120,12 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.outlineVariant),
+        color: colorScheme.surfaceContainerLow,
+        border: Border.all(color: colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: Row(
@@ -133,12 +134,12 @@ class _HeaderCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.secondaryContainer,
+              color: colorScheme.secondary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.xs),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.receipt_long_outlined,
-              color: AppColors.secondary,
+              color: colorScheme.secondary,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -146,15 +147,21 @@ class _HeaderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('فاتورة #${invoice.id}', style: AppTextStyles.pageTitle),
+                Text(
+                  'فاتورة #${invoice.id}',
+                  style: AppTextStyles.pageTitle.copyWith(color: colorScheme.onSurface),
+                ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(_formatDateTime(invoice.date), style: AppTextStyles.body),
+                Text(
+                  _formatDateTime(invoice.date),
+                  style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
               ],
             ),
           ),
           Text(
             _formatMoney(invoice.total),
-            style: AppTextStyles.pageTitle.copyWith(color: AppColors.secondary),
+            style: AppTextStyles.pageTitle.copyWith(color: colorScheme.secondary),
           ),
         ],
       ),
@@ -170,10 +177,11 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.outlineVariant),
+        color: colorScheme.surfaceContainerLow,
+        border: Border.all(color: colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: Column(
@@ -181,11 +189,14 @@ class _SectionCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: const BoxDecoration(
-              color: AppColors.surfaceContainerHigh,
-              border: Border(bottom: BorderSide(color: AppColors.outline)),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
             ),
-            child: Text(title, style: AppTextStyles.sectionHeading),
+            child: Text(
+              title,
+              style: AppTextStyles.sectionHeading.copyWith(color: colorScheme.onSurface),
+            ),
           ),
           Padding(padding: const EdgeInsets.all(AppSpacing.lg), child: child),
         ],
@@ -202,6 +213,7 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
@@ -209,9 +221,17 @@ class _InfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 140,
-            child: Text(label, style: AppTextStyles.labelStrong),
+            child: Text(
+              label,
+              style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+            ),
           ),
-          Expanded(child: Text(value, style: AppTextStyles.body)),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+          ),
         ],
       ),
     );
@@ -225,10 +245,14 @@ class _ItemsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return _SectionCard(
       title: 'عناصر الفاتورة',
       child: items.isEmpty
-          ? Text('لا توجد عناصر في هذه الفاتورة.', style: AppTextStyles.body)
+          ? Text(
+              'لا توجد عناصر في هذه الفاتورة.',
+              style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+            )
           : Column(
               children: [
                 Container(
@@ -236,26 +260,32 @@ class _ItemsSection extends StatelessWidget {
                     horizontal: AppSpacing.md,
                     vertical: AppSpacing.sm,
                   ),
-                  color: AppColors.surfaceContainerHigh,
+                  color: colorScheme.surface,
                   child: Row(
                     children: [
                       Expanded(
                         flex: 3,
-                        child: Text('العنصر', style: AppTextStyles.labelStrong),
+                        child: Text(
+                          'العنصر',
+                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                        ),
                       ),
                       Expanded(
-                        child: Text('الكمية', style: AppTextStyles.labelStrong),
+                        child: Text(
+                          'الكمية',
+                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                        ),
                       ),
                       Expanded(
                         child: Text(
                           'سعر الوحدة',
-                          style: AppTextStyles.labelStrong,
+                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                         ),
                       ),
                       Expanded(
                         child: Text(
                           'الإجمالي',
-                          style: AppTextStyles.labelStrong,
+                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                         ),
                       ),
                     ],
@@ -280,6 +310,7 @@ class _ItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -287,7 +318,7 @@ class _ItemRow extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         border: showDivider
-            ? const Border(bottom: BorderSide(color: AppColors.outlineVariant))
+            ? Border(bottom: BorderSide(color: colorScheme.outlineVariant))
             : null,
       ),
       child: Row(
@@ -299,22 +330,32 @@ class _ItemRow extends StatelessWidget {
               children: [
                 Text(
                   _displayValue(item.sparePartName, 'مكون بدون اسم'),
-                  style: AppTextStyles.labelStrong,
+                  style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'رقم القطعة: ${item.sparePartId ?? 0}',
-                  style: AppTextStyles.label,
+                  style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
           ),
-          Expanded(child: Text(item.quantity.toString())),
-          Expanded(child: Text(_formatMoney(item.unitPrice))),
+          Expanded(
+            child: Text(
+              item.quantity.toString(),
+              style: TextStyle(color: colorScheme.onSurface),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              _formatMoney(item.unitPrice),
+              style: TextStyle(color: colorScheme.onSurface),
+            ),
+          ),
           Expanded(
             child: Text(
               _formatMoney(item.total),
-              style: AppTextStyles.labelStrong,
+              style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
             ),
           ),
         ],
@@ -330,14 +371,15 @@ class _TotalsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return _SectionCard(
       title: 'الإجماليات',
       child: Column(
         children: [
           _TotalRow(label: 'قبل الخصم', value: invoice.subTotal),
-          const Divider(height: 24, color: AppColors.outlineVariant),
+          Divider(height: 24, color: colorScheme.outlineVariant),
           _TotalRow(label: 'الخصم', value: invoice.discount),
-          const Divider(height: 24, color: AppColors.outlineVariant),
+          Divider(height: 24, color: colorScheme.outlineVariant),
           _TotalRow(label: 'الإجمالي', value: invoice.total, strong: true),
         ],
       ),
@@ -358,21 +400,24 @@ class _TotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Expanded(
           child: Text(
             label,
-            style: strong ? AppTextStyles.labelStrong : AppTextStyles.body,
+            style: strong
+                ? AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface)
+                : AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
           ),
         ),
         Text(
           _formatMoney(value),
           style: strong
               ? AppTextStyles.sectionHeading.copyWith(
-                  color: AppColors.secondary,
+                  color: colorScheme.secondary,
                 )
-              : AppTextStyles.labelStrong,
+              : AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
         ),
       ],
     );

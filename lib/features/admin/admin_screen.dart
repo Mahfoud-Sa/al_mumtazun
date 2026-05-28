@@ -115,10 +115,10 @@ class _HeaderSection extends StatelessWidget {
     final isWide = MediaQuery.of(context).size.width >= 768;
     final title = Row(
       children: [
-        IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.primary),
-          onPressed: () => HomeShell.openDrawer(context),
-        ),
+        // IconButton(
+        //   icon: const Icon(Icons.menu, color: AppColors.primary),
+        //   onPressed: () => HomeShell.openDrawer(context),
+        // ),
         const SizedBox(width: 8),
         const Expanded(
           child: Column(

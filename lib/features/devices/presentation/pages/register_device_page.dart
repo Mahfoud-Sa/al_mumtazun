@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../domain/entities/device.dart';
@@ -45,23 +44,25 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
-          foregroundColor: AppColors.primary,
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.primary,
           elevation: 0,
-          title: const Text(
+          title: Text(
             'تسجيل جهاز جديد',
             style: TextStyle(
-              color: AppColors.secondary,
+              color: colorScheme.secondary,
               fontWeight: FontWeight.w700,
             ),
           ),
-          shape: const Border(
-            bottom: BorderSide(color: AppColors.outlineVariant),
+          shape: Border(
+            bottom: BorderSide(color: colorScheme.outlineVariant),
           ),
         ),
         body: BlocListener<DevicesCubit, DevicesState>(
@@ -162,7 +163,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                                 tooltip: 'حذف الرقم',
                                 onPressed: () => _removePhoneNumber(i),
                                 icon: const Icon(Icons.delete_outline),
-                                color: AppColors.error,
+                                color: colorScheme.error,
                               ),
                             ),
                             const SizedBox(height: AppSpacing.md),
@@ -251,10 +252,10 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                                     : 'تسجيل سجل الجهاز',
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.secondary,
+                                backgroundColor: colorScheme.secondary,
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor:
-                                    AppColors.outlineVariant,
+                                    colorScheme.outlineVariant,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.xl,
                                   vertical: AppSpacing.md,
@@ -271,12 +272,12 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
                         },
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      const Text(
-                        "بهذا النموذج يلتقط كل التفاصيل اللازمة لاستلام الجهاز بدقة، مما يسهل على فريق الصيانة فهم المشكلة وتقديم خدمة سريعة وفعالة.",
+                      Text(
+                        "بهذا النموذج يلتقط كل التفاصيل اللازمة استلام الجهاز بدقة، مما يسهل على فريق الصيانة فهم المشكلة وتقديم خدمة سريعة وفعالة.",
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -342,11 +343,13 @@ class _PageTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
-        const Icon(
+        Icon(
           Icons.engineering_outlined,
-          color: AppColors.secondary,
+          color: colorScheme.secondary,
           size: 32,
         ),
         const SizedBox(width: AppSpacing.md),
@@ -359,13 +362,13 @@ class _PageTitle extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 'نموذج استلام دقيق لطلبات الصيانة الهندسية.',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -388,14 +391,16 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
-      color: AppColors.surfaceContainer,
+      color: colorScheme.surface,
       elevation: 1,
-      shadowColor: AppColors.shadow,
+      shadowColor: colorScheme.shadow,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.xs),
-        side: const BorderSide(color: AppColors.outlineVariant),
+        side: BorderSide(color: colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
@@ -404,12 +409,12 @@ class _SectionCard extends StatelessWidget {
               horizontal: AppSpacing.xl,
               vertical: AppSpacing.md,
             ),
-            decoration: const BoxDecoration(
-              color: AppColors.surfaceContainerHigh,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
               border: Border(
-                bottom: BorderSide(color: AppColors.outlineVariant),
+                bottom: BorderSide(color: colorScheme.outlineVariant),
               ),
-              borderRadius: BorderRadius.vertical(
+              borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppSpacing.xs),
               ),
             ),
@@ -418,15 +423,15 @@ class _SectionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: colorScheme.primary,
                       letterSpacing: 0.5,
                     ),
                   ),
                 ),
-                Icon(icon, size: 18, color: AppColors.onSurfaceVariant),
+                Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
               ],
             ),
           ),
@@ -502,6 +507,8 @@ class _FormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -516,30 +523,32 @@ class _FormField extends StatelessWidget {
                 keyboardType: keyboardType,
                 maxLines: maxLines,
                 validator: validator,
+                style: TextStyle(color: colorScheme.onSurface),
                 decoration: InputDecoration(
                   hintText: hint,
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                   filled: true,
-                  fillColor: AppColors.surfaceContainer,
+                  fillColor: colorScheme.surface,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
                     vertical: AppSpacing.md,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.outlineVariant,
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant,
                     ),
                     borderRadius: BorderRadius.circular(AppSpacing.xs),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.secondary),
+                    borderSide: BorderSide(color: colorScheme.secondary),
                     borderRadius: BorderRadius.circular(AppSpacing.xs),
                   ),
                   errorBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.error),
+                    borderSide: BorderSide(color: colorScheme.error),
                     borderRadius: BorderRadius.circular(AppSpacing.xs),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.error),
+                    borderSide: BorderSide(color: colorScheme.error),
                     borderRadius: BorderRadius.circular(AppSpacing.xs),
                   ),
                 ),
@@ -591,6 +600,9 @@ class _DateField extends StatelessWidget {
       } catch (_) {}
     }
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -599,12 +611,19 @@ class _DateField extends StatelessWidget {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.secondary,
-              onPrimary: Colors.white,
-              surface: AppColors.surfaceContainer,
-              onSurface: AppColors.primary,
-            ),
+            colorScheme: isDark
+                ? ColorScheme.dark(
+                    primary: colorScheme.secondary,
+                    onPrimary: colorScheme.onSecondary,
+                    surface: colorScheme.surface,
+                    onSurface: colorScheme.onSurface,
+                  )
+                : ColorScheme.light(
+                    primary: colorScheme.secondary,
+                    onPrimary: colorScheme.onSecondary,
+                    surface: colorScheme.surface,
+                    onSurface: colorScheme.primary,
+                  ),
           ),
           child: child!,
         );
@@ -621,6 +640,8 @@ class _DateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -631,15 +652,16 @@ class _DateField extends StatelessWidget {
           validator: validator,
           readOnly: true,
           onTap: () => _pickDate(context),
-          style: AppTextStyles.body,
+          style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
             filled: true,
-            fillColor: AppColors.surfaceContainer,
-            suffixIcon: const Icon(
+            fillColor: colorScheme.surface,
+            suffixIcon: Icon(
               Icons.calendar_today_outlined,
               size: 18,
-              //color: AppColors.caption,
+              color: colorScheme.onSurfaceVariant,
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
@@ -647,22 +669,22 @@ class _DateField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.xs),
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
+              borderSide: BorderSide(color: colorScheme.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.xs),
-              borderSide: const BorderSide(
-                color: AppColors.secondary,
+              borderSide: BorderSide(
+                color: colorScheme.secondary,
                 width: 1.4,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.xs),
-              borderSide: const BorderSide(color: AppColors.error),
+              borderSide: BorderSide(color: colorScheme.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.xs),
-              borderSide: const BorderSide(color: AppColors.error, width: 1.4),
+              borderSide: BorderSide(color: colorScheme.error, width: 1.4),
             ),
           ),
         ),

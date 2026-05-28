@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
+import 'app_dark_colors.dart';
 import 'app_spacing.dart';
 import 'app_text_styles.dart';
 
@@ -15,6 +16,8 @@ class AppTheme {
       onSecondary: Colors.white,
       error: AppColors.error,
       onError: AppColors.onError,
+      errorContainer: AppColors.errorContainer,
+      onErrorContainer: AppColors.onErrorContainer,
       surface: AppColors.surface,
       onSurface: AppColors.onSurface,
       onSurfaceVariant: AppColors.onSurfaceVariant,
@@ -29,20 +32,22 @@ class AppTheme {
   static ThemeData dark() {
     return _build(
       brightness: Brightness.dark,
-      primary: const Color(0xFFE7EEF7),
-      onPrimary: const Color(0xFF1A2B3C),
-      secondary: AppColors.secondary,
-      onSecondary: Colors.white,
-      error: const Color(0xFFFFB4AB),
-      onError: const Color(0xFF690005),
-      surface: const Color(0xFF111820),
-      onSurface: const Color(0xFFE2E8F0),
-      onSurfaceVariant: const Color(0xFFB8C2CC),
-      outline: const Color(0xFF8D99A6),
-      outlineVariant: const Color(0xFF334050),
-      background: const Color(0xFF0B1118),
-      surfaceContainerLow: const Color(0xFF17212B),
-      card: const Color(0xFF141D26),
+      primary: AppDarkColors.primary,
+      onPrimary: AppDarkColors.onPrimary,
+      secondary: AppDarkColors.secondary,
+      onSecondary: AppDarkColors.onSecondary,
+      error: AppDarkColors.error,
+      onError: AppDarkColors.onError,
+      errorContainer: AppDarkColors.errorContainer,
+      onErrorContainer: AppDarkColors.onErrorContainer,
+      surface: AppDarkColors.surface,
+      onSurface: AppDarkColors.onSurface,
+      onSurfaceVariant: AppDarkColors.onSurfaceVariant,
+      outline: AppDarkColors.outline,
+      outlineVariant: AppDarkColors.outlineVariant,
+      background: AppDarkColors.background,
+      surfaceContainerLow: AppDarkColors.surfaceContainerLow,
+      card: AppDarkColors.surfaceContainer,
     );
   }
 
@@ -54,6 +59,8 @@ class AppTheme {
     required Color onSecondary,
     required Color error,
     required Color onError,
+    required Color errorContainer,
+    required Color onErrorContainer,
     required Color surface,
     required Color onSurface,
     required Color onSurfaceVariant,
@@ -73,6 +80,8 @@ class AppTheme {
         onSecondary: onSecondary,
         error: error,
         onError: onError,
+        errorContainer: errorContainer,
+        onErrorContainer: onErrorContainer,
         surface: surface,
         onSurface: onSurface,
         onSurfaceVariant: onSurfaceVariant,

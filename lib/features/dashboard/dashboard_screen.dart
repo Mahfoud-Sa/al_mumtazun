@@ -6,7 +6,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../../di/service_locator.dart';
 import '../../localization/l10n.dart';
-import '../../theme/app_colors.dart';
 import 'state/dashboard_cubit.dart';
 import '../home/home_shell.dart';
 
@@ -21,6 +20,7 @@ class DashboardScreen extends StatelessWidget {
       create: (_) => getIt<DashboardCubit>()..fetch(),
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, dash) {
+          final colorScheme = Theme.of(context).colorScheme;
           return LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -39,7 +39,7 @@ class DashboardScreen extends StatelessWidget {
                       // ======================================================
                       SliverAppBar(
                         pinned: true,
-                        backgroundColor: AppColors.surface,
+                        backgroundColor: colorScheme.surface,
                         surfaceTintColor: Colors.transparent,
                         elevation: 0,
                         toolbarHeight: 64,
@@ -47,9 +47,9 @@ class DashboardScreen extends StatelessWidget {
                         title: Row(
                           children: [
                             IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.menu,
-                                color: AppColors.primary,
+                                color: colorScheme.primary,
                               ),
                               onPressed: () => HomeShell.openDrawer(context),
                             ),
@@ -64,7 +64,7 @@ class DashboardScreen extends StatelessWidget {
                                     .headlineMedium!
                                     .copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
+                                      color: colorScheme.primary,
                                     ),
                               ),
                             ),
@@ -136,22 +136,24 @@ class _DashboardErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.errorContainer,
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+        color: colorScheme.errorContainer,
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.25)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error),
+          Icon(Icons.error_outline, color: colorScheme.error),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: AppColors.onErrorContainer,
+                color: colorScheme.onErrorContainer,
               ),
             ),
           ),
@@ -161,8 +163,8 @@ class _DashboardErrorBanner extends StatelessWidget {
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('إعادة المحاولة'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.error,
-              side: const BorderSide(color: AppColors.error),
+              foregroundColor: colorScheme.error,
+              side: BorderSide(color: colorScheme.error),
             ),
           ),
         ],
@@ -241,6 +243,7 @@ class _EngineeringOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -250,7 +253,12 @@ class _EngineeringOverviewCard extends StatelessWidget {
           children: [
             Text(
               l10n.engineeringOverview,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
 
             const SizedBox(height: 16),
@@ -374,6 +382,7 @@ class _StatusLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: data
@@ -391,8 +400,19 @@ class _StatusLegend extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(_statusLabel(l10n, e.status))),
-                  Text("${e.value}"),
+                  Expanded(
+                    child: Text(
+                      _statusLabel(l10n, e.status),
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                  Text(
+                    "${e.value}",
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -416,21 +436,33 @@ class _MiniStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           children: [
             Text(
               value,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 4),
-            Text(label),
+            Text(
+              label,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
+            ),
           ],
         ),
       ),
@@ -457,6 +489,7 @@ class _TotalIncomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -469,7 +502,10 @@ class _TotalIncomeCard extends StatelessWidget {
               l10n.totalIncome,
               style: Theme.of(
                 context,
-              ).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700),
+              ).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
 
             const SizedBox(height: 12),
@@ -478,7 +514,7 @@ class _TotalIncomeCard extends StatelessWidget {
             Text(
               _formatCurrency(state.monthlyIncome),
               style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                color: AppColors.primary,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -503,7 +539,7 @@ class _TotalIncomeCard extends StatelessWidget {
             Container(
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: state.incomeChart.isEmpty
@@ -524,6 +560,7 @@ class _IncomeMiniChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final maxValue = data.fold<double>(
       0,
       (max, item) => item.value > max ? item.value : max,
@@ -543,7 +580,7 @@ class _IncomeMiniChart extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.secondary,
+                      color: colorScheme.secondary,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -571,6 +608,7 @@ class _LogisticsPerformanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -582,18 +620,24 @@ class _LogisticsPerformanceCard extends StatelessWidget {
               l10n.logisticsPerformance,
               style: Theme.of(
                 context,
-              ).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700),
+              ).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
 
             const SizedBox(height: 16),
 
             // TURNOVER
-            Text(l10n.inventoryTurnoverRate),
+            Text(
+              l10n.inventoryTurnoverRate,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
             const SizedBox(height: 6),
             Text(
               '${state.inventoryTurnover.toStringAsFixed(1)}x',
               style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: AppColors.primary,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -608,7 +652,10 @@ class _LogisticsPerformanceCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(l10n.efficiency),
+                Text(
+                  l10n.efficiency,
+                  style: TextStyle(color: colorScheme.onSurface),
+                ),
                 Text(
                   _formatPercent(state.efficiency),
                   style: const TextStyle(
@@ -624,7 +671,7 @@ class _LogisticsPerformanceCard extends StatelessWidget {
             LinearProgressIndicator(
               value: state.efficiency,
               color: Colors.green,
-              backgroundColor: Colors.grey.shade300,
+              backgroundColor: colorScheme.surfaceContainerLow,
             ),
           ],
         ),
@@ -646,6 +693,7 @@ class _ResourceAllocationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -657,7 +705,10 @@ class _ResourceAllocationCard extends StatelessWidget {
               l10n.resourceAllocation,
               style: Theme.of(
                 context,
-              ).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700),
+              ).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
 
             const SizedBox(height: 16),
@@ -669,6 +720,7 @@ class _ResourceAllocationCard extends StatelessWidget {
             ) ...[
               if (index > 0) const SizedBox(height: 10),
               _buildRow(
+                context,
                 _resourceLabel(l10n, state.resourceMetrics[index].type),
                 state.resourceMetrics[index].value,
                 state.resourceMetrics[index].color,
@@ -680,19 +732,33 @@ class _ResourceAllocationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(String label, double value, Color color) {
+  Widget _buildRow(BuildContext context, String label, double value, Color color) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(label), Text("${(value * 100).toInt()}%")],
+          children: [
+            Text(
+              label,
+              style: TextStyle(color: colorScheme.onSurface),
+            ),
+            Text(
+              "${(value * 100).toInt()}%",
+              style: TextStyle(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          ],
         ),
         const SizedBox(height: 6),
         LinearProgressIndicator(
           value: value,
           color: color,
-          backgroundColor: Colors.grey.shade300,
+          backgroundColor: colorScheme.surfaceContainerLow,
         ),
       ],
     );
@@ -712,6 +778,7 @@ class _CriticalLogsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Column(
@@ -726,9 +793,18 @@ class _CriticalLogsCard extends StatelessWidget {
                   l10n.criticalEngineeringLogs,
                   style: Theme.of(
                     context,
-                  ).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700),
+                  ).textTheme.labelLarge!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                 ),
-                TextButton(onPressed: () {}, child: Text(l10n.viewAll)),
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    l10n.viewAll,
+                    style: TextStyle(color: colorScheme.secondary),
+                  ),
+                ),
               ],
             ),
           ),
@@ -737,6 +813,7 @@ class _CriticalLogsCard extends StatelessWidget {
 
           for (final log in logs)
             _logItem(
+              context,
               icon: log.icon,
               title: log.title.trim().isEmpty
                   ? _logTitle(l10n, log.type)
@@ -751,19 +828,31 @@ class _CriticalLogsCard extends StatelessWidget {
     );
   }
 
-  Widget _logItem({
+  Widget _logItem(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
     required Color color,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color.withValues(alpha: 0.2),
         child: Icon(icon, color: color),
       ),
-      title: Text(title),
-      subtitle: Text(subtitle),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(color: colorScheme.onSurfaceVariant),
+      ),
     );
   }
 }
@@ -849,6 +938,7 @@ class _HeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
 
     // LEFT SIDE (TITLE SECTION)
     final left = Column(
@@ -857,7 +947,7 @@ class _HeaderRow extends StatelessWidget {
         Text(
           l10n.managementSystem,
           style: Theme.of(context).textTheme.labelLarge!.copyWith(
-            color: AppColors.secondary,
+            color: colorScheme.secondary,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.2,
           ),
@@ -868,7 +958,7 @@ class _HeaderRow extends StatelessWidget {
         Text(
           l10n.dashboardOverview,
           style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-            color: AppColors.primary,
+            color: colorScheme.primary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -907,13 +997,14 @@ class _RangeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     const labels = ['أسبوع', 'شهر', 'سنة'];
 
     return Container(
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        border: Border.all(color: AppColors.outlineVariant),
+        color: colorScheme.surfaceContainerLow,
+        border: Border.all(color: colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -927,12 +1018,12 @@ class _RangeSelector extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 foregroundColor: selectedIndex == index
                     ? Colors.white
-                    : AppColors.onSurface,
+                    : colorScheme.onSurface,
                 disabledForegroundColor: Colors.white,
                 backgroundColor: selectedIndex == index
-                    ? AppColors.secondary
+                    ? colorScheme.secondary
                     : Colors.transparent,
-                disabledBackgroundColor: AppColors.secondary,
+                disabledBackgroundColor: colorScheme.secondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),

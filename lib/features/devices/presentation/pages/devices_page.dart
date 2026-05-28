@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/index_view_toggle.dart';
 import '../../../../di/service_locator.dart';
-import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../home/home_shell.dart';
@@ -61,12 +60,14 @@ class _DevicesViewState extends State<_DevicesView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         floatingActionButton: FloatingActionButton(
-          backgroundColor: AppColors.secondary,
+          backgroundColor: colorScheme.secondary,
           foregroundColor: Colors.white,
           onPressed: () => _openRegisterPage(context),
           child: const Icon(Icons.add),
@@ -135,6 +136,7 @@ class _DevicesHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 768;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Flex(
       direction: isWide ? Axis.horizontal : Axis.vertical,
@@ -148,19 +150,19 @@ class _DevicesHeader extends StatelessWidget {
           children: [
             IconButton(
               tooltip: 'القائمة',
-              icon: const Icon(Icons.menu, color: AppColors.primary),
+              icon: Icon(Icons.menu, color: colorScheme.primary),
               onPressed: () => HomeShell.openDrawer(context),
             ),
             const SizedBox(width: AppSpacing.sm),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('الأجهزة', style: AppTextStyles.pageTitle),
+                Text('الأجهزة', style: AppTextStyles.pageTitle.copyWith(color: colorScheme.primary)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'إدارة استلام الأجهزة وحالة الصيانة وسجلات العملاء.',
                   style: AppTextStyles.body.copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -180,7 +182,7 @@ class _DevicesHeader extends StatelessWidget {
           icon: const Icon(Icons.add_circle_outline, size: 18),
           label: const Text('تسجيل جهاز جديد'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.secondary,
+            backgroundColor: colorScheme.secondary,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,
@@ -201,6 +203,8 @@ class _SearchAndActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocBuilder<DevicesCubit, DevicesState>(
       builder: (context, state) {
         return Column(
@@ -211,23 +215,25 @@ class _SearchAndActions extends StatelessWidget {
                 final isWide = constraints.maxWidth >= 720;
                 final search = TextField(
                   onChanged: context.read<DevicesCubit>().updateSearch,
+                  style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     hintText: 'ابحث باسم الجهاز أو العميل...',
-                    prefixIcon: const Icon(Icons.search),
+                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: colorScheme.surfaceContainerLow,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.lg,
                       vertical: AppSpacing.md,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: AppColors.outlineVariant,
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant,
                       ),
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.secondary),
+                      borderSide: BorderSide(color: colorScheme.secondary),
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
                   ),
@@ -239,9 +245,9 @@ class _SearchAndActions extends StatelessWidget {
                     const SizedBox(width: AppSpacing.sm),
                     OutlinedButton.icon(
                       onPressed: context.read<DevicesCubit>().toggleSort,
-                      icon: const Icon(Icons.sort, size: 18),
+                      icon: Icon(Icons.sort, size: 18, color: colorScheme.primary),
                       label: Text(state.sortNewestFirst ? 'الأحدث' : 'الأقدم'),
-                      style: _outlinedButtonStyle(),
+                      style: _outlinedButtonStyle(context),
                     ),
                   ],
                 );
@@ -272,32 +278,39 @@ class _SearchAndActions extends StatelessWidget {
               runSpacing: AppSpacing.sm,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const Text(
+                Text(
                   'النشط:',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                     letterSpacing: 0.4,
                   ),
                 ),
                 if (state.statusFilter == null && state.searchQuery.isEmpty)
-                  const Text(
+                  Text(
                     'لا يوجد',
-                    style: TextStyle(color: AppColors.onSurfaceVariant),
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                 if (state.statusFilter != null)
                   InputChip(
-                    label: Text('الحالة: ${state.statusFilter!.label}'),
+                    label: Text(
+                      'الحالة: ${state.statusFilter!.label}',
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
                     onDeleted: () =>
                         context.read<DevicesCubit>().setStatusFilter(null),
-                    backgroundColor: AppColors.surfaceContainerHigh,
+                    backgroundColor: colorScheme.surfaceContainerLow,
+                    deleteIconColor: colorScheme.onSurfaceVariant,
                     side: BorderSide.none,
                   ),
                 if (state.searchQuery.isNotEmpty)
                   Chip(
-                    label: Text('البحث: ${state.searchQuery}'),
-                    backgroundColor: AppColors.surfaceContainerHigh,
+                    label: Text(
+                      'البحث: ${state.searchQuery}',
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
+                    backgroundColor: colorScheme.surfaceContainerLow,
                     side: BorderSide.none,
                   ),
               ],
@@ -308,10 +321,12 @@ class _SearchAndActions extends StatelessWidget {
     );
   }
 
-  ButtonStyle _outlinedButtonStyle() {
+  ButtonStyle _outlinedButtonStyle(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return OutlinedButton.styleFrom(
-      foregroundColor: AppColors.primary,
-      side: const BorderSide(color: AppColors.outline),
+      foregroundColor: colorScheme.primary,
+      side: BorderSide(color: colorScheme.outline),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
@@ -331,6 +346,8 @@ class _FilterMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return PopupMenuButton<DeviceStatus?>(
       initialValue: selected,
       onSelected: context.read<DevicesCubit>().setStatusFilter,
@@ -348,11 +365,11 @@ class _FilterMenu extends StatelessWidget {
       ],
       child: OutlinedButton.icon(
         onPressed: null,
-        icon: const Icon(Icons.filter_list, size: 18),
+        icon: Icon(Icons.filter_list, size: 18, color: colorScheme.primary),
         label: Text(selected == null ? 'تصفية' : selected!.label),
         style: OutlinedButton.styleFrom(
-          disabledForegroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.outline),
+          disabledForegroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.outline),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -446,6 +463,8 @@ class _DevicesPagination extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
+        final colorScheme = Theme.of(context).colorScheme;
+
         final start = state.devices.isEmpty
             ? 0
             : ((state.page - 1) * state.size) + 1;
@@ -459,8 +478,8 @@ class _DevicesPagination extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: AppColors.outlineVariant),
+            color: colorScheme.surface,
+            border: Border.all(color: colorScheme.outlineVariant),
             borderRadius: BorderRadius.circular(AppSpacing.xs),
           ),
           child: Wrap(
@@ -471,7 +490,7 @@ class _DevicesPagination extends StatelessWidget {
             children: [
               Text(
                 'عرض $start-$end من ${state.totalCount} | صفحة ${state.page} من ${state.totalPages}',
-                style: AppTextStyles.labelStrong,
+                style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -482,6 +501,10 @@ class _DevicesPagination extends StatelessWidget {
                         : context.read<DevicesCubit>().previousPage,
                     icon: const Icon(Icons.chevron_right, size: 18),
                     label: const Text('السابق'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.outline),
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   OutlinedButton.icon(
@@ -490,6 +513,10 @@ class _DevicesPagination extends StatelessWidget {
                         : context.read<DevicesCubit>().nextPage,
                     icon: const Icon(Icons.chevron_left, size: 18),
                     label: const Text('التالي'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.outline),
+                    ),
                   ),
                 ],
               ),
@@ -546,6 +573,8 @@ class _DeviceRows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth < 760 ? 760.0 : constraints.maxWidth;
@@ -556,8 +585,8 @@ class _DeviceRows extends StatelessWidget {
             width: width,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppColors.outlineVariant),
+                color: colorScheme.surface,
+                border: Border.all(color: colorScheme.outlineVariant),
                 borderRadius: BorderRadius.circular(AppSpacing.xs),
               ),
               child: Column(
@@ -567,10 +596,10 @@ class _DeviceRows extends StatelessWidget {
                       horizontal: AppSpacing.lg,
                       vertical: AppSpacing.md,
                     ),
-                    decoration: const BoxDecoration(
-                      color: AppColors.surfaceContainerHigh,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerLow,
                       border: Border(
-                        bottom: BorderSide(color: AppColors.outline),
+                        bottom: BorderSide(color: colorScheme.outline),
                       ),
                     ),
                     child: Row(
@@ -579,33 +608,33 @@ class _DeviceRows extends StatelessWidget {
                           flex: 2,
                           child: Text(
                             'الجهاز',
-                            style: AppTextStyles.labelStrong,
+                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                           ),
                         ),
                         Expanded(
                           child: Text(
                             'الماركة',
-                            style: AppTextStyles.labelStrong,
+                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                           ),
                         ),
                         Expanded(
                           child: Text(
                             'العميل',
-                            style: AppTextStyles.labelStrong,
+                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                           ),
                         ),
                         SizedBox(
                           width: 150,
                           child: Text(
                             'الحالة',
-                            style: AppTextStyles.labelStrong,
+                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                           ),
                         ),
                         SizedBox(
                           width: 132,
                           child: Text(
                             'إجراءات',
-                            style: AppTextStyles.labelStrong,
+                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                           ),
                         ),
                       ],
@@ -634,6 +663,8 @@ class _DeviceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: () => _openDetails(context),
       child: Container(
@@ -643,8 +674,8 @@ class _DeviceRow extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           border: showDivider
-              ? const Border(
-                  bottom: BorderSide(color: AppColors.outlineVariant),
+              ? Border(
+                  bottom: BorderSide(color: colorScheme.outlineVariant),
                 )
               : null,
         ),
@@ -660,7 +691,7 @@ class _DeviceRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.labelStrong.copyWith(
-                      color: AppColors.primary,
+                      color: colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -668,7 +699,7 @@ class _DeviceRow extends StatelessWidget {
                     device.serialNumber,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.label,
+                    style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -678,6 +709,7 @@ class _DeviceRow extends StatelessWidget {
                 device.brand,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: colorScheme.onSurface),
               ),
             ),
             Expanded(
@@ -685,6 +717,7 @@ class _DeviceRow extends StatelessWidget {
                 device.customerName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: colorScheme.onSurface),
               ),
             ),
             SizedBox(width: 150, child: _StatusBadge(status: device.status)),
@@ -695,7 +728,7 @@ class _DeviceRow extends StatelessWidget {
                 icon: const Icon(Icons.chevron_right, size: 18),
                 label: const Text('التفاصيل'),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.secondary,
+                  foregroundColor: colorScheme.secondary,
                   minimumSize: const Size(0, 36),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm,
@@ -727,16 +760,18 @@ class _DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       borderRadius: BorderRadius.circular(AppSpacing.xs),
       onTap: () => _openDetails(context),
       child: Card(
-        color: AppColors.surfaceContainer,
+        color: colorScheme.surface,
         elevation: 1,
-        shadowColor: AppColors.shadow,
+        shadowColor: colorScheme.shadow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.xs),
-          side: const BorderSide(color: AppColors.outlineVariant),
+          side: BorderSide(color: colorScheme.outlineVariant),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -754,10 +789,10 @@ class _DeviceCard extends StatelessWidget {
                           device.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                            color: colorScheme.primary,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xs),
@@ -765,8 +800,8 @@ class _DeviceCard extends StatelessWidget {
                           'الرقم التسلسلي: ${device.serialNumber}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -777,13 +812,13 @@ class _DeviceCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
-              const Divider(height: 1, color: AppColors.outlineVariant),
+              Divider(height: 1, color: colorScheme.outlineVariant),
               const SizedBox(height: AppSpacing.md),
               _DeviceInfoRow(label: 'الماركة', value: device.brand),
               const SizedBox(height: AppSpacing.sm),
               _DeviceInfoRow(label: 'العميل', value: device.customerName),
               const Spacer(),
-              const Divider(height: 1, color: AppColors.outlineVariant),
+              Divider(height: 1, color: colorScheme.outlineVariant),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
@@ -791,7 +826,7 @@ class _DeviceCard extends StatelessWidget {
                   icon: const Icon(Icons.chevron_right, size: 18),
                   label: const Text('عرض التفاصيل'),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.secondary,
+                    foregroundColor: colorScheme.secondary,
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.sm,
@@ -829,6 +864,8 @@ class _DeviceInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         SizedBox(
@@ -837,10 +874,10 @@ class _DeviceInfoRow extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: AppColors.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant,
               letterSpacing: 0.4,
             ),
           ),
@@ -851,7 +888,7 @@ class _DeviceInfoRow extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.end,
-            style: const TextStyle(color: AppColors.primary),
+            style: TextStyle(color: colorScheme.primary),
           ),
         ),
       ],
@@ -869,16 +906,16 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: status.backgroundColor,
+        color: status.backgroundColor(context),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
-        border: Border.all(color: status.borderColor),
+        border: Border.all(color: status.borderColor(context)),
       ),
       child: Text(
         status.label.toUpperCase(),
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: status.foregroundColor,
+          color: status.foregroundColor(context),
           letterSpacing: 0.3,
         ),
       ),
@@ -893,30 +930,32 @@ class _RegisterDeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       borderRadius: BorderRadius.circular(AppSpacing.xs),
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainer,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(AppSpacing.xs),
           border: Border.all(
-            color: AppColors.outlineVariant,
+            color: colorScheme.outlineVariant,
             width: 1,
             style: BorderStyle.solid,
           ),
         ),
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline, size: 48, color: AppColors.outline),
-            SizedBox(height: AppSpacing.sm),
+            Icon(Icons.add_circle_outline, size: 48, color: colorScheme.outline),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'تسجيل جهاز جديد',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: AppColors.outline,
+                color: colorScheme.outline,
                 letterSpacing: 0.5,
               ),
             ),
@@ -943,48 +982,54 @@ extension DeviceStatusPresentation on DeviceStatus {
     }
   }
 
-  Color get backgroundColor {
+  Color backgroundColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     switch (this) {
       case DeviceStatus.received:
-        return AppColors.info.withValues(alpha: 0.12);
+        return Colors.blue.withValues(alpha: isDark ? 0.2 : 0.12);
       case DeviceStatus.waiting:
-        return AppColors.surfaceContainerHigh;
+        return colorScheme.surfaceContainerLow;
       case DeviceStatus.inMaintenance:
-        return AppColors.secondaryContainer.withValues(alpha: 0.2);
+        return colorScheme.secondary.withValues(alpha: isDark ? 0.2 : 0.12);
       case DeviceStatus.completed:
-        return AppColors.greenBg;
+        return Colors.green.withValues(alpha: isDark ? 0.2 : 0.12);
       case DeviceStatus.delivered:
-        return AppColors.success.withValues(alpha: 0.14);
+        return Colors.green.withValues(alpha: isDark ? 0.25 : 0.15);
     }
   }
 
-  Color get foregroundColor {
+  Color foregroundColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     switch (this) {
       case DeviceStatus.received:
-        return AppColors.info;
+        return isDark ? Colors.blue.shade300 : Colors.blue.shade800;
       case DeviceStatus.waiting:
-        return AppColors.onSurfaceVariant;
+        return colorScheme.onSurfaceVariant;
       case DeviceStatus.inMaintenance:
-        return const Color(0xFF694000);
+        return isDark ? colorScheme.secondary : const Color(0xFFC05600);
       case DeviceStatus.completed:
-        return const Color(0xFF166534);
+        return isDark ? Colors.green.shade300 : Colors.green.shade800;
       case DeviceStatus.delivered:
-        return AppColors.success;
+        return isDark ? Colors.green.shade200 : Colors.green.shade900;
     }
   }
 
-  Color get borderColor {
+  Color borderColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     switch (this) {
       case DeviceStatus.received:
-        return AppColors.info.withValues(alpha: 0.28);
+        return Colors.blue.withValues(alpha: isDark ? 0.4 : 0.28);
       case DeviceStatus.waiting:
-        return AppColors.outlineVariant;
+        return colorScheme.outlineVariant;
       case DeviceStatus.inMaintenance:
-        return AppColors.secondaryContainer.withValues(alpha: 0.4);
+        return colorScheme.secondary.withValues(alpha: isDark ? 0.4 : 0.28);
       case DeviceStatus.completed:
-        return const Color(0xFFBBF7D0);
+        return Colors.green.withValues(alpha: isDark ? 0.4 : 0.28);
       case DeviceStatus.delivered:
-        return AppColors.success.withValues(alpha: 0.32);
+        return Colors.green.withValues(alpha: isDark ? 0.5 : 0.35);
     }
   }
 }

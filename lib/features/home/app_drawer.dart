@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../di/service_locator.dart';
+import '../../theme/theme_cubit.dart';
 import '../auth/auth_cubit.dart';
 import '../auth/role_guard.dart';
 import '../profile/presentation/cubit/profile_cubit.dart';
@@ -56,24 +57,24 @@ class AppDrawer extends StatelessWidget {
                       );
                     },
                   ),
-                  // const Divider(),
-                  // _buildSectionTitle(context, 'Settings'),
-                  // BlocBuilder<ThemeCubit, ThemeState>(
-                  //   builder: (context, state) {
-                  //     return SwitchListTile(
-                  //       secondary: Icon(
-                  //         state.isDarkMode
-                  //             ? Icons.dark_mode
-                  //             : Icons.light_mode_outlined,
-                  //         color: colorScheme.primary,
-                  //       ),
-                  //       title: const Text('Dark Mode'),
-                  //       value: state.isDarkMode,
-                  //       onChanged: context.read<ThemeCubit>().setDarkMode,
-                  //       activeThumbColor: colorScheme.secondary,
-                  //     );
-                  //   },
-                  // ),
+                  const Divider(),
+                  _buildSectionTitle(context, 'الإعدادات'),
+                  BlocBuilder<ThemeCubit, ThemeState>(
+                    builder: (context, state) {
+                      return SwitchListTile(
+                        secondary: Icon(
+                          state.isDarkMode
+                              ? Icons.dark_mode
+                              : Icons.light_mode_outlined,
+                          color: colorScheme.primary,
+                        ),
+                        title: const Text('الوضع الداكن'),
+                        value: state.isDarkMode,
+                        onChanged: context.read<ThemeCubit>().setDarkMode,
+                        activeThumbColor: colorScheme.secondary,
+                      );
+                    },
+                  ),
                   const Divider(),
                   _buildSectionTitle(context, 'النظام'),
                   // ListTile(

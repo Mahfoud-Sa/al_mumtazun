@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../di/service_locator.dart';
-import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../compounds/domain/entities/compound.dart';
@@ -66,11 +65,12 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.invoice != null;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
           title: Text(isEditing ? 'تعديل فاتورة' : 'إضافة فاتورة'),
           leading: IconButton(
@@ -78,8 +78,8 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
             onPressed: () => Navigator.of(context).pop(false),
             icon: const Icon(Icons.arrow_back),
           ),
-          shape: const Border(
-            bottom: BorderSide(color: AppColors.outlineVariant),
+          shape: Border(
+            bottom: BorderSide(color: colorScheme.outlineVariant),
           ),
         ),
         body: SafeArea(
@@ -94,7 +94,7 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
-                  backgroundColor: AppColors.error,
+                  backgroundColor: colorScheme.error,
                 ),
               );
             },
@@ -147,6 +147,10 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
                                         ? null
                                         : () =>
                                               Navigator.of(context).pop(false),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: colorScheme.onSurfaceVariant,
+                                      side: BorderSide(color: colorScheme.outline),
+                                    ),
                                     child: const Text('إلغاء'),
                                   ),
                                 ),
@@ -154,12 +158,16 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: isSaving ? null : _submit,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: colorScheme.secondary,
+                                      foregroundColor: colorScheme.onSecondary,
+                                    ),
                                     icon: isSaving
-                                        ? const SizedBox.square(
+                                        ? SizedBox.square(
                                             dimension: 18,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              color: Colors.white,
+                                              color: colorScheme.onSecondary,
                                             ),
                                           )
                                         : const Icon(
@@ -226,11 +234,34 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
   }
 
   Future<void> _pickDate() async {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final selected = await showDatePicker(
       context: context,
       initialDate: _invoiceDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? ColorScheme.dark(
+                    primary: colorScheme.secondary,
+                    onPrimary: colorScheme.onSecondary,
+                    surface: colorScheme.surface,
+                    onSurface: colorScheme.onSurface,
+                  )
+                : ColorScheme.light(
+                    primary: colorScheme.secondary,
+                    onPrimary: colorScheme.onSecondary,
+                    surface: colorScheme.surface,
+                    onSurface: colorScheme.primary,
+                  ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (selected == null || !mounted) return;
@@ -279,13 +310,14 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
   }
 
   Future<void> _submit() async {
+    final colorScheme = Theme.of(context).colorScheme;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('أضف مكونا واحدا على الأقل قبل حفظ الفاتورة'),
-          backgroundColor: AppColors.error,
+        SnackBar(
+          content: const Text('أضف مكونا واحدا على الأقل قبل حفظ الفاتورة'),
+          backgroundColor: colorScheme.error,
         ),
       );
       return;
@@ -300,6 +332,7 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
             invoiceId: 0,
             sparePartId: item.sparePartId,
             sparePartName: item.name,
+            visualIndex: 0,
             quantity: int.parse(item.quantityController.text.trim()),
             unitPrice: item.unitPrice,
           ),
@@ -326,11 +359,9 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
     if (!mounted || !saved) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isEditing ? 'تم تحديث الفاتورة بنجاح' : 'تم حفظ الفاتورة بنجاح',
-        ),
-        backgroundColor: AppColors.success,
+      const SnackBar(
+        content: Text('تم حفظ الفاتورة بنجاح'),
+        backgroundColor: Colors.green,
       ),
     );
     Navigator.of(context).pop(true);
@@ -364,11 +395,15 @@ class _InvoiceDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return _IndustrialCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('بيانات الفاتورة', style: AppTextStyles.sectionHeading),
+          Text(
+            'بيانات الفاتورة',
+            style: AppTextStyles.sectionHeading.copyWith(color: colorScheme.onSurface),
+          ),
           const SizedBox(height: AppSpacing.lg),
           LayoutBuilder(
             builder: (context, constraints) {
@@ -384,6 +419,7 @@ class _InvoiceDetailsCard extends StatelessWidget {
                   TextFormField(
                     controller: deviceIdController,
                     keyboardType: TextInputType.number,
+                    style: TextStyle(color: colorScheme.onSurface),
                     decoration: const InputDecoration(
                       labelText: 'رقم الجهاز',
                       prefixIcon: Icon(Icons.precision_manufacturing_outlined),
@@ -393,6 +429,7 @@ class _InvoiceDetailsCard extends StatelessWidget {
                 TextFormField(
                   controller: customerIdController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(color: colorScheme.onSurface),
                   decoration: const InputDecoration(
                     labelText: 'رقم العميل',
                     prefixIcon: Icon(Icons.person_outline),
@@ -405,6 +442,7 @@ class _InvoiceDetailsCard extends StatelessWidget {
                     decimal: true,
                   ),
                   onChanged: (_) => onTotalsChanged(),
+                  style: TextStyle(color: colorScheme.onSurface),
                   decoration: const InputDecoration(
                     labelText: 'الخصم',
                     prefixIcon: Icon(Icons.discount_outlined),
@@ -442,6 +480,8 @@ class _InvoiceDetailsCard extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               alignment: Alignment.centerRight,
+              foregroundColor: colorScheme.onSurface,
+              side: BorderSide(color: colorScheme.outline),
             ),
           ),
         ],
@@ -465,6 +505,7 @@ class _DeviceDropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return FutureBuilder<List<Device>>(
       future: devicesFuture,
       builder: (context, snapshot) {
@@ -495,7 +536,8 @@ class _DeviceDropdownField extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               alignment: Alignment.centerRight,
-              foregroundColor: AppColors.error,
+              foregroundColor: colorScheme.error,
+              side: BorderSide(color: colorScheme.error),
             ),
           );
         }
@@ -509,6 +551,7 @@ class _DeviceDropdownField extends StatelessWidget {
           key: ValueKey('device-${selectedExists ? selectedDeviceId : 'none'}'),
           initialValue: selectedExists ? selectedDeviceId : '',
           isExpanded: true,
+          style: TextStyle(color: colorScheme.onSurface),
           decoration: const InputDecoration(
             labelText: 'الجهاز',
             prefixIcon: Icon(Icons.precision_manufacturing_outlined),
@@ -547,6 +590,7 @@ class _ItemsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return _IndustrialCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -556,36 +600,43 @@ class _ItemsCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'عناصر الفاتورة',
-                  style: AppTextStyles.sectionHeading,
+                  style: AppTextStyles.sectionHeading.copyWith(color: colorScheme.onSurface),
                 ),
               ),
               OutlinedButton.icon(
                 onPressed: () => onAdd(),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('إضافة عنصر'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.primary,
+                  side: BorderSide(color: colorScheme.outline),
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.outlineVariant),
+              border: Border.all(color: colorScheme.outlineVariant),
               borderRadius: BorderRadius.circular(AppSpacing.xs),
             ),
             child: Column(
               children: [
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  color: AppColors.surfaceContainerHigh,
+                  color: colorScheme.surfaceContainerLow,
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           'القطع المراد تبديلها / إصلاحها',
-                          style: AppTextStyles.labelStrong,
+                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                         ),
                       ),
-                      Text('السعر', style: AppTextStyles.labelStrong),
+                      Text(
+                        'السعر',
+                        style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                      ),
                     ],
                   ),
                 ),
@@ -594,15 +645,15 @@ class _ItemsCard extends StatelessWidget {
                     padding: const EdgeInsets.all(AppSpacing.xl),
                     child: Column(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.inventory_2_outlined,
-                          color: AppColors.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                           size: 36,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           'لا توجد مكونات في الفاتورة',
-                          style: AppTextStyles.body,
+                          style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -625,6 +676,7 @@ class _ItemsCard extends StatelessWidget {
                   onPressed: () => onAdd(),
                   icon: const Icon(Icons.add_circle_outline, size: 18),
                   label: const Text('إضافة مكون'),
+                  style: TextButton.styleFrom(foregroundColor: colorScheme.primary),
                 ),
               ],
             ),
@@ -648,11 +700,12 @@ class _InvoiceItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.outlineVariant)),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -662,12 +715,12 @@ class _InvoiceItemRow extends StatelessWidget {
               children: [
                 Text(
                   item.name.isEmpty ? 'مكون بدون اسم' : item.name,
-                  style: AppTextStyles.body,
+                  style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'رقم القطعة: ${item.sparePartId ?? 0} | سعر الوحدة: ${_formatMoney(item.unitPrice)}',
-                  style: AppTextStyles.label,
+                  style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -677,6 +730,7 @@ class _InvoiceItemRow extends StatelessWidget {
             onPressed: () => onQuantityChanged(item.quantity - 1),
             icon: const Icon(Icons.remove_circle_outline, size: 18),
             visualDensity: VisualDensity.compact,
+            color: colorScheme.onSurface,
             constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             padding: EdgeInsets.zero,
           ),
@@ -687,13 +741,13 @@ class _InvoiceItemRow extends StatelessWidget {
               vertical: AppSpacing.xs,
             ),
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerHigh,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(AppSpacing.xs),
             ),
             child: Text(
               '${item.quantity}x',
               textAlign: TextAlign.center,
-              style: AppTextStyles.label,
+              style: AppTextStyles.label.copyWith(color: colorScheme.onSurface),
             ),
           ),
           IconButton(
@@ -701,130 +755,27 @@ class _InvoiceItemRow extends StatelessWidget {
             onPressed: () => onQuantityChanged(item.quantity + 1),
             icon: const Icon(Icons.add_circle_outline, size: 18),
             visualDensity: VisualDensity.compact,
+            color: colorScheme.onSurface,
             constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             padding: EdgeInsets.zero,
           ),
           const SizedBox(width: AppSpacing.md),
-          Text(_formatMoney(item.total), style: AppTextStyles.labelStrong),
+          Text(
+            _formatMoney(item.total),
+            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+          ),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             tooltip: 'حذف المادة',
             onPressed: onRemove,
-            icon: const Icon(Icons.delete_outline, size: 18),
-            color: AppColors.error,
+            icon: const Icon(Icons.visual_search_rounded, size: 18),
+            color: colorScheme.error,
             visualDensity: VisualDensity.compact,
             constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             padding: EdgeInsets.zero,
           ),
         ],
       ),
-    );
-  }
-}
-
-// ignore: unused_element
-class _InvoiceItemEditor extends StatelessWidget {
-  final int index;
-  final _InvoiceItemDraft item;
-  final bool canRemove;
-  final VoidCallback onChanged;
-  final VoidCallback onRemove;
-
-  const _InvoiceItemEditor({
-    required this.index,
-    required this.item,
-    required this.canRemove,
-    required this.onChanged,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'عنصر ${index + 1}',
-                style: AppTextStyles.labelStrong,
-              ),
-            ),
-            IconButton(
-              tooltip: 'حذف العنصر',
-              onPressed: canRemove ? onRemove : null,
-              icon: const Icon(Icons.delete_outline),
-              color: AppColors.error,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 720;
-            final fields = [
-              TextFormField(
-                controller: item.sparePartIdController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'رقم قطعة الغيار',
-                  prefixIcon: Icon(Icons.inventory_2_outlined),
-                ),
-                validator: _nonNegativeIntValidator,
-              ),
-              TextFormField(
-                controller: item.nameController,
-                decoration: const InputDecoration(labelText: 'اسم العنصر'),
-              ),
-              TextFormField(
-                controller: item.quantityController,
-                keyboardType: TextInputType.number,
-                onChanged: (_) => onChanged(),
-                decoration: const InputDecoration(labelText: 'الكمية'),
-                validator: _positiveIntValidator,
-              ),
-              TextFormField(
-                controller: item.unitPriceController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                onChanged: (_) => onChanged(),
-                decoration: const InputDecoration(labelText: 'سعر الوحدة'),
-                validator: _nonNegativeMoneyValidator,
-              ),
-            ];
-
-            if (!isWide) {
-              return Column(
-                children: [
-                  for (var i = 0; i < fields.length; i++) ...[
-                    if (i > 0) const SizedBox(height: AppSpacing.md),
-                    fields[i],
-                  ],
-                ],
-              );
-            }
-
-            return Row(
-              children: [
-                for (var i = 0; i < fields.length; i++) ...[
-                  if (i > 0) const SizedBox(width: AppSpacing.md),
-                  Expanded(child: fields[i]),
-                ],
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: Text(
-            'الإجمالي: ${_formatMoney(item.total)}',
-            style: AppTextStyles.labelStrong,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -842,13 +793,14 @@ class _TotalsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return _IndustrialCard(
       child: Column(
         children: [
           _TotalRow(label: 'قبل الخصم', value: subtotal),
-          const Divider(height: 24, color: AppColors.outlineVariant),
+          Divider(height: 24, color: colorScheme.outlineVariant),
           _TotalRow(label: 'الخصم', value: discount),
-          const Divider(height: 24, color: AppColors.outlineVariant),
+          Divider(height: 24, color: colorScheme.outlineVariant),
           _TotalRow(label: 'الإجمالي', value: total, strong: true),
         ],
       ),
@@ -869,19 +821,22 @@ class _TotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Expanded(
           child: Text(
             label,
-            style: strong ? AppTextStyles.labelStrong : AppTextStyles.body,
+            style: strong
+                ? AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface)
+                : AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
           ),
         ),
         Text(
           _formatMoney(value),
           style: strong
-              ? AppTextStyles.sectionHeading
-              : AppTextStyles.labelStrong,
+              ? AppTextStyles.sectionHeading.copyWith(color: colorScheme.secondary)
+              : AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
         ),
       ],
     );
@@ -895,11 +850,12 @@ class _IndustrialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.outlineVariant),
+        color: colorScheme.surfaceContainerLow,
+        border: Border.all(color: colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: child,
@@ -970,7 +926,9 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Dialog(
+      backgroundColor: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
@@ -983,18 +941,18 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.inventory_2_outlined),
+                  Icon(Icons.inventory_2_outlined, color: colorScheme.primary),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'اختيار مكون',
-                      style: AppTextStyles.sectionHeading,
+                      style: AppTextStyles.sectionHeading.copyWith(color: colorScheme.onSurface),
                     ),
                   ),
                   IconButton(
                     tooltip: 'إغلاق',
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -1007,9 +965,25 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                     _selected = null;
                   });
                 },
-                decoration: const InputDecoration(
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration(
                   hintText: 'ابحث عن مكون...',
-                  prefixIcon: Icon(Icons.search),
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                  prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerLow,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: colorScheme.secondary, width: 2),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -1052,9 +1026,9 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
 
                     return ListView.separated(
                       itemCount: filtered.length,
-                      separatorBuilder: (_, _) => const Divider(
+                      separatorBuilder: (_, _) => Divider(
                         height: 1,
-                        color: AppColors.outlineVariant,
+                        color: colorScheme.outlineVariant,
                       ),
                       itemBuilder: (context, index) {
                         final item = filtered[index];
@@ -1065,10 +1039,8 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                           child: Container(
                             padding: const EdgeInsets.all(AppSpacing.md),
                             color: selected
-                                ? AppColors.secondaryContainer.withValues(
-                                    alpha: 0.45,
-                                  )
-                                : Colors.white,
+                                ? colorScheme.secondary.withValues(alpha: 0.12)
+                                : Colors.transparent,
                             child: Row(
                               children: [
                                 Icon(
@@ -1076,8 +1048,8 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                                       ? Icons.check_circle
                                       : Icons.settings_outlined,
                                   color: selected
-                                      ? AppColors.secondary
-                                      : AppColors.onSurfaceVariant,
+                                      ? colorScheme.secondary
+                                      : colorScheme.onSurfaceVariant,
                                 ),
                                 const SizedBox(width: AppSpacing.md),
                                 Expanded(
@@ -1089,7 +1061,7 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                                         item.name.isEmpty
                                             ? 'مكون بدون اسم'
                                             : item.name,
-                                        style: AppTextStyles.labelStrong,
+                                        style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                                       ),
                                       if (item.description?.isNotEmpty ==
                                           true) ...[
@@ -1098,7 +1070,7 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                                           item.description!,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: AppTextStyles.label,
+                                          style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
                                         ),
                                       ],
                                     ],
@@ -1106,7 +1078,7 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                                 ),
                                 Text(
                                   _formatMoney(item.sellPrice),
-                                  style: AppTextStyles.labelStrong,
+                                  style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
                                 ),
                               ],
                             ),
@@ -1123,6 +1095,10 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.onSurfaceVariant,
+                        side: BorderSide(color: colorScheme.outline),
+                      ),
                       child: const Text('إلغاء'),
                     ),
                   ),
@@ -1132,6 +1108,10 @@ class _SparePartPickerDialogState extends State<_SparePartPickerDialog> {
                       onPressed: _selected == null
                           ? null
                           : () => Navigator.of(context).pop(_selected),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.secondary,
+                        foregroundColor: colorScheme.onSecondary,
+                      ),
                       child: const Text('إضافة'),
                     ),
                   ),
@@ -1158,6 +1138,7 @@ class _PickerMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -1166,13 +1147,13 @@ class _PickerMessage extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isError ? AppColors.error : AppColors.onSurfaceVariant,
+              color: isError ? colorScheme.error : colorScheme.onSurfaceVariant,
               size: 36,
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
               message,
-              style: AppTextStyles.body,
+              style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
           ],
