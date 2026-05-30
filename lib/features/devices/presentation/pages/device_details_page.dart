@@ -7,6 +7,7 @@ import '../../../../theme/app_text_styles.dart';
 import '../../../compounds/domain/entities/compound.dart';
 import '../../../compounds/presentation/cubit/compounds_cubit.dart';
 import '../../../compounds/presentation/cubit/compounds_state.dart';
+import '../../../invoices/presentation/pages/invoice_details_page.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
 import '../../../invoices/domain/entities/invoice_item.dart';
@@ -22,7 +23,7 @@ class DeviceDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<DeviceDetailsCubit>(param1: device),
+      create: (_) => getIt<DeviceDetailsCubit>(param1: device)..loadInvoice(),
       child: const Directionality(
         textDirection: TextDirection.rtl,
         child: _DeviceDetailsView(),
@@ -48,15 +49,70 @@ class _DeviceDetailsView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
-          IconButton(
-            tooltip: 'حفظ',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم حفظ التعديلات محليا')),
+          BlocBuilder<DeviceDetailsCubit, DeviceDetailsState>(
+            buildWhen: (previous, current) =>
+                previous.invoice != current.invoice ||
+                previous.isLoadingInvoice != current.isLoadingInvoice,
+            builder: (context, state) {
+              final invoice = state.invoice;
+              final canOpenInvoice = invoice != null && !state.isLoadingInvoice;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: OutlinedButton.icon(
+                  onPressed: canOpenInvoice
+                      ? () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                InvoiceDetailsPage(invoice: invoice),
+                          ),
+                        )
+                      : null,
+                  icon: const Icon(
+                    Icons.receipt_long_outlined,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  label: Text(
+                    state.isLoadingInvoice
+                        ? 'جاري التحقق...'
+                        : 'الانتقال الى الفاتورة',
+                    style: AppTextStyles.label.copyWith(
+                      color: canOpenInvoice ? Colors.white : Colors.white,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: canOpenInvoice
+                        ? Colors.white
+                        : colorScheme.primary,
+                    disabledForegroundColor: colorScheme.onSurfaceVariant,
+                    backgroundColor: canOpenInvoice
+                        ? colorScheme.primary
+                        : Colors.transparent,
+                    side: BorderSide(
+                      color: canOpenInvoice
+                          ? colorScheme.primary
+                          : colorScheme.outlineVariant,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.xs),
+                    ),
+                  ),
+                ),
               );
             },
-            icon: const Icon(Icons.save_outlined),
           ),
+          // IconButton(
+          //   tooltip: 'حفظ',
+          //   onPressed: () {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       const SnackBar(content: Text('تم حفظ التعديلات محليا')),
+          //     );
+          //   },
+          //   icon: const Icon(Icons.save_outlined),
+          // ),
           const SizedBox(width: AppSpacing.sm),
         ],
         shape: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
@@ -69,6 +125,9 @@ class _DeviceDetailsView extends StatelessWidget {
               (previous.engineerNoteErrorMessage !=
                       current.engineerNoteErrorMessage &&
                   current.engineerNoteErrorMessage != null) ||
+              (previous.isSavingEngineerNote &&
+                  !current.isSavingEngineerNote &&
+                  current.engineerNoteErrorMessage == null) ||
               (previous.invoiceErrorMessage != current.invoiceErrorMessage &&
                   current.invoiceErrorMessage != null) ||
               (!previous.invoiceCreated && current.invoiceCreated),
@@ -77,7 +136,54 @@ class _DeviceDetailsView extends StatelessWidget {
                 state.statusErrorMessage ??
                 state.engineerNoteErrorMessage ??
                 state.invoiceErrorMessage;
-            if (message == null && !state.invoiceCreated) return;
+            if (message == null && !state.invoiceCreated) {
+              showDialog<void>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('تم الحفظ'),
+                  content: const Text('تم حفظ الملاحظة بنجاح'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('حسنا'),
+                    ),
+                  ],
+                ),
+              );
+              return;
+            }
+
+            if (message == null && state.invoiceCreated) {
+              final invoice = state.invoice;
+              showDialog<void>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('تم إنشاء الفاتورة'),
+                  content: const Text('تم حفظ الفاتورة بنجاح'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('حسنا'),
+                    ),
+                    if (invoice != null)
+                      FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  InvoiceDetailsPage(invoice: invoice),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.receipt_long_outlined),
+                        label: const Text('عرض الفاتورة'),
+                      ),
+                  ],
+                ),
+              );
+              return;
+            }
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -894,7 +1000,7 @@ class _BillingSection extends StatelessWidget {
                     }
                   },
                   icon: const Icon(Icons.add_circle_outline, size: 18),
-                  label: const Text('إضافة مكون'),
+                  label: const Text('إضافة قطعة'),
                 ),
                 const Divider(height: 1),
                 Padding(
@@ -919,6 +1025,7 @@ class _BillingSection extends StatelessWidget {
                       _MoneyField(
                         label: "خصم للعميل",
                         value: state.discount,
+                        accentColor: colorScheme.error,
                         onChanged: context
                             .read<DeviceDetailsCubit>()
                             .updateDiscount,
@@ -1076,34 +1183,113 @@ class _InvoiceItemRow extends StatelessWidget {
   }
 }
 
-class _MoneyField extends StatelessWidget {
+class _MoneyField extends StatefulWidget {
   final String label;
   final double value;
+  final Color? accentColor;
   final ValueChanged<String> onChanged;
 
   const _MoneyField({
     required this.label,
     required this.value,
     required this.onChanged,
+    this.accentColor,
   });
 
   @override
+  State<_MoneyField> createState() => _MoneyFieldState();
+}
+
+class _MoneyFieldState extends State<_MoneyField> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _formattedValue);
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant _MoneyField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_focusNode.hasFocus) return;
+
+    final nextText = _formattedValue;
+    if (_controller.text == nextText) return;
+    _controller.text = nextText;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  String get _formattedValue => widget.value.toStringAsFixed(2);
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
+    final colorScheme = Theme.of(context).colorScheme;
+    final accentColor = widget.accentColor;
+    final content = Row(
       children: [
-        Expanded(child: Text(label, style: AppTextStyles.body)),
+        Expanded(
+          child: Text(
+            widget.label,
+            style: AppTextStyles.body.copyWith(
+              color: accentColor ?? colorScheme.onSurface,
+              fontWeight: accentColor == null ? null : FontWeight.w700,
+            ),
+          ),
+        ),
         SizedBox(
           width: 120,
           child: TextFormField(
-            key: ValueKey('$label-${value.toStringAsFixed(2)}'),
-            initialValue: value.toStringAsFixed(2),
+            controller: _controller,
+            focusNode: _focusNode,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textAlign: TextAlign.end,
-            onChanged: onChanged,
-            decoration: const InputDecoration(suffixText: ' ريال يمني'),
+            onChanged: widget.onChanged,
+            style: TextStyle(color: accentColor ?? colorScheme.onSurface),
+            decoration: InputDecoration(
+              suffixText: ' ريال يمني',
+              suffixStyle: TextStyle(
+                color: accentColor ?? colorScheme.onSurfaceVariant,
+              ),
+              focusedBorder: accentColor == null
+                  ? null
+                  : OutlineInputBorder(
+                      borderSide: BorderSide(color: accentColor),
+                    ),
+              enabledBorder: accentColor == null
+                  ? null
+                  : OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: accentColor.withValues(alpha: 0.5),
+                      ),
+                    ),
+            ),
           ),
         ),
       ],
+    );
+
+    if (accentColor == null) return content;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
+        border: Border.all(color: accentColor.withValues(alpha: 0.28)),
+      ),
+      child: content,
     );
   }
 }
@@ -1411,7 +1597,7 @@ class _SparePartPickerDialogState extends State<SparePartPickerDialog> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "اختيار مكون",
+                    "اختيار قطعة",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -1436,7 +1622,7 @@ class _SparePartPickerDialogState extends State<SparePartPickerDialog> {
               onChanged: filterSpareParts,
               style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration(
-                hintText: "ابحث عن مكون...",
+                hintText: "ابحث عن قطعة...",
                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                 prefixIcon: Icon(
                   Icons.search,
@@ -1496,7 +1682,7 @@ class _SparePartPickerDialogState extends State<SparePartPickerDialog> {
                   if (filteredSpareParts.isEmpty) {
                     return Center(
                       child: Text(
-                        'لا توجد مكونات',
+                        'لا توجد قطع',
                         style: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                     );
