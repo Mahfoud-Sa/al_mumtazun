@@ -10,6 +10,7 @@ import '../../../invoices/domain/entities/invoice_item.dart';
 import '../../../invoices/domain/usecases/create_invoice_usecase.dart';
 import '../../../invoices/domain/usecases/get_invoice_by_device_usecase.dart';
 import '../../../invoices/domain/usecases/update_invoice_usecase.dart';
+import '../device_status_presentation.dart';
 import 'device_details_state.dart';
 
 class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
@@ -123,7 +124,7 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
         activityLog: [
           ActivityLogEntry(
             title: 'تم تحديث الحالة',
-            description: 'تم تغيير الحالة إلى ${_statusLabel(status)}',
+            description: 'تم تغيير الحالة إلى ${status.label}',
             createdAt: DateTime.now(),
             highlighted: true,
           ),
@@ -367,20 +368,5 @@ class DeviceDetailsCubit extends Cubit<DeviceDetailsState> {
       discount: invoice.discount,
       clearInvoiceError: true,
     );
-  }
-
-  String _statusLabel(DeviceStatus status) {
-    switch (status) {
-      case DeviceStatus.received:
-        return 'استلام';
-      case DeviceStatus.waiting:
-        return 'انتظار';
-      case DeviceStatus.inMaintenance:
-        return 'قيد الصيانة';
-      case DeviceStatus.completed:
-        return 'تم';
-      case DeviceStatus.delivered:
-        return 'تم تسليم العميل';
-    }
   }
 }

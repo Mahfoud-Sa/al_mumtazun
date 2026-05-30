@@ -49,9 +49,16 @@ class DeviceRepositoryImpl implements DeviceRepository {
   Future<Either<Failure, DevicePage>> getDevices({
     required int page,
     required int size,
+    String? sortBy,
+    String? sortDirection,
   }) async {
     try {
-      final devicesPage = await remote.getDevices(page: page, size: size);
+      final devicesPage = await remote.getDevices(
+        page: page,
+        size: size,
+        sortBy: sortBy,
+        sortDirection: sortDirection,
+      );
       return Right(devicesPage);
     } catch (error) {
       return Left(ServerFailure(error.toString()));

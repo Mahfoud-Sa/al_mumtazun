@@ -8,6 +8,8 @@ abstract class DeviceRepository {
   Future<Either<Failure, DevicePage>> getDevices({
     required int page,
     required int size,
+    String? sortBy,
+    String? sortDirection,
   });
   Future<Either<Failure, Device>> createDevice(Device device);
   Future<Either<Failure, Device>> updateDevice(Device device);

@@ -6,7 +6,12 @@ import '../../domain/entities/device_page.dart';
 import '../models/device_model.dart';
 
 abstract class DevicesRemoteDataSource {
-  Future<DevicePage> getDevices({required int page, required int size});
+  Future<DevicePage> getDevices({
+    required int page,
+    required int size,
+    String? sortBy,
+    String? sortDirection,
+  });
   Future<DeviceModel> createDevice(DeviceModel device);
   Future<DeviceModel> updateDevice(DeviceModel device);
   Future<void> changeStatus({required String id, required DeviceStatus status});
@@ -21,11 +26,22 @@ class DevicesRemoteDataSourceImpl implements DevicesRemoteDataSource {
           baseUri ?? Uri.parse('http://al-mumtazun-api.runasp.net/api/Devices');
 
   @override
-  Future<DevicePage> getDevices({required int page, required int size}) async {
+  Future<DevicePage> getDevices({
+    required int page,
+    required int size,
+    String? sortBy,
+    String? sortDirection,
+  }) async {
+    final queryParameters = {
+      'page': page.toString(),
+      'size': size.toString(),
+      if (sortBy != null && sortBy.trim().isNotEmpty) 'sortBy': sortBy.trim(),
+      if (sortDirection != null && sortDirection.trim().isNotEmpty)
+        'sortDirection': sortDirection.trim(),
+    };
+
     final response = await client.get(
-      baseUri.replace(
-        queryParameters: {'page': page.toString(), 'size': size.toString()},
-      ),
+      baseUri.replace(queryParameters: queryParameters),
       headers: {'accept': '*/*'},
     );
 

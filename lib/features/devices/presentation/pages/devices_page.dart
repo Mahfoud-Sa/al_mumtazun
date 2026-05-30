@@ -9,6 +9,7 @@ import '../../../home/home_shell.dart';
 import '../../domain/entities/device.dart';
 import '../cubit/devices_cubit.dart';
 import '../cubit/devices_state.dart';
+import '../device_status_presentation.dart';
 import 'device_details_page.dart';
 import 'register_device_page.dart';
 
@@ -157,7 +158,12 @@ class _DevicesHeader extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('الأجهزة', style: AppTextStyles.pageTitle.copyWith(color: colorScheme.primary)),
+                Text(
+                  'الأجهزة',
+                  style: AppTextStyles.pageTitle.copyWith(
+                    color: colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'إدارة استلام الأجهزة وحالة الصيانة وسجلات العملاء.',
@@ -217,9 +223,13 @@ class _SearchAndActions extends StatelessWidget {
                   onChanged: context.read<DevicesCubit>().updateSearch,
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
-                    hintText: 'ابحث باسم الجهاز أو العميل...',
+                    hintText:
+                        'ابحث باسم الجهاز أو العميل او البراند او المودل ...',
                     hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                    prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     filled: true,
                     fillColor: colorScheme.surfaceContainerLow,
                     contentPadding: const EdgeInsets.symmetric(
@@ -227,9 +237,7 @@ class _SearchAndActions extends StatelessWidget {
                       vertical: AppSpacing.md,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: colorScheme.outlineVariant,
-                      ),
+                      borderSide: BorderSide(color: colorScheme.outlineVariant),
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -238,16 +246,21 @@ class _SearchAndActions extends StatelessWidget {
                     ),
                   ),
                 );
-                final actions = Row(
-                  mainAxisSize: MainAxisSize.min,
+                final actions = Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     _FilterMenu(selected: state.statusFilter),
-                    const SizedBox(width: AppSpacing.sm),
-                    OutlinedButton.icon(
-                      onPressed: context.read<DevicesCubit>().toggleSort,
-                      icon: Icon(Icons.sort, size: 18, color: colorScheme.primary),
-                      label: Text(state.sortNewestFirst ? 'الأحدث' : 'الأقدم'),
-                      style: _outlinedButtonStyle(context),
+                    _SortMenu(
+                      sortBy: state.sortBy,
+                      sortDirection: state.sortDirection,
+                      onChanged: context.read<DevicesCubit>().updateSorting,
+                    ),
+                    _SortDirectionMenu(
+                      sortBy: state.sortBy,
+                      sortDirection: state.sortDirection,
+                      onChanged: context.read<DevicesCubit>().updateSorting,
                     ),
                   ],
                 );
@@ -320,23 +333,6 @@ class _SearchAndActions extends StatelessWidget {
       },
     );
   }
-
-  ButtonStyle _outlinedButtonStyle(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return OutlinedButton.styleFrom(
-      foregroundColor: colorScheme.primary,
-      side: BorderSide(color: colorScheme.outline),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-      ),
-      textStyle: AppTextStyles.labelStrong,
-    );
-  }
 }
 
 class _FilterMenu extends StatelessWidget {
@@ -367,6 +363,98 @@ class _FilterMenu extends StatelessWidget {
         onPressed: null,
         icon: Icon(Icons.filter_list, size: 18, color: colorScheme.primary),
         label: Text(selected == null ? 'تصفية' : selected!.label),
+        style: OutlinedButton.styleFrom(
+          disabledForegroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.outline),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.xs),
+          ),
+          textStyle: AppTextStyles.labelStrong,
+        ),
+      ),
+    );
+  }
+}
+
+class _SortMenu extends StatelessWidget {
+  final String sortBy;
+  final String sortDirection;
+  final void Function(String sortBy, String sortDirection) onChanged;
+
+  const _SortMenu({
+    required this.sortBy,
+    required this.sortDirection,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<String>(
+      initialValue: sortBy,
+      onSelected: (value) => onChanged(value, sortDirection),
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: 'date', child: Text('التاريخ')),
+        PopupMenuItem(value: 'name', child: Text('اسم الجهاز')),
+        PopupMenuItem(value: 'status', child: Text('الحالة')),
+        PopupMenuItem(value: 'id', child: Text('رقم الجهاز')),
+      ],
+      child: OutlinedButton.icon(
+        onPressed: null,
+        icon: Icon(Icons.sort, size: 18, color: colorScheme.primary),
+        label: Text('ترتيب: ${_deviceSortLabel(sortBy)}'),
+        style: OutlinedButton.styleFrom(
+          disabledForegroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.outline),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.xs),
+          ),
+          textStyle: AppTextStyles.labelStrong,
+        ),
+      ),
+    );
+  }
+}
+
+class _SortDirectionMenu extends StatelessWidget {
+  final String sortBy;
+  final String sortDirection;
+  final void Function(String sortBy, String sortDirection) onChanged;
+
+  const _SortDirectionMenu({
+    required this.sortBy,
+    required this.sortDirection,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<String>(
+      initialValue: sortDirection,
+      onSelected: (value) => onChanged(sortBy, value),
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: 'desc', child: Text('تنازلي')),
+        PopupMenuItem(value: 'asc', child: Text('تصاعدي')),
+      ],
+      child: OutlinedButton.icon(
+        onPressed: null,
+        icon: Icon(
+          sortDirection == 'desc' ? Icons.south_outlined : Icons.north_outlined,
+          size: 18,
+          color: colorScheme.primary,
+        ),
+        label: Text(_deviceSortDirectionLabel(sortDirection)),
         style: OutlinedButton.styleFrom(
           disabledForegroundColor: colorScheme.primary,
           side: BorderSide(color: colorScheme.outline),
@@ -490,7 +578,9 @@ class _DevicesPagination extends StatelessWidget {
             children: [
               Text(
                 'عرض $start-$end من ${state.totalCount} | صفحة ${state.page} من ${state.totalPages}',
-                style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                style: AppTextStyles.labelStrong.copyWith(
+                  color: colorScheme.onSurface,
+                ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -608,33 +698,43 @@ class _DeviceRows extends StatelessWidget {
                           flex: 2,
                           child: Text(
                             'الجهاز',
-                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
                           ),
                         ),
                         Expanded(
                           child: Text(
                             'الماركة',
-                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
                           ),
                         ),
                         Expanded(
                           child: Text(
                             'العميل',
-                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
                           ),
                         ),
                         SizedBox(
                           width: 150,
                           child: Text(
                             'الحالة',
-                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
                           ),
                         ),
                         SizedBox(
                           width: 132,
                           child: Text(
                             'إجراءات',
-                            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
                           ),
                         ),
                       ],
@@ -674,9 +774,7 @@ class _DeviceRow extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           border: showDivider
-              ? Border(
-                  bottom: BorderSide(color: colorScheme.outlineVariant),
-                )
+              ? Border(bottom: BorderSide(color: colorScheme.outlineVariant))
               : null,
         ),
         child: Row(
@@ -699,7 +797,9 @@ class _DeviceRow extends StatelessWidget {
                     device.serialNumber,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: AppTextStyles.label.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -800,9 +900,7 @@ class _DeviceCard extends StatelessWidget {
                           'الرقم التسلسلي: ${device.serialNumber}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -948,7 +1046,11 @@ class _RegisterDeviceCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline, size: 48, color: colorScheme.outline),
+            Icon(
+              Icons.add_circle_outline,
+              size: 48,
+              color: colorScheme.outline,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'تسجيل جهاز جديد',
@@ -966,70 +1068,15 @@ class _RegisterDeviceCard extends StatelessWidget {
   }
 }
 
-extension DeviceStatusPresentation on DeviceStatus {
-  String get label {
-    switch (this) {
-      case DeviceStatus.received:
-        return 'استلام';
-      case DeviceStatus.waiting:
-        return 'انتظار';
-      case DeviceStatus.inMaintenance:
-        return 'قيد الصيانة';
-      case DeviceStatus.completed:
-        return 'تم';
-      case DeviceStatus.delivered:
-        return 'تم تسليم العميل';
-    }
-  }
+String _deviceSortLabel(String sortBy) {
+  return switch (sortBy) {
+    'name' => 'اسم الجهاز',
+    'status' => 'الحالة',
+    'date' => 'التاريخ',
+    _ => 'رقم الجهاز',
+  };
+}
 
-  Color backgroundColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
-    switch (this) {
-      case DeviceStatus.received:
-        return Colors.blue.withValues(alpha: isDark ? 0.2 : 0.12);
-      case DeviceStatus.waiting:
-        return colorScheme.surfaceContainerLow;
-      case DeviceStatus.inMaintenance:
-        return colorScheme.secondary.withValues(alpha: isDark ? 0.2 : 0.12);
-      case DeviceStatus.completed:
-        return Colors.green.withValues(alpha: isDark ? 0.2 : 0.12);
-      case DeviceStatus.delivered:
-        return Colors.green.withValues(alpha: isDark ? 0.25 : 0.15);
-    }
-  }
-
-  Color foregroundColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
-    switch (this) {
-      case DeviceStatus.received:
-        return isDark ? Colors.blue.shade300 : Colors.blue.shade800;
-      case DeviceStatus.waiting:
-        return colorScheme.onSurfaceVariant;
-      case DeviceStatus.inMaintenance:
-        return isDark ? colorScheme.secondary : const Color(0xFFC05600);
-      case DeviceStatus.completed:
-        return isDark ? Colors.green.shade300 : Colors.green.shade800;
-      case DeviceStatus.delivered:
-        return isDark ? Colors.green.shade200 : Colors.green.shade900;
-    }
-  }
-
-  Color borderColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
-    switch (this) {
-      case DeviceStatus.received:
-        return Colors.blue.withValues(alpha: isDark ? 0.4 : 0.28);
-      case DeviceStatus.waiting:
-        return colorScheme.outlineVariant;
-      case DeviceStatus.inMaintenance:
-        return colorScheme.secondary.withValues(alpha: isDark ? 0.4 : 0.28);
-      case DeviceStatus.completed:
-        return Colors.green.withValues(alpha: isDark ? 0.4 : 0.28);
-      case DeviceStatus.delivered:
-        return Colors.green.withValues(alpha: isDark ? 0.5 : 0.35);
-    }
-  }
+String _deviceSortDirectionLabel(String sortDirection) {
+  return sortDirection == 'desc' ? 'تنازلي' : 'تصاعدي';
 }

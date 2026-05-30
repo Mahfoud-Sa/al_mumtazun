@@ -10,6 +10,7 @@ import '../../../compounds/presentation/cubit/compounds_state.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_user.dart';
 import '../../../invoices/domain/entities/invoice_item.dart';
+import '../device_status_presentation.dart';
 import '../cubit/device_details_cubit.dart';
 import '../cubit/device_details_state.dart';
 
@@ -58,9 +59,7 @@ class _DeviceDetailsView extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
-        shape: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant),
-        ),
+        shape: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       body: SafeArea(
         child: BlocListener<DeviceDetailsCubit, DeviceDetailsState>(
@@ -151,7 +150,7 @@ class _StatusAssignmentCard extends StatelessWidget {
                               width: 12,
                               height: 12,
                               decoration: BoxDecoration(
-                                color: _statusColor(context, state.status),
+                                color: state.status.indicatorColor(context),
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.xs,
                                 ),
@@ -159,8 +158,10 @@ class _StatusAssignmentCard extends StatelessWidget {
                             ),
                             const SizedBox(width: AppSpacing.sm),
                             Text(
-                              _statusLabel(state.status),
-                              style: AppTextStyles.sectionHeading.copyWith(color: Theme.of(context).colorScheme.primary),
+                              state.status.label,
+                              style: AppTextStyles.sectionHeading.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
                           ],
                         ),
@@ -174,7 +175,7 @@ class _StatusAssignmentCard extends StatelessWidget {
                         .map(
                           (status) => PopupMenuItem(
                             value: status,
-                            child: Text(_statusLabel(status)),
+                            child: Text(status.label),
                           ),
                         )
                         .toList(),
@@ -450,7 +451,9 @@ class _EngineerUserTile extends StatelessWidget {
               ? colorScheme.secondaryContainer
               : colorScheme.surfaceContainerLow,
           border: Border.all(
-            color: selected ? colorScheme.secondary : colorScheme.outlineVariant,
+            color: selected
+                ? colorScheme.secondary
+                : colorScheme.outlineVariant,
           ),
           borderRadius: BorderRadius.circular(AppSpacing.xs),
         ),
@@ -467,19 +470,31 @@ class _EngineerUserTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(user.name, style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface)),
+                  Text(
+                    user.name,
+                    style: AppTextStyles.labelStrong.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     [
                       if (user.role.isNotEmpty) user.role,
                       if (user.phoneNumber.isNotEmpty) user.phoneNumber,
                     ].join(' • '),
-                    style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: AppTextStyles.label.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
             ),
-            Text('#${user.id}', style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant)),
+            Text(
+              '#${user.id}',
+              style: AppTextStyles.label.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -684,7 +699,9 @@ class _EngineerNoteInput extends StatelessWidget {
         children: [
           Text(
             'ملاحظات المهندس',
-            style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+            style: AppTextStyles.labelStrong.copyWith(
+              color: colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           TextField(
@@ -769,7 +786,9 @@ class _EngineerNoteCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   "وصف المشكلة",
-                  style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                  style: AppTextStyles.labelStrong.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
               // Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
@@ -786,7 +805,9 @@ class _EngineerNoteCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   "ملاحظات داخلية",
-                  style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                  style: AppTextStyles.labelStrong.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
               // Text(_formatDateTime(note.createdAt), style: AppTextStyles.label),
@@ -794,7 +815,9 @@ class _EngineerNoteCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            note.internalNotes.isEmpty ? 'لا توجد ملاحظات داخلية' : note.internalNotes,
+            note.internalNotes.isEmpty
+                ? 'لا توجد ملاحظات داخلية'
+                : note.internalNotes,
             style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
           ),
         ],
@@ -992,7 +1015,12 @@ class _InvoiceItemRow extends StatelessWidget {
         children: [
           const Icon(Icons.settings_outlined, size: 18),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(item.sparePartName, style: AppTextStyles.body.copyWith(color: colorScheme.onSurface))),
+          Expanded(
+            child: Text(
+              item.sparePartName,
+              style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
+            ),
+          ),
           IconButton(
             tooltip: 'تقليل الكمية',
             onPressed: () => onQuantityChanged(item.quantity - 1),
@@ -1026,7 +1054,12 @@ class _InvoiceItemRow extends StatelessWidget {
             padding: EdgeInsets.zero,
           ),
           const SizedBox(width: AppSpacing.md),
-          Text(_formatMoney(item.total), style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface)),
+          Text(
+            _formatMoney(item.total),
+            style: AppTextStyles.labelStrong.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             tooltip: 'حذف المادة',
@@ -1217,13 +1250,20 @@ class _InfoRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: AppTextStyles.body.copyWith(color: colorScheme.onSurface))),
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
+            ),
+          ),
           const SizedBox(width: AppSpacing.md),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+              style: AppTextStyles.labelStrong.copyWith(
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
           if (trailing != null) ...[
@@ -1288,7 +1328,12 @@ class _LargeTextFieldState extends State<_LargeTextField> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(widget.label, style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface)),
+          Text(
+            widget.label,
+            style: AppTextStyles.labelStrong.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
           const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _controller,
@@ -1305,37 +1350,6 @@ class _LargeTextFieldState extends State<_LargeTextField> {
         ],
       ),
     );
-  }
-}
-
-String _statusLabel(DeviceStatus status) {
-  switch (status) {
-    case DeviceStatus.received:
-      return 'استلام';
-    case DeviceStatus.waiting:
-      return 'انتظار';
-    case DeviceStatus.inMaintenance:
-      return 'قيد الصيانة';
-    case DeviceStatus.completed:
-      return 'تم';
-    case DeviceStatus.delivered:
-      return 'تم تسليم العميل';
-  }
-}
-
-Color _statusColor(BuildContext context, DeviceStatus status) {
-  final colorScheme = Theme.of(context).colorScheme;
-  switch (status) {
-    case DeviceStatus.received:
-      return Colors.blue;
-    case DeviceStatus.waiting:
-      return colorScheme.outline;
-    case DeviceStatus.inMaintenance:
-      return colorScheme.secondary;
-    case DeviceStatus.completed:
-      return Colors.green;
-    case DeviceStatus.delivered:
-      return Colors.green;
   }
 }
 
@@ -1424,7 +1438,10 @@ class _SparePartPickerDialogState extends State<SparePartPickerDialog> {
               decoration: InputDecoration(
                 hintText: "ابحث عن مكون...",
                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 filled: true,
                 fillColor: colorScheme.surfaceContainerLow,
                 border: OutlineInputBorder(
@@ -1437,7 +1454,10 @@ class _SparePartPickerDialogState extends State<SparePartPickerDialog> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: colorScheme.secondary, width: 2),
+                  borderSide: BorderSide(
+                    color: colorScheme.secondary,
+                    width: 2,
+                  ),
                 ),
               ),
             ),

@@ -24,7 +24,12 @@ class DevicesCubit extends Cubit<DevicesState> {
       ),
     );
     final result = await getDevices(
-      const GetDevicesParams(page: 1, size: defaultPageSize),
+      GetDevicesParams(
+        page: 1,
+        size: defaultPageSize,
+        sortBy: state.sortBy,
+        sortDirection: state.sortDirection,
+      ),
     );
     result.fold(
       (failure) =>
@@ -38,7 +43,8 @@ class DevicesCubit extends Cubit<DevicesState> {
               devices: devices,
               query: state.searchQuery,
               statusFilter: state.statusFilter,
-              sortNewestFirst: state.sortNewestFirst,
+              sortBy: state.sortBy,
+              sortDirection: state.sortDirection,
             ),
             isLoading: false,
             page: devicePage.page,
@@ -66,7 +72,12 @@ class DevicesCubit extends Cubit<DevicesState> {
     final nextPage = state.page + 1;
     emit(state.copyWith(isLoadingMore: true, clearError: true));
     final result = await getDevices(
-      GetDevicesParams(page: nextPage, size: state.size),
+      GetDevicesParams(
+        page: nextPage,
+        size: state.size,
+        sortBy: state.sortBy,
+        sortDirection: state.sortDirection,
+      ),
     );
 
     result.fold(
@@ -82,7 +93,8 @@ class DevicesCubit extends Cubit<DevicesState> {
               devices: devices,
               query: state.searchQuery,
               statusFilter: state.statusFilter,
-              sortNewestFirst: state.sortNewestFirst,
+              sortBy: state.sortBy,
+              sortDirection: state.sortDirection,
             ),
             isLoadingMore: false,
             page: devicePage.page,
@@ -120,7 +132,8 @@ class DevicesCubit extends Cubit<DevicesState> {
           devices: state.devices,
           query: query,
           statusFilter: state.statusFilter,
-          sortNewestFirst: state.sortNewestFirst,
+          sortBy: state.sortBy,
+          sortDirection: state.sortDirection,
         ),
       ),
     );
@@ -135,25 +148,28 @@ class DevicesCubit extends Cubit<DevicesState> {
           devices: state.devices,
           query: state.searchQuery,
           statusFilter: status,
-          sortNewestFirst: state.sortNewestFirst,
+          sortBy: state.sortBy,
+          sortDirection: state.sortDirection,
         ),
       ),
     );
   }
 
-  void toggleSort() {
-    final nextSort = !state.sortNewestFirst;
+  Future<void> updateSorting(String sortBy, String sortDirection) {
     emit(
       state.copyWith(
-        sortNewestFirst: nextSort,
+        sortBy: sortBy,
+        sortDirection: sortDirection,
         visibleDevices: _applyFilters(
           devices: state.devices,
           query: state.searchQuery,
           statusFilter: state.statusFilter,
-          sortNewestFirst: nextSort,
+          sortBy: sortBy,
+          sortDirection: sortDirection,
         ),
       ),
     );
+    return fetch(refresh: true);
   }
 
   Future<bool> addDevice(Device device) async {
@@ -200,7 +216,12 @@ class DevicesCubit extends Cubit<DevicesState> {
       ),
     );
     final result = await getDevices(
-      GetDevicesParams(page: page, size: state.size),
+      GetDevicesParams(
+        page: page,
+        size: state.size,
+        sortBy: state.sortBy,
+        sortDirection: state.sortDirection,
+      ),
     );
 
     result.fold(
@@ -215,7 +236,8 @@ class DevicesCubit extends Cubit<DevicesState> {
               devices: devices,
               query: state.searchQuery,
               statusFilter: state.statusFilter,
-              sortNewestFirst: state.sortNewestFirst,
+              sortBy: state.sortBy,
+              sortDirection: state.sortDirection,
             ),
             isLoading: false,
             page: devicePage.page,
@@ -236,7 +258,8 @@ class DevicesCubit extends Cubit<DevicesState> {
     required List<Device> devices,
     required String query,
     required DeviceStatus? statusFilter,
-    required bool sortNewestFirst,
+    required String sortBy,
+    required String sortDirection,
   }) {
     final normalizedQuery = query.trim().toLowerCase();
     final filtered = devices.where((device) {
@@ -252,9 +275,23 @@ class DevicesCubit extends Cubit<DevicesState> {
     }).toList();
 
     filtered.sort((a, b) {
-      final result = a.createdAt.compareTo(b.createdAt);
-      return sortNewestFirst ? -result : result;
+      final result = switch (sortBy) {
+        'name' => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        'status' => a.status.index.compareTo(b.status.index),
+        'date' => a.createdAt.compareTo(b.createdAt),
+        _ => _compareDeviceIds(a.id, b.id),
+      };
+      return sortDirection == 'desc' ? -result : result;
     });
     return filtered;
+  }
+
+  int _compareDeviceIds(String left, String right) {
+    final leftNumber = int.tryParse(left);
+    final rightNumber = int.tryParse(right);
+    if (leftNumber != null && rightNumber != null) {
+      return leftNumber.compareTo(rightNumber);
+    }
+    return left.compareTo(right);
   }
 }

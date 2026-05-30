@@ -332,7 +332,6 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
             invoiceId: 0,
             sparePartId: item.sparePartId,
             sparePartName: item.name,
-            visualIndex: 0,
             quantity: int.parse(item.quantityController.text.trim()),
             unitPrice: item.unitPrice,
           ),
@@ -768,7 +767,7 @@ class _InvoiceItemRow extends StatelessWidget {
           IconButton(
             tooltip: 'حذف المادة',
             onPressed: onRemove,
-            icon: const Icon(Icons.visual_search_rounded, size: 18),
+            icon: const Icon(Icons.delete_outline, size: 18),
             color: colorScheme.error,
             visualDensity: VisualDensity.compact,
             constraints: const BoxConstraints.tightFor(width: 32, height: 32),

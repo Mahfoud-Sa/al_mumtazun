@@ -135,7 +135,7 @@ class DeviceModel extends Device {
       case 'in repair':
         return DeviceStatus.inMaintenance;
       case 'completed':
-        return DeviceStatus.completed;
+        return DeviceStatus.ready;
       case 'delivered':
         return DeviceStatus.delivered;
     }
@@ -158,7 +158,7 @@ class DeviceModel extends Device {
         return 'Waiting';
       case DeviceStatus.inMaintenance:
         return 'InMaintenance';
-      case DeviceStatus.completed:
+      case DeviceStatus.ready:
         return 'Completed';
       case DeviceStatus.delivered:
         return 'Delivered';

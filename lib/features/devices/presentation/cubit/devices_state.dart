@@ -10,7 +10,8 @@ class DevicesState extends Equatable {
   final bool isSubmitting;
   final String searchQuery;
   final DeviceStatus? statusFilter;
-  final bool sortNewestFirst;
+  final String sortBy;
+  final String sortDirection;
   final int page;
   final int size;
   final int totalCount;
@@ -27,7 +28,8 @@ class DevicesState extends Equatable {
     this.isSubmitting = false,
     this.searchQuery = '',
     this.statusFilter,
-    this.sortNewestFirst = true,
+    this.sortBy = 'date',
+    this.sortDirection = 'desc',
     this.page = 0,
     this.size = 10,
     this.totalCount = 0,
@@ -46,7 +48,8 @@ class DevicesState extends Equatable {
     String? searchQuery,
     DeviceStatus? statusFilter,
     bool clearStatusFilter = false,
-    bool? sortNewestFirst,
+    String? sortBy,
+    String? sortDirection,
     int? page,
     int? size,
     int? totalCount,
@@ -66,7 +69,8 @@ class DevicesState extends Equatable {
       statusFilter: clearStatusFilter
           ? null
           : statusFilter ?? this.statusFilter,
-      sortNewestFirst: sortNewestFirst ?? this.sortNewestFirst,
+      sortBy: sortBy ?? this.sortBy,
+      sortDirection: sortDirection ?? this.sortDirection,
       page: page ?? this.page,
       size: size ?? this.size,
       totalCount: totalCount ?? this.totalCount,
@@ -86,7 +90,8 @@ class DevicesState extends Equatable {
     isSubmitting,
     searchQuery,
     statusFilter,
-    sortNewestFirst,
+    sortBy,
+    sortDirection,
     page,
     size,
     totalCount,
