@@ -268,7 +268,7 @@ class DevicesCubit extends Cubit<DevicesState> {
           device.name.toLowerCase().contains(normalizedQuery) ||
           device.customerName.toLowerCase().contains(normalizedQuery) ||
           device.brand.toLowerCase().contains(normalizedQuery) ||
-          device.serialNumber.toLowerCase().contains(normalizedQuery);
+          device.id.toLowerCase().contains(normalizedQuery);
       final matchesStatus =
           statusFilter == null || device.status == statusFilter;
       return matchesQuery && matchesStatus;

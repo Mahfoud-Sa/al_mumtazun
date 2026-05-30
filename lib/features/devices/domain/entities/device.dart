@@ -5,7 +5,7 @@ enum DeviceStatus { received, waiting, inMaintenance, ready, delivered }
 class Device extends Equatable {
   final String id;
   final String name;
-  final String serialNumber;
+  //final String serialNumber;
   final String brand;
   final String model;
   final String customerName;
@@ -20,7 +20,6 @@ class Device extends Equatable {
   const Device({
     required this.id,
     required this.name,
-    required this.serialNumber,
     required this.brand,
     required this.model,
     required this.customerName,
@@ -36,7 +35,6 @@ class Device extends Equatable {
   Device copyWith({
     String? id,
     String? name,
-    String? serialNumber,
     String? brand,
     String? model,
     String? customerName,
@@ -51,7 +49,6 @@ class Device extends Equatable {
     return Device(
       id: id ?? this.id,
       name: name ?? this.name,
-      serialNumber: serialNumber ?? this.serialNumber,
       brand: brand ?? this.brand,
       model: model ?? this.model,
       customerName: customerName ?? this.customerName,
@@ -69,7 +66,6 @@ class Device extends Equatable {
   List<Object?> get props => [
     id,
     name,
-    serialNumber,
     brand,
     model,
     customerName,

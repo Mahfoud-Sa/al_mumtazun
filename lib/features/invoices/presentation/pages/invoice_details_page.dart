@@ -26,9 +26,7 @@ class InvoiceDetailsPage extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back),
           ),
-          shape: Border(
-            bottom: BorderSide(color: colorScheme.outlineVariant),
-          ),
+          shape: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -82,11 +80,8 @@ class InvoiceDetailsPage extends StatelessWidget {
                             value: _displayValue(device?.model, 'غير محدد'),
                           ),
                           _InfoRow(
-                            label: 'الرقم التسلسلي',
-                            value: _displayValue(
-                              device?.serialNumber,
-                              'غير محدد',
-                            ),
+                            label: 'رقم الجهاز',
+                            value: _displayValue(device?.id, 'غير محدد'),
                           ),
                           _InfoRow(
                             label: 'العميل',
@@ -149,19 +144,25 @@ class _HeaderCard extends StatelessWidget {
               children: [
                 Text(
                   'فاتورة #${invoice.id}',
-                  style: AppTextStyles.pageTitle.copyWith(color: colorScheme.onSurface),
+                  style: AppTextStyles.pageTitle.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   _formatDateTime(invoice.date),
-                  style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: AppTextStyles.body.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
           ),
           Text(
             _formatMoney(invoice.total),
-            style: AppTextStyles.pageTitle.copyWith(color: colorScheme.secondary),
+            style: AppTextStyles.pageTitle.copyWith(
+              color: colorScheme.secondary,
+            ),
           ),
         ],
       ),
@@ -191,11 +192,15 @@ class _SectionCard extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerLow,
-              border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+              border: Border(
+                bottom: BorderSide(color: colorScheme.outlineVariant),
+              ),
             ),
             child: Text(
               title,
-              style: AppTextStyles.sectionHeading.copyWith(color: colorScheme.onSurface),
+              style: AppTextStyles.sectionHeading.copyWith(
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
           Padding(padding: const EdgeInsets.all(AppSpacing.lg), child: child),
@@ -223,13 +228,17 @@ class _InfoRow extends StatelessWidget {
             width: 140,
             child: Text(
               label,
-              style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+              style: AppTextStyles.labelStrong.copyWith(
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+              style: AppTextStyles.body.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
@@ -251,7 +260,9 @@ class _ItemsSection extends StatelessWidget {
       child: items.isEmpty
           ? Text(
               'لا توجد عناصر في هذه الفاتورة.',
-              style: AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+              style: AppTextStyles.body.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             )
           : Column(
               children: [
@@ -267,25 +278,33 @@ class _ItemsSection extends StatelessWidget {
                         flex: 3,
                         child: Text(
                           'العنصر',
-                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                          style: AppTextStyles.labelStrong.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       Expanded(
                         child: Text(
                           'الكمية',
-                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                          style: AppTextStyles.labelStrong.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       Expanded(
                         child: Text(
                           'سعر الوحدة',
-                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                          style: AppTextStyles.labelStrong.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       Expanded(
                         child: Text(
                           'الإجمالي',
-                          style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                          style: AppTextStyles.labelStrong.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
                         ),
                       ),
                     ],
@@ -330,12 +349,16 @@ class _ItemRow extends StatelessWidget {
               children: [
                 Text(
                   _displayValue(item.sparePartName, 'مكون بدون اسم'),
-                  style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+                  style: AppTextStyles.labelStrong.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'رقم القطعة: ${item.sparePartId ?? 0}',
-                  style: AppTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: AppTextStyles.label.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -355,7 +378,9 @@ class _ItemRow extends StatelessWidget {
           Expanded(
             child: Text(
               _formatMoney(item.total),
-              style: AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+              style: AppTextStyles.labelStrong.copyWith(
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -407,8 +432,12 @@ class _TotalRow extends StatelessWidget {
           child: Text(
             label,
             style: strong
-                ? AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface)
-                : AppTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+                ? AppTextStyles.labelStrong.copyWith(
+                    color: colorScheme.onSurface,
+                  )
+                : AppTextStyles.body.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
           ),
         ),
         Text(
@@ -417,7 +446,9 @@ class _TotalRow extends StatelessWidget {
               ? AppTextStyles.sectionHeading.copyWith(
                   color: colorScheme.secondary,
                 )
-              : AppTextStyles.labelStrong.copyWith(color: colorScheme.onSurface),
+              : AppTextStyles.labelStrong.copyWith(
+                  color: colorScheme.onSurface,
+                ),
         ),
       ],
     );

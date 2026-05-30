@@ -4,7 +4,6 @@ class DeviceModel extends Device {
   const DeviceModel({
     required super.id,
     required super.name,
-    required super.serialNumber,
     required super.brand,
     required super.model,
     required super.customerName,
@@ -21,7 +20,6 @@ class DeviceModel extends Device {
     return DeviceModel(
       id: device.id,
       name: device.name,
-      serialNumber: device.serialNumber,
       brand: device.brand,
       model: device.model,
       customerName: device.customerName,
@@ -42,10 +40,6 @@ class DeviceModel extends Device {
     return DeviceModel(
       id: json['id']?.toString() ?? '',
       name: deviceName?.toString() ?? '',
-      serialNumber:
-          json['serialNumber']?.toString() ??
-          json['serial']?.toString() ??
-          '#${json['id'] ?? 'N/A'}',
       brand: json['brand']?.toString() ?? '',
       model: json['model']?.toString() ?? '',
       customerName: json['customerName']?.toString() ?? '',
@@ -67,7 +61,6 @@ class DeviceModel extends Device {
     return {
       'id': id,
       'name': name,
-      'serialNumber': serialNumber,
       'brand': brand,
       'model': model,
       'customerName': customerName,

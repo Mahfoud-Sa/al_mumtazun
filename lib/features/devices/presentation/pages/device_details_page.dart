@@ -259,7 +259,7 @@ class _DeviceOverviewCard extends StatelessWidget {
                     // ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'الرقم التسلسلي ${device.serialNumber}',
+                      'رقم الجهاز ${device.id}',
                       style: AppTextStyles.label.copyWith(color: Colors.white),
                     ),
                   ],

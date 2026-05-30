@@ -61,9 +61,7 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          shape: Border(
-            bottom: BorderSide(color: colorScheme.outlineVariant),
-          ),
+          shape: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
         ),
         body: BlocListener<DevicesCubit, DevicesState>(
           listenWhen: (previous, current) =>
@@ -300,11 +298,9 @@ class _RegisterDevicePageState extends State<RegisterDevicePage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final now = DateTime.now();
-    final serialSuffix = now.millisecondsSinceEpoch.toString();
     final device = Device(
       id: 'device-${now.microsecondsSinceEpoch}',
       name: _deviceNameController.text.trim(),
-      serialNumber: '#ENG-${serialSuffix.substring(serialSuffix.length - 4)}-N',
       brand: _brandController.text.trim(),
       model: _modelController.text.trim(),
       customerName: _customerController.text.trim(),
@@ -534,9 +530,7 @@ class _FormField extends StatelessWidget {
                     vertical: AppSpacing.md,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: colorScheme.outlineVariant,
-                    ),
+                    borderSide: BorderSide(color: colorScheme.outlineVariant),
                     borderRadius: BorderRadius.circular(AppSpacing.xs),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -673,10 +667,7 @@ class _DateField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.xs),
-              borderSide: BorderSide(
-                color: colorScheme.secondary,
-                width: 1.4,
-              ),
+              borderSide: BorderSide(color: colorScheme.secondary, width: 1.4),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.xs),

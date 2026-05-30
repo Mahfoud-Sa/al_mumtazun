@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/index_view_toggle.dart';
 import '../../../../di/service_locator.dart';
+import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../home/home_shell.dart';
@@ -667,7 +668,7 @@ class _DeviceRows extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth < 760 ? 760.0 : constraints.maxWidth;
+        final width = constraints.maxWidth < 920 ? 920.0 : constraints.maxWidth;
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -687,53 +688,62 @@ class _DeviceRows extends StatelessWidget {
                       vertical: AppSpacing.md,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
+                      color: AppColors.primary,
                       border: Border(
                         bottom: BorderSide(color: colorScheme.outline),
                       ),
                     ),
                     child: Row(
                       children: [
+                        SizedBox(
+                          width: 90,
+                          child: Text(
+                            'الرقم التسلسلي',
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'الجهاز',
+                            'اسم الجهاز',
                             style: AppTextStyles.labelStrong.copyWith(
-                              color: colorScheme.onSurface,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                         Expanded(
                           child: Text(
-                            'الماركة',
+                            'اسم العميل',
                             style: AppTextStyles.labelStrong.copyWith(
-                              color: colorScheme.onSurface,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                         Expanded(
                           child: Text(
-                            'العميل',
+                            'البراند',
                             style: AppTextStyles.labelStrong.copyWith(
-                              color: colorScheme.onSurface,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                         SizedBox(
-                          width: 150,
+                          width: 70,
                           child: Text(
                             'الحالة',
                             style: AppTextStyles.labelStrong.copyWith(
-                              color: colorScheme.onSurface,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                         SizedBox(
-                          width: 132,
+                          width: 50,
                           child: Text(
-                            'إجراءات',
+                            'الاجراءات',
                             style: AppTextStyles.labelStrong.copyWith(
-                              color: colorScheme.onSurface,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -779,37 +789,26 @@ class _DeviceRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    device.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelStrong.copyWith(
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    device.serialNumber,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.label.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+            SizedBox(
+              width: 90,
+              child: Text(
+                device.id,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.label.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             Expanded(
+              flex: 2,
               child: Text(
-                device.brand,
+                device.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: colorScheme.onSurface),
+                style: AppTextStyles.labelStrong.copyWith(
+                  color: colorScheme.primary,
+                ),
               ),
             ),
             Expanded(
@@ -820,21 +819,31 @@ class _DeviceRow extends StatelessWidget {
                 style: TextStyle(color: colorScheme.onSurface),
               ),
             ),
-            SizedBox(width: 150, child: _StatusBadge(status: device.status)),
+            Expanded(
+              child: Text(
+                device.brand,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+            ),
             SizedBox(
-              width: 132,
-              child: TextButton.icon(
-                onPressed: () => _openDetails(context),
-                icon: const Icon(Icons.chevron_right, size: 18),
-                label: const Text('التفاصيل'),
-                style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.secondary,
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs,
+              width: 70,
+              child: _DeviceTableStatusBadge(status: device.status),
+            ),
+            SizedBox(
+              width: 50,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.settings,
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                  textStyle: AppTextStyles.labelStrong,
+                  onSelected: (value) {
+                    if (value == 'details') _openDetails(context);
+                  },
+                  itemBuilder: (_) => _deviceMenuItems(),
                 ),
               ),
             ),
@@ -848,6 +857,60 @@ class _DeviceRow extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => DeviceDetailsPage(device: device),
+      ),
+    );
+  }
+}
+
+List<PopupMenuEntry<String>> _deviceMenuItems() {
+  return const [
+    PopupMenuItem(
+      value: 'details',
+      child: Row(
+        children: [
+          Icon(Icons.visibility, color: Colors.blue, size: 20),
+          SizedBox(width: 8),
+          Text('عرض التفاصيل'),
+        ],
+      ),
+    ),
+  ];
+}
+
+class _DeviceTableStatusBadge extends StatelessWidget {
+  final DeviceStatus status;
+
+  const _DeviceTableStatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: status.backgroundColor(context),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 3,
+            height: 8,
+            decoration: BoxDecoration(
+              color: status.foregroundColor(context),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            status.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: status.foregroundColor(context),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -897,7 +960,7 @@ class _DeviceCard extends StatelessWidget {
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
-                          'الرقم التسلسلي: ${device.serialNumber}',
+                          'رقم الجهاز: ${device.id}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
