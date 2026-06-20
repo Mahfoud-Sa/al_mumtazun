@@ -18,6 +18,7 @@ class _AddSparePartPageState extends State<AddSparePartPage> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
+  final _quantityController = TextEditingController(text: '0');
   final _dateController = TextEditingController();
 
   @override
@@ -31,6 +32,7 @@ class _AddSparePartPageState extends State<AddSparePartPage> {
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    _quantityController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -115,6 +117,20 @@ class _AddSparePartPageState extends State<AddSparePartPage> {
                           final price = double.tryParse(value?.trim() ?? '');
                           if (price == null || price < 0) {
                             return 'أدخل سعرا صحيحا';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Quantity',
+                        hint: '0',
+                        controller: _quantityController,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          final quantity = int.tryParse(value?.trim() ?? '');
+                          if (quantity == null || quantity < 0) {
+                            return 'Enter a valid quantity';
                           }
                           return null;
                         },
@@ -268,6 +284,7 @@ class _AddSparePartPageState extends State<AddSparePartPage> {
           ? null
           : _descriptionController.text.trim(),
       sellPrice: double.parse(_priceController.text.trim()),
+      quantity: int.parse(_quantityController.text.trim()),
       date: DateTime.parse(_dateController.text.trim()),
     );
 

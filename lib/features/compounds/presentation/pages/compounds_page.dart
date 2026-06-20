@@ -672,6 +672,7 @@ class _SparePartsRows extends StatelessWidget {
           DataColumn(label: _HeaderCell('اسم القطعة')),
           DataColumn(label: _HeaderCell('الوصف')),
           DataColumn(label: _HeaderCell('سعر البيع')),
+          DataColumn(label: _HeaderCell('الكمية')),
           DataColumn(label: _HeaderCell('آخر تحديث')),
           DataColumn(label: _HeaderCell('الإجراءات')),
         ],
@@ -714,6 +715,7 @@ class _SparePartsRows extends StatelessWidget {
                   ),
                 ),
               ),
+              DataCell(Text(part.quantity.toString())),
               DataCell(Text(_formatDate(part.date))),
               DataCell(_PartActions(part: part)),
             ],
@@ -748,7 +750,7 @@ class _SparePartsGrid extends StatelessWidget {
               crossAxisCount: columns,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              mainAxisExtent: 220,
+              mainAxisExtent: 240,
             ),
             itemCount: parts.length,
             itemBuilder: (context, index) {
@@ -815,6 +817,13 @@ class _SparePartCard extends StatelessWidget {
                 child: _PartMeta(
                   label: 'سعر البيع',
                   value: _formatMoney(part.sellPrice),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _PartMeta(
+                  label: 'الكمية',
+                  value: part.quantity.toString(),
                 ),
               ),
               const SizedBox(width: 12),
@@ -898,25 +907,30 @@ class _PartActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          tooltip: 'عرض',
-          icon: const Icon(Icons.visibility_outlined, color: AppColors.outline),
-          onPressed: () => _showDetails(context),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: 50,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: PopupMenuButton<String>(
+          icon: Icon(Icons.settings, color: colorScheme.onSurfaceVariant),
+          onSelected: (value) {
+            switch (value) {
+              case 'details':
+                _showDetails(context);
+                break;
+              case 'edit':
+                _showUpdateDialog(context);
+                break;
+              case 'delete':
+                _confirmDelete(context);
+                break;
+            }
+          },
+          itemBuilder: (_) => _partMenuItems(),
         ),
-        IconButton(
-          tooltip: 'تعديل',
-          icon: const Icon(Icons.edit_outlined, color: AppColors.secondary),
-          onPressed: () => _showUpdateDialog(context),
-        ),
-        IconButton(
-          tooltip: 'حذف',
-          icon: const Icon(Icons.delete_outline, color: AppColors.error),
-          onPressed: () => _confirmDelete(context),
-        ),
-      ],
+      ),
     );
   }
 
@@ -937,6 +951,8 @@ class _PartActions extends StatelessWidget {
             const SizedBox(height: 8),
             Text('سعر البيع: ${_formatMoney(part.sellPrice)}'),
             const SizedBox(height: 8),
+            Text('الكمية: ${part.quantity}'),
+            const SizedBox(height: 8),
             Text('التاريخ: ${_formatDate(part.date)}'),
           ],
         ),
@@ -951,140 +967,25 @@ class _PartActions extends StatelessWidget {
   }
 
   Future<void> _showUpdateDialog(BuildContext context) async {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController(text: part.name);
-    final descriptionController = TextEditingController(
-      text: part.description ?? '',
-    );
-    final priceController = TextEditingController(
-      text: part.sellPrice.toStringAsFixed(2),
-    );
-    final dateController = TextEditingController(text: _formatDate(part.date));
+    final cubit = context.read<CompoundsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
 
-    try {
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text('تعديل قطعة الغيار'),
-            content: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: SizedBox(
-                  width: 420,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: nameController,
-                        decoration: const InputDecoration(labelText: 'الاسم'),
-                        validator: (value) =>
-                            value == null || value.trim().isEmpty
-                            ? 'مطلوب'
-                            : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: descriptionController,
-                        decoration: const InputDecoration(labelText: 'الوصف'),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: priceController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'سعر البيع',
-                        ),
-                        validator: (value) {
-                          final price = double.tryParse(value?.trim() ?? '');
-                          return price == null || price < 0
-                              ? 'أدخل سعرا صحيحا'
-                              : null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: dateController,
-                        readOnly: true,
-                        decoration: const InputDecoration(labelText: 'التاريخ'),
-                        validator: (value) =>
-                            DateTime.tryParse(value?.trim() ?? '') == null
-                            ? 'مطلوب'
-                            : null,
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: dialogContext,
-                            initialDate:
-                                DateTime.tryParse(dateController.text) ??
-                                part.date,
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime(2100),
-                            helpText: 'اختر التاريخ',
-                            cancelText: 'إلغاء',
-                            confirmText: 'اختيار',
-                          );
-                          if (picked != null) {
-                            dateController.text = _formatDate(picked);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _EditSparePartDialog(
+        part: part,
+        onSave: cubit.editCompound,
+        onResult: (success) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                success ? 'تم تحديث قطعة الغيار' : 'فشل تحديث قطعة الغيار',
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('إلغاء'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (!formKey.currentState!.validate()) return;
-
-                  final updated = Compound(
-                    id: part.id,
-                    name: nameController.text.trim(),
-                    description: descriptionController.text.trim().isEmpty
-                        ? null
-                        : descriptionController.text.trim(),
-                    sellPrice: double.parse(priceController.text.trim()),
-                    date: DateTime.parse(dateController.text.trim()),
-                  );
-
-                  final success = await context
-                      .read<CompoundsCubit>()
-                      .editCompound(updated);
-
-                  if (!dialogContext.mounted) return;
-                  Navigator.pop(dialogContext);
-
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        success
-                            ? 'تم تحديث قطعة الغيار'
-                            : 'فشل تحديث قطعة الغيار',
-                      ),
-                    ),
-                  );
-                },
-                child: const Text('حفظ'),
-              ),
-            ],
           );
         },
-      );
-    } finally {
-      nameController.dispose();
-      descriptionController.dispose();
-      priceController.dispose();
-      dateController.dispose();
-    }
+      ),
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -1121,6 +1022,209 @@ class _PartActions extends StatelessWidget {
         content: Text(success ? 'تم حذف قطعة الغيار' : 'فشل حذف قطعة الغيار'),
       ),
     );
+  }
+}
+
+List<PopupMenuEntry<String>> _partMenuItems() {
+  return const [
+    PopupMenuItem(
+      value: 'details',
+      child: Row(
+        children: [
+          Icon(Icons.visibility, color: Colors.blue, size: 20),
+          SizedBox(width: 8),
+          Text('عرض التفاصيل'),
+        ],
+      ),
+    ),
+    PopupMenuItem(
+      value: 'edit',
+      child: Row(
+        children: [
+          Icon(Icons.edit_outlined, color: AppColors.secondary, size: 20),
+          SizedBox(width: 8),
+          Text('تعديل'),
+        ],
+      ),
+    ),
+    PopupMenuItem(
+      value: 'delete',
+      child: Row(
+        children: [
+          Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+          SizedBox(width: 8),
+          Text('حذف'),
+        ],
+      ),
+    ),
+  ];
+}
+
+class _EditSparePartDialog extends StatefulWidget {
+  final Compound part;
+  final Future<bool> Function(Compound part) onSave;
+  final ValueChanged<bool> onResult;
+
+  const _EditSparePartDialog({
+    required this.part,
+    required this.onSave,
+    required this.onResult,
+  });
+
+  @override
+  State<_EditSparePartDialog> createState() => _EditSparePartDialogState();
+}
+
+class _EditSparePartDialogState extends State<_EditSparePartDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _priceController;
+  late final TextEditingController _quantityController;
+  late final TextEditingController _dateController;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final part = widget.part;
+    _nameController = TextEditingController(text: part.name);
+    _descriptionController = TextEditingController(
+      text: part.description ?? '',
+    );
+    _priceController = TextEditingController(
+      text: part.sellPrice.toStringAsFixed(2),
+    );
+    _quantityController = TextEditingController(text: part.quantity.toString());
+    _dateController = TextEditingController(text: _formatDate(part.date));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _quantityController.dispose();
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('تعديل قطعة غيار'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'الاسم'),
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? 'مطلوب' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(labelText: 'الوصف'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(labelText: 'سعر البيع'),
+                  validator: (value) {
+                    final price = double.tryParse(value?.trim() ?? '');
+                    return price == null || price < 0
+                        ? 'أدخل سعراً صالحاً'
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'الكمية'),
+                  validator: (value) {
+                    final quantity = int.tryParse(value?.trim() ?? '');
+                    return quantity == null || quantity < 0
+                        ? 'أدخل كمية صالحة'
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _dateController,
+                  readOnly: true,
+                  decoration: const InputDecoration(labelText: 'التاريخ'),
+                  validator: (value) =>
+                      DateTime.tryParse(value?.trim() ?? '') == null
+                      ? 'مطلوب'
+                      : null,
+                  onTap: _pickDate,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          child: const Text('إلغاء'),
+        ),
+        ElevatedButton(
+          onPressed: _isSubmitting ? null : _submit,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('حفظ'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.tryParse(_dateController.text) ?? widget.part.date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      _dateController.text = _formatDate(picked);
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+    final updated = Compound(
+      id: widget.part.id,
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+      sellPrice: double.parse(_priceController.text.trim()),
+      quantity: int.parse(_quantityController.text.trim()),
+      date: DateTime.parse(_dateController.text.trim()),
+    );
+
+    final success = await widget.onSave(updated);
+    if (!mounted) return;
+    Navigator.pop(context);
+    widget.onResult(success);
   }
 }
 

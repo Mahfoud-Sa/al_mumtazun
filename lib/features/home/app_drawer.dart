@@ -11,7 +11,9 @@ import '../profile/presentation/cubit/profile_cubit.dart';
 import '../profile/presentation/pages/profile_page.dart';
 import '../roles/presentation/cubit/roles_cubit.dart';
 import '../roles/presentation/pages/roles_page.dart';
-import '../tools/tools_page.dart';
+import '../../features/tools/tools_page.dart';
+import '../../features/income/income_screen.dart';
+import '../../features/income/presentation/pages/income_index_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -54,6 +56,19 @@ class AppDrawer extends StatelessWidget {
                       Navigator.of(context).pop();
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const EngineeringToolsPage()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.attach_money_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    title: const Text('الإيرادات'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const IncomeIndexPage()),
                       );
                     },
                   ),
