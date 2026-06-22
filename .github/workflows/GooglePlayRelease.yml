@@ -12,46 +12,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Java (Android requires it)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3. Setup Flutter (IMPORTANT: match your project Dart version)
+      # ✅ FIXED FLUTTER SETUP (NO "stable")
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "stable"
-          channel: stable
+          flutter-version: "3.24.5"
           cache: true
 
-      # 4. Check Flutter version (debug step)
-      - name: Show Flutter version
+      - name: Verify Flutter
         run: flutter --version
 
-      # 5. Install dependencies
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
-      # 6. Run tests (optional but recommended)
       - name: Run tests
         run: flutter test
 
-      # 7. Build Android App Bundle (AAB)
-      - name: Build release AAB
+      - name: Build AAB
         run: flutter build appbundle --release
 
-      # 8. Create Google Play service account file
-      - name: Create service account JSON
+      - name: Create service account file
         run: echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > service-account.json
 
-      # 9. Upload to Google Play (INTERNAL TEST FIRST)
       - name: Upload to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
