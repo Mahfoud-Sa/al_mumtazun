@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-  # Manual trigger button in GitHub Actions
   workflow_dispatch:
 
 jobs:
@@ -17,43 +16,47 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Java (required for Android builds)
+      # 2. Setup Java (Android requires it)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3. Setup Flutter (FIXED - pinned version)
+      # 3. Setup Flutter (IMPORTANT: match your project Dart version)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.22.2"
+          flutter-version: "stable"
           channel: stable
           cache: true
 
-      # 4. Get dependencies
+      # 4. Check Flutter version (debug step)
+      - name: Show Flutter version
+        run: flutter --version
+
+      # 5. Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. Run tests (optional but recommended)
+      # 6. Run tests (optional but recommended)
       - name: Run tests
         run: flutter test
 
-      # 6. Build release AAB
-      - name: Build Android App Bundle
+      # 7. Build Android App Bundle (AAB)
+      - name: Build release AAB
         run: flutter build appbundle --release
 
-      # 7. Prepare Google Play service account file
+      # 8. Create Google Play service account file
       - name: Create service account JSON
         run: echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > service-account.json
 
-      # 8. Upload to Google Play (INTERNAL TEST FIRST RECOMMENDED)
+      # 9. Upload to Google Play (INTERNAL TEST FIRST)
       - name: Upload to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: service-account.json
-          packageName: com.your.app.package
+          packageName: com.gidteam.al_mumtazun
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
           status: completed
