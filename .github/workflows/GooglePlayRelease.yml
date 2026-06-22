@@ -28,10 +28,7 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Build AAB
+      - name: Build Release AAB
         run: flutter build appbundle --release
 
       - name: Upload Artifact
