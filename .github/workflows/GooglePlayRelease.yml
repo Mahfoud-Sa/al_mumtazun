@@ -1,4 +1,4 @@
-name: Android Build Release
+name: Android Build & Deploy Production
 
 on:
   workflow_dispatch:
@@ -14,12 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ☕ Java setup
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
+      # 📱 Flutter setup
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -30,28 +32,49 @@ jobs:
       - name: Show Flutter version
         run: flutter --version
 
+      # 📦 Dependencies
       - name: Install dependencies
         run: flutter pub get
 
+      # 🔐 Decode keystore
       - name: Decode Android keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
+      # 🧾 Create key.properties
       - name: Create key.properties
         run: |
           cat > android/key.properties << EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=upload-keystore.jks
+          storeFile=app/upload-keystore.jks
           EOF
 
-      - name: Analyze code (non-blocking)
+      # 📊 Analyze (non-blocking)
+      - name: Analyze code
         run: flutter analyze || true
 
-      - name: Build Android App Bundle (AAB)
+      # 📦 Build AAB
+      - name: Build Android App Bundle
         run: flutter build appbundle --release
 
+      # 📄 Create Google Play service account file
+      - name: Create service account file
+        run: |
+          echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > service-account.json
+
+      # 🚀 Upload to Google Play Production
+      - name: Deploy to Google Play (Production)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: service-account.json
+          packageName: com.gidteam.al_mumtazun
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: production
+          status: completed
+
+      # 📁 Backup artifact
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
