@@ -1,4 +1,4 @@
-name: Android Build Release
+name: Android Build & Deploy Production
 
 on:
   workflow_dispatch:
@@ -33,25 +33,40 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # 🔐 Decode keystore from GitHub Secrets
       - name: Decode Android keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
+      # 🧾 Create key.properties file
       - name: Create key.properties
         run: |
           cat > android/key.properties << EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=upload-keystore.jks
+          storeFile=app/upload-keystore.jks
           EOF
 
+      # (Optional but safe)
       - name: Analyze code (non-blocking)
         run: flutter analyze || true
 
+      # 📦 Build AAB
       - name: Build Android App Bundle (AAB)
         run: flutter build appbundle --release
 
+      # 🚀 Upload to Google Play Production
+      - name: Deploy to Google Play (Production)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.gidteam.al_mumtazun
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: production
+          status: completed
+
+      # 📁 Keep artifact backup
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
