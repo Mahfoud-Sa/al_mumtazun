@@ -11,6 +11,7 @@ import '../../domain/entities/compound.dart';
 import '../cubit/compounds_cubit.dart';
 import '../cubit/compounds_state.dart';
 import 'add_spare_part_page.dart';
+import 'compound_details_page.dart';
 
 class CompoundsPage extends StatelessWidget {
   const CompoundsPage({super.key});
@@ -935,33 +936,10 @@ class _PartActions extends StatelessWidget {
   }
 
   void _showDetails(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(part.name),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('الرقم: ${part.id}'),
-            const SizedBox(height: 8),
-            Text(
-              'الوصف: ${part.description?.isNotEmpty == true ? part.description! : '-'}',
-            ),
-            const SizedBox(height: 8),
-            Text('سعر البيع: ${_formatMoney(part.sellPrice)}'),
-            const SizedBox(height: 8),
-            Text('الكمية: ${part.quantity}'),
-            const SizedBox(height: 8),
-            Text('التاريخ: ${_formatDate(part.date)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CompoundDetailsPage(compound: part),
       ),
     );
   }
