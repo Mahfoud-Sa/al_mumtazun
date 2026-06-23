@@ -33,7 +33,19 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Optional safety step (does NOT block build)
+      - name: Decode Android keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
       - name: Analyze code (non-blocking)
         run: flutter analyze || true
 
