@@ -14,6 +14,8 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val isReleaseSigningAvailable = keystorePropertiesFile.exists()
+
 android {
     namespace = "com.gidteam.al_mumtazun"
     compileSdk = flutter.compileSdkVersion
@@ -36,18 +38,29 @@ android {
         versionName = flutter.versionName
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file("../${keystoreProperties["storeFile"]}")
-            storePassword = keystoreProperties["storePassword"] as String
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
+    // ✅ Only enable signing if key.properties exists
+    if (isReleaseSigningAvailable) {
+
+        signingConfigs {
+            create("release") {
+                storeFile = file("../${keystoreProperties["storeFile"]}")
+                storePassword = keystoreProperties["storePassword"]?.toString()
+                keyAlias = keystoreProperties["keyAlias"]?.toString()
+                keyPassword = keystoreProperties["keyPassword"]?.toString()
+            }
+        }
+
+        buildTypes {
+            release {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
+    // ✅ Always ensure debug works
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
+        getByName("debug") {
+            // uses default debug keystore automatically
         }
     }
 }
