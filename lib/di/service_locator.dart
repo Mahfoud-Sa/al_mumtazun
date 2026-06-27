@@ -9,6 +9,8 @@ import '../theme/theme_cubit.dart';
 import '../theme/theme_repository.dart';
 import '../core/clients/http_client.dart';
 import '../core/storage/secure_auth_storage.dart';
+import '../features/update/services/update_service.dart';
+import '../features/update/cubit/update_cubit.dart';
 
 // Auth
 import '../features/auth/auth_cubit.dart';
@@ -358,5 +360,11 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<HomeCubit>(() => HomeCubit());
   getIt.registerFactory<DashboardCubit>(
     () => DashboardCubit(getIt<AppHttpClient>()),
+  );
+
+  // Update
+  getIt.registerLazySingleton<UpdateService>(() => UpdateService());
+  getIt.registerFactory<UpdateCubit>(
+    () => UpdateCubit(updateService: getIt<UpdateService>()),
   );
 }

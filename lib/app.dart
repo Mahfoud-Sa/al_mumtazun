@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'di/service_locator.dart';
 import 'core/navigation/app_navigator.dart';
-import 'features/home/home_shell.dart';
+import 'di/service_locator.dart';
 import 'features/auth/auth_cubit.dart';
 import 'features/auth/login_screen.dart';
+import 'features/home/home_shell.dart';
+import 'features/update/cubit/update_cubit.dart';
+import 'features/update/widgets/update_listener.dart';
+import 'l10n/app_localizations.dart';
 import 'localization/locale_cubit.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_cubit.dart';
-import 'l10n/app_localizations.dart';
 
 class EngineeringOpsApp extends StatelessWidget {
   const EngineeringOpsApp({super.key});
@@ -22,6 +24,7 @@ class EngineeringOpsApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<LocaleCubit>()),
         BlocProvider(create: (_) => getIt<ThemeCubit>()),
         BlocProvider(create: (_) => getIt<AuthCubit>()..loadCurrent()),
+        BlocProvider(create: (_) => getIt<UpdateCubit>()),
       ],
       child: BlocBuilder<LocaleCubit, LocaleState>(
         builder: (context, localeState) {
@@ -35,17 +38,30 @@ class EngineeringOpsApp extends StatelessWidget {
                 theme: AppTheme.light(),
                 darkTheme: AppTheme.dark(),
                 themeMode: themeState.themeMode,
-                home: BlocBuilder<AuthCubit, AuthState>(
-                  builder: (context, state) {
-                    if (!state.isInitialized) {
-                      return const Scaffold(
-                        body: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    return state.isLoggedIn
-                        ? const HomeShell()
-                        : const LoginScreen();
-                  },
+                home: UpdateListener(
+                  child: BlocListener<AuthCubit, AuthState>(
+                    listenWhen: (previous, current) =>
+                        !previous.isInitialized && current.isInitialized,
+                    listener: (context, state) {
+                      // Trigger the update check exactly once after auth
+                      // initialization completes. At this point MaterialApp
+                      // is fully built, so dialogs can be shown safely.
+                      context.read<UpdateCubit>().checkForUpdates();
+                    },
+                    child: BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, state) {
+                        if (!state.isInitialized) {
+                          return const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        return state.isLoggedIn
+                            ? const HomeShell()
+                            : const LoginScreen();
+                      },
+                    ),
+                  ),
                 ),
                 locale: localeState.locale,
                 supportedLocales: AppLocalizations.supportedLocales,
