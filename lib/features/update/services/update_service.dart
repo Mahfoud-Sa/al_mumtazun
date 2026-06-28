@@ -9,9 +9,6 @@ import '../models/update_info.dart';
 ///
 /// Fetches the latest release from GitHub, reads the current app version
 /// via [PackageInfo], compares semantic versions, and returns an [UpdateInfo].
-///
-/// This service is context-free and designed to be registered as a singleton
-/// in the service locator.
 class UpdateService {
   /// GitHub repository owner.
   static const String _owner = 'Mahfoud-Sa';
@@ -31,15 +28,17 @@ class UpdateService {
       final latestRelease = await _fetchLatestRelease();
       if (latestRelease == null) return null;
 
-      final latestVersion =
-          _cleanVersion(latestRelease['tag_name'] as String? ?? '0.0.0');
+      final latestVersion = _cleanVersion(
+        latestRelease['tag_name'] as String? ?? '0.0.0',
+      );
 
       final hasUpdate = _isNewer(latestVersion, currentVersion);
 
       // Pre-releases are never treated as forced updates.
       final isPreRelease = latestRelease['prerelease'] == true;
-      final isForceUpdate =
-          isPreRelease ? false : _isForceUpdate(latestRelease);
+      final isForceUpdate = isPreRelease
+          ? false
+          : _isForceUpdate(latestRelease);
 
       return UpdateInfo(
         hasUpdate: hasUpdate,
@@ -49,7 +48,7 @@ class UpdateService {
         releaseNotes: latestRelease['body'] as String?,
       );
     } catch (_) {
-      // Network or parsing error — fail silently so the app isn't blocked.
+      // Fail silently so the app isn't blocked.
       return null;
     }
   }
@@ -72,14 +71,19 @@ class UpdateService {
     return decoded is Map<String, dynamic> ? decoded : null;
   }
 
-  /// Strips the leading "v" and surrounding whitespace from a version string.
+  /// Cleans Git version strings:
+  /// - removes leading "v" or "v."
+  /// - removes prerelease suffixes like "-beta", "-rc", "-prerelease"
+  /// - trims whitespace
   String _cleanVersion(String version) {
-    return version.replaceAll('v', '').trim();
+    return version
+        .toLowerCase()
+        .replaceAll(RegExp(r'^v\.?'), '')
+        .replaceAll(RegExp(r'-.*$'), '')
+        .trim();
   }
 
-  /// Returns `true` if [latest] is semantically newer than [current].
-  ///
-  /// Compares major, minor, and patch segments left-to-right.
+  /// Returns true if [latest] is semantically newer than [current].
   bool _isNewer(String latest, String current) {
     final latestParts = _parseVersionParts(latest);
     final currentParts = _parseVersionParts(current);
@@ -91,11 +95,13 @@ class UpdateService {
     return false;
   }
 
-  /// Parses a version string (e.g. "2.7.1") into three integer segments.
+  /// Safely parses version string into [major, minor, patch].
   ///
-  /// Falls back to `0` for missing or invalid segments.
+  /// Removes all non-numeric characters safely before parsing.
   List<int> _parseVersionParts(String version) {
-    final parts = version.split('.');
+    final cleaned = version.replaceAll(RegExp(r'[^0-9.]'), '');
+    final parts = cleaned.split('.');
+
     return List.generate(3, (i) {
       if (i >= parts.length) return 0;
       return int.tryParse(parts[i]) ?? 0;
