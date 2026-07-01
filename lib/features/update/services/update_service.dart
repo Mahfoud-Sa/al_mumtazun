@@ -36,9 +36,8 @@ class UpdateService {
 
       // Pre-releases are never treated as forced updates.
       final isPreRelease = latestRelease['prerelease'] == true;
-      final isForceUpdate = isPreRelease
-          ? false
-          : _isForceUpdate(latestRelease);
+      final forceUpdateMarkerDetected = _isForceUpdate(latestRelease);
+      final isForceUpdate = isPreRelease ? false : forceUpdateMarkerDetected;
 
       return UpdateInfo(
         hasUpdate: hasUpdate,
@@ -46,6 +45,7 @@ class UpdateService {
         latestVersion: latestVersion,
         currentVersion: currentVersion,
         releaseNotes: latestRelease['body'] as String?,
+        forceUpdateMarkerDetected: forceUpdateMarkerDetected,
       );
     } catch (_) {
       // Fail silently so the app isn't blocked.

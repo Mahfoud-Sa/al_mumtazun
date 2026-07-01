@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../di/service_locator.dart';
 import '../../localization/l10n.dart';
 import '../../localization/locale_cubit.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/theme_cubit.dart';
+import '../update/models/update_info.dart';
+import '../update/services/update_service.dart';
 import 'auth_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -87,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isDesktop = constraints.maxWidth > 900;
-                
+
                 return Center(
                   child: SingleChildScrollView(
                     child: isDesktop
@@ -104,7 +107,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildDesktopLayout(
-      BuildContext context, bool isDark, AuthState authState) {
+    BuildContext context,
+    bool isDark,
+    AuthState authState,
+  ) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 1200),
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
@@ -112,10 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Left side: Brand Panel
-          Expanded(
-            flex: 6,
-            child: _buildBrandingPanel(context, isDark),
-          ),
+          Expanded(flex: 6, child: _buildBrandingPanel(context, isDark)),
           const SizedBox(width: 64),
           // Right side: Login Card
           Expanded(
@@ -132,7 +135,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, bool isDark, AuthState authState) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    bool isDark,
+    AuthState authState,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Center(
@@ -160,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildBrandingPanel(BuildContext context, bool isDark) {
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
@@ -225,7 +232,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'لوحة تحكم العمليات الهندسية',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+                      color: isDark
+                          ? const Color(0xFFB8C2CC)
+                          : AppColors.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                       fontSize: 13,
                     ),
@@ -248,7 +257,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Text(
             'نظام متطور لإدارة العمليات التشغيلية، ومتابعة الأجهزة الهندسية والمخزون، وتوليد الفواتير والتقارير المالية والتحليلية المتقدمة بكل سهولة ودقة.',
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+              color: isDark
+                  ? const Color(0xFFB8C2CC)
+                  : AppColors.onSurfaceVariant,
               height: 1.6,
               fontSize: 15,
             ),
@@ -290,10 +301,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 2),
                       const Text(
                         'نسبة التشغيل 100%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -313,21 +321,21 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginFormCard(BuildContext context, bool isDark, AuthState authState) {
+  Widget _buildLoginFormCard(
+    BuildContext context,
+    bool isDark,
+    AuthState authState,
+  ) {
     final theme = Theme.of(context);
     final isDesktop = MediaQuery.of(context).size.width > 900;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
       decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF141D26)
-            : Colors.white,
+        color: isDark ? const Color(0xFF141D26) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFF334050)
-              : AppColors.outlineVariant,
+          color: isDark ? const Color(0xFF334050) : AppColors.outlineVariant,
         ),
         boxShadow: [
           BoxShadow(
@@ -373,10 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.secondary,
-                  ],
+                  colors: [AppColors.primary, AppColors.secondary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -405,7 +410,9 @@ class _LoginScreenState extends State<LoginScreen> {
             'يرجى إدخال بيانات الدخول الخاصة بك للمتابعة',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+              color: isDark
+                  ? const Color(0xFFB8C2CC)
+                  : AppColors.onSurfaceVariant,
               fontSize: 13,
             ),
           ),
@@ -430,7 +437,9 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'كلمة السر',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+                  color: isDark
+                      ? const Color(0xFFB8C2CC)
+                      : AppColors.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -485,9 +494,7 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: BoxDecoration(
                 color: Colors.red.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.red.withValues(alpha: 0.25),
-                ),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.25)),
               ),
               child: Row(
                 children: [
@@ -540,7 +547,9 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'تذكرني',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+                  color: isDark
+                      ? const Color(0xFFB8C2CC)
+                      : AppColors.onSurfaceVariant,
                   fontSize: 14,
                 ),
               ),
@@ -585,10 +594,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(width: 8),
                   Text(
                     'الدعم الفني',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -604,6 +610,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
           const SizedBox(height: 16),
 
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showAppInfoDialog(context),
+              icon: const Icon(Icons.info_outline_rounded, size: 18),
+              label: const Text('معلومات التحديث والنسخة'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
           // Version/Package Info Row
           FutureBuilder<PackageInfo>(
             future: _packageInfoFuture,
@@ -615,7 +638,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 'v$version (Build $buildNumber) • © 2026 جميع الحقوق محفوظة لمحل المتميزون',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: isDark ? const Color(0xFF8D99A6) : const Color(0xFF8691A6),
+                  color: isDark
+                      ? const Color(0xFF8D99A6)
+                      : const Color(0xFF8691A6),
                   fontSize: 11,
                 ),
               );
@@ -657,20 +682,17 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'موقعنا',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           content: const Text(
             'حضرموت / المكلا / بويش',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-            ),
+            style: TextStyle(fontSize: 15),
           ),
           actions: [
             TextButton(
@@ -680,6 +702,124 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         );
       },
+    );
+  }
+
+  Future<void> _showAppInfoDialog(BuildContext context) async {
+    final updateService = getIt<UpdateService>();
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('معلومات التحديث'),
+          content: FutureBuilder<UpdateInfo?>(
+            future: updateService.checkForUpdate(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 120,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Text('فشل تحميل معلومات التحديث: ${snapshot.error}');
+              }
+
+              final info = snapshot.data;
+              final currentVersion = info?.currentVersion ?? 'غير متوفر';
+              final latestTag = info?.latestVersion ?? 'غير متوفر';
+              final stateText = info == null
+                  ? 'تعذر الحصول على معلومات من المستودع'
+                  : info.hasUpdate
+                  ? (info.isForceUpdate ? 'تحديث إجباري' : 'يوجد تحديث متاح')
+                  : 'هذا الإصدار هو الأحدث';
+              final releaseNotes = info?.releaseNotes?.trim().isNotEmpty == true
+                  ? info!.releaseNotes!
+                  : 'لا توجد ملاحظات إصدار';
+              final forceMarkerResult =
+                  info?.forceUpdateMarkerDetected ?? false;
+
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InfoRow(label: 'الإصدار الحالي', value: currentVersion),
+                    const SizedBox(height: 8),
+                    _InfoRow(label: 'آخر tag', value: latestTag),
+                    const SizedBox(height: 8),
+                    _InfoRow(label: 'الحالة', value: stateText),
+                    const SizedBox(height: 8),
+                    _InfoRow(
+                      label: 'force_update marker',
+                      value: forceMarkerResult.toString(),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Release body / notes:',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Text(
+                        releaseNotes,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoRow({required this.label, required this.value, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 96,
+          child: Text(
+            '$label:',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        Expanded(
+          child: Text(value, style: const TextStyle(fontFamily: 'monospace')),
+        ),
+      ],
     );
   }
 }
@@ -794,7 +934,7 @@ class _BreathingBackgroundState extends State<BreathingBackground>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -857,7 +997,7 @@ class MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -882,7 +1022,9 @@ class MetricCard extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
-                  color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+                  color: isDark
+                      ? const Color(0xFFB8C2CC)
+                      : AppColors.onSurfaceVariant,
                 ),
               ),
               if (action != null) action!,
@@ -901,7 +1043,8 @@ class SparklinePainter extends CustomPainter {
   final Animation<double> progress;
   final Color color;
 
-  SparklinePainter(this.dataPoints, this.progress, this.color) : super(repaint: progress);
+  SparklinePainter(this.dataPoints, this.progress, this.color)
+    : super(repaint: progress);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -924,7 +1067,9 @@ class SparklinePainter extends CustomPainter {
 
     for (int i = 0; i < limit; i++) {
       final double x = i * stepX;
-      final double y = size.height - 4 - 
+      final double y =
+          size.height -
+          4 -
           ((dataPoints[i] - minVal) / range) * (size.height - 8);
 
       if (i == 0) {
@@ -1042,7 +1187,9 @@ class _SleekTextFieldState extends State<SleekTextField> {
           Text(
             widget.labelText,
             style: theme.textTheme.labelLarge?.copyWith(
-              color: isDark ? const Color(0xFFB8C2CC) : AppColors.onSurfaceVariant,
+              color: isDark
+                  ? const Color(0xFFB8C2CC)
+                  : AppColors.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1083,18 +1230,12 @@ class _SleekTextFieldState extends State<SleekTextField> {
               ),
               suffixIcon: widget.suffixIcon,
               filled: true,
-              fillColor: isDark 
-                  ? const Color(0xFF141D26)
-                  : Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 16,
-              ),
+              fillColor: isDark ? const Color(0xFF141D26) : Colors.white,
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: isDark 
-                      ? const Color(0xFF334050)
-                      : AppColors.outline,
+                  color: isDark ? const Color(0xFF334050) : AppColors.outline,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -1140,9 +1281,10 @@ class _TactileButtonState extends State<TactileButton>
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.97,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -1182,10 +1324,7 @@ class _TactileButtonState extends State<TactileButton>
           height: 54,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFFF39C12),
-                Color(0xFFE67E22),
-              ],
+              colors: [Color(0xFFF39C12), Color(0xFFE67E22)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

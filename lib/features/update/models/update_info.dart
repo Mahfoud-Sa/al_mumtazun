@@ -23,6 +23,9 @@ class UpdateInfo extends Equatable {
   /// Optional release notes from the GitHub release body.
   final String? releaseNotes;
 
+  /// Whether the release body contained the force_update marker.
+  final bool forceUpdateMarkerDetected;
+
   /// Optional download URL for the update (Play Store, App Store, etc.).
   ///
   /// Can be extended later to support per-platform URLs.
@@ -34,16 +37,18 @@ class UpdateInfo extends Equatable {
     required this.latestVersion,
     required this.currentVersion,
     this.releaseNotes,
+    required this.forceUpdateMarkerDetected,
     this.downloadUrl,
   });
 
   @override
   List<Object?> get props => [
-        hasUpdate,
-        isForceUpdate,
-        latestVersion,
-        currentVersion,
-        releaseNotes,
-        downloadUrl,
-      ];
+    hasUpdate,
+    isForceUpdate,
+    latestVersion,
+    currentVersion,
+    releaseNotes,
+    forceUpdateMarkerDetected,
+    downloadUrl,
+  ];
 }
