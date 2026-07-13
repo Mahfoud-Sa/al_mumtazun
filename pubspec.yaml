@@ -49,6 +49,7 @@ dependencies:
   flutter_secure_storage: ^10.2.0
   jwt_decoder: ^2.0.1
   url_launcher: ^6.3.1
+  flutter_launcher_icons: ^0.13.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -62,7 +63,12 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
+flutter_launcher_icons:
+  image_path: "assets/logo/desktop_icon.ico" # Path to your 1024x1024 PNG
+  windows:
+    generate: true
+    image_path: "assets/logo.png"
+    icon_size: 256 # Package handles the scaling automatically
 # The following section is specific to Flutter packages.
 flutter:
   assets:
