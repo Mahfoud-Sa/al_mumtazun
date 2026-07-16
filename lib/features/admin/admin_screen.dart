@@ -9,7 +9,7 @@ import '../../di/service_locator.dart';
 import '../../core/widgets/index_view_toggle.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
-import '../home/home_shell.dart';
+import '../home/app_shell.dart';
 import '../roles/presentation/cubit/roles_cubit.dart';
 import '../roles/presentation/cubit/roles_state.dart';
 import '../roles/presentation/pages/roles_page.dart';

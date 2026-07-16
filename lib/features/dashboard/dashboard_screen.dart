@@ -8,7 +8,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../di/service_locator.dart';
 import '../../localization/l10n.dart';
 import 'state/dashboard_cubit.dart';
-import '../home/home_shell.dart';
+import '../home/app_shell.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -56,7 +56,7 @@ class DashboardScreen extends StatelessWidget {
                                   Icons.menu,
                                   color: colorScheme.primary,
                                 ),
-                                onPressed: () => HomeShell.openDrawer(context),
+                                onPressed: () => AppShell.openDrawer(context),
                               ),
                             } else ...{
                               const SizedBox(width: 12),

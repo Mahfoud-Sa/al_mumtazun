@@ -6,7 +6,7 @@ import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
-import '../../../home/home_shell.dart';
+import '../../../home/app_shell.dart';
 import '../../domain/entities/device.dart';
 import '../cubit/devices_cubit.dart';
 import '../cubit/devices_state.dart';
@@ -153,7 +153,7 @@ class _DevicesHeader extends StatelessWidget {
             IconButton(
               tooltip: 'القائمة',
               icon: Icon(Icons.menu, color: colorScheme.primary),
-              onPressed: () => HomeShell.openDrawer(context),
+              onPressed: () => AppShell.openDrawer(context),
             ),
             const SizedBox(width: AppSpacing.sm),
             Column(

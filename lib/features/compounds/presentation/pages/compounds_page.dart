@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/index_view_toggle.dart';
 import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
-import '../../../home/home_shell.dart';
+import '../../../home/app_shell.dart';
 import '../../domain/entities/compound.dart';
 import '../cubit/compounds_cubit.dart';
 import '../cubit/compounds_state.dart';
@@ -117,7 +117,7 @@ class _SparePartsHeader extends StatelessWidget {
             IconButton(
               tooltip: 'القائمة',
               icon: const Icon(Icons.menu, color: AppColors.primary),
-              onPressed: () => HomeShell.openDrawer(context),
+              onPressed: () => AppShell.openDrawer(context),
             ),
             const SizedBox(width: 8),
             Column(
@@ -938,9 +938,7 @@ class _PartActions extends StatelessWidget {
   void _showDetails(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => CompoundDetailsPage(compound: part),
-      ),
+      MaterialPageRoute(builder: (_) => CompoundDetailsPage(compound: part)),
     );
   }
 

@@ -10,22 +10,22 @@ import '../invoices/presentation/pages/invoice_page.dart';
 import 'app_drawer.dart';
 import 'state/home_cubit.dart';
 
-class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
 
   static void openDrawer(BuildContext context) {
     context
-        .findAncestorStateOfType<_HomeShellState>()
+        .findAncestorStateOfType<_AppShellState>()
         ?.scaffoldKey
         .currentState
         ?.openDrawer();
   }
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  State<AppShell> createState() => _AppShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _AppShellState extends State<AppShell> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -56,7 +56,7 @@ class _HomeShellState extends State<HomeShell> {
             ],
           );
 
-          if (3 < 6) {
+          if (13 < 6) {
             return Scaffold(
               body: Row(
                 children: [

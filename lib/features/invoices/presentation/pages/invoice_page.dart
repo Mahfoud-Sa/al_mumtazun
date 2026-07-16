@@ -6,7 +6,7 @@ import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_text_styles.dart';
-import '../../../home/home_shell.dart';
+import '../../../home/app_shell.dart';
 import '../../domain/entities/invoice.dart';
 import '../cubit/invoices_cubit.dart';
 import '../cubit/invoices_state.dart';
@@ -540,7 +540,7 @@ class _InvoicesHeader extends StatelessWidget {
             IconButton(
               tooltip: 'القائمة',
               icon: const Icon(Icons.menu, color: AppColors.primary),
-              onPressed: () => HomeShell.openDrawer(context),
+              onPressed: () => AppShell.openDrawer(context),
             ),
             const SizedBox(width: AppSpacing.sm),
             Column(

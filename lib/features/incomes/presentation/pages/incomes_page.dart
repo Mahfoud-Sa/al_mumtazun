@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
-import '../../../home/home_shell.dart';
+import '../../../home/app_shell.dart';
 import '../../domain/entities/income_engineer.dart';
 import '../../domain/entities/income_entry.dart';
 import '../cubit/incomes_cubit.dart';
@@ -87,7 +87,7 @@ class _IncomeHeader extends StatelessWidget {
             IconButton(
               tooltip: 'القائمة',
               icon: const Icon(Icons.menu, color: AppColors.primary),
-              onPressed: () => HomeShell.openDrawer(context),
+              onPressed: () => AppShell.openDrawer(context),
             ),
             const SizedBox(width: 8),
             Column(

@@ -6,7 +6,7 @@ import 'core/navigation/app_navigator.dart';
 import 'di/service_locator.dart';
 import 'features/auth/auth_cubit.dart';
 import 'features/auth/login_screen.dart';
-import 'features/home/home_shell.dart';
+import 'features/home/app_shell.dart';
 import 'features/update/cubit/update_cubit.dart';
 import 'features/update/widgets/update_listener.dart';
 import 'l10n/app_localizations.dart';
@@ -63,7 +63,7 @@ class EngineeringOpsApp extends StatelessWidget {
                         }
 
                         return state.isLoggedIn
-                            ? const HomeShell()
+                            ? const AppShell()
                             : const LoginScreen();
                       },
                     ),
