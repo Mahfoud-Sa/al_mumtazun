@@ -71,18 +71,15 @@ flutter_launcher_icons:
     icon_size: 256 # Package handles the scaling automatically
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
   assets:
     - shorebird.yaml
+    - assets/images/
+    - assets/images/brand.png
+    
   generate: true
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
-  uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  
+  
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

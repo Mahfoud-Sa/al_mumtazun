@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -44,30 +45,140 @@ class DashboardScreen extends StatelessWidget {
                         elevation: 0,
                         toolbarHeight: 64,
                         titleSpacing: horizontalPadding,
+
                         title: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.menu,
-                                color: colorScheme.primary,
+                            if (13 < 6) ...{
+                              // Drawer button
+                              IconButton(
+                                icon: Icon(
+                                  Icons.menu,
+                                  color: colorScheme.primary,
+                                ),
+                                onPressed: () => HomeShell.openDrawer(context),
                               ),
-                              onPressed: () => HomeShell.openDrawer(context),
-                            ),
+                            } else ...{
+                              const SizedBox(width: 12),
+                            },
                             const SizedBox(width: 12),
-                            Flexible(
-                              child: Text(
-                                l10n.dashboard,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: colorScheme.primary,
+
+                            // Application title
+                            Text(
+                              "محل المتميزون",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleLarge!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: colorScheme.primary,
+                                  ),
+                            ),
+
+                            const SizedBox(width: 32),
+
+                            // Desktop Menu Items
+                            if (MediaQuery.of(context).size.width > 900)
+                              Row(
+                                children: [
+                                  _appBarMenuItem(context, "ملف"),
+
+                                  _appBarMenuItem(context, "تعديل"),
+
+                                  _appBarMenuItem(context, "عرض"),
+
+                                  _appBarMenuItem(context, "الادوات"),
+
+                                  _appBarMenuItem(context, "مساعدة"),
+                                ],
+                              ),
+
+                            const Spacer(),
+
+                            // Search field
+                            if (MediaQuery.of(context).size.width > 700)
+                              SizedBox(
+                                width: 260,
+                                height: 40,
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    hintText: "البحث داخل النظام...",
+
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: colorScheme.outline,
                                     ),
+
+                                    filled: true,
+
+                                    fillColor:
+                                        colorScheme.surfaceContainerHighest,
+
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+
+                                      borderSide: BorderSide.none,
+                                    ),
+
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            const SizedBox(width: 16),
+
+                            // User Profile
+                            InkWell(
+                              borderRadius: BorderRadius.circular(30),
+
+                              onTap: () {
+                                // open profile menu
+                              },
+
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor:
+                                        colorScheme.primaryContainer,
+
+                                    child: Text(
+                                      "A",
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimaryContainer,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => const ProfilePage(),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      "Admin",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium!
+                                          .copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+
+                            const SizedBox(width: 8),
                           ],
                         ),
                       ),
@@ -123,6 +234,30 @@ class DashboardScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _appBarMenuItem(BuildContext context, String title) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+
+      child: TextButton(
+        onPressed: () {
+          // menu action
+        },
+
+        style: TextButton.styleFrom(
+          foregroundColor: colorScheme.onSurfaceVariant,
+
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+
+        child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       ),
     );
   }
@@ -253,12 +388,10 @@ class _EngineeringOverviewCard extends StatelessWidget {
           children: [
             Text(
               l10n.engineeringOverview,
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -500,12 +633,10 @@ class _TotalIncomeCard extends StatelessWidget {
             // HEADER
             Text(
               l10n.totalIncome,
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
 
             const SizedBox(height: 12),
@@ -618,12 +749,10 @@ class _LogisticsPerformanceCard extends StatelessWidget {
           children: [
             Text(
               l10n.logisticsPerformance,
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -703,12 +832,10 @@ class _ResourceAllocationCard extends StatelessWidget {
           children: [
             Text(
               l10n.resourceAllocation,
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -732,7 +859,12 @@ class _ResourceAllocationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(BuildContext context, String label, double value, Color color) {
+  Widget _buildRow(
+    BuildContext context,
+    String label,
+    double value,
+    Color color,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -741,17 +873,14 @@ class _ResourceAllocationCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: TextStyle(color: colorScheme.onSurface),
-            ),
+            Text(label, style: TextStyle(color: colorScheme.onSurface)),
             Text(
               "${(value * 100).toInt()}%",
               style: TextStyle(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
-            )
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -791,12 +920,10 @@ class _CriticalLogsCard extends StatelessWidget {
               children: [
                 Text(
                   l10n.criticalEngineeringLogs,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge!.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 TextButton(
                   onPressed: () {},

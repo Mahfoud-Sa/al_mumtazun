@@ -1,4 +1,5 @@
 import 'package:engineering_ops_dashboard/features/dashboard/dashboard_screen.dart';
+import 'package:engineering_ops_dashboard/features/home/desktop_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -45,21 +46,54 @@ class _HomeShellState extends State<HomeShell> {
         builder: (context, index) {
           final colorScheme = Theme.of(context).colorScheme;
 
+          final content = IndexedStack(
+            index: index,
+            children: [
+              DashboardScreen(),
+              const DevicesPage(),
+              const InvoiceIndexPage(),
+              const CompoundsPage(),
+            ],
+          );
+
+          if (3 < 6) {
+            return Scaffold(
+              body: Row(
+                children: [
+                  DesktopSidebar(
+                    items: [
+                      DesktopNavItem(
+                        label: l10n.dashboard,
+                        icon: Icons.dashboard_outlined,
+                      ),
+                      DesktopNavItem(
+                        label: "الاجهزة",
+                        icon: Icons.inventory_2_outlined,
+                      ),
+                      DesktopNavItem(
+                        label: l10n.invoices,
+                        icon: Icons.receipt_long_outlined,
+                      ),
+                      DesktopNavItem(
+                        label: l10n.components,
+                        icon: Icons.engineering_outlined,
+                      ),
+                    ],
+                  ),
+
+                  Expanded(child: content),
+                ],
+              ),
+            );
+          }
+
           return Scaffold(
             key: scaffoldKey,
+
             drawer: const AppDrawer(),
-            body: IndexedStack(
-              index: index,
-              children: [
-                DashboardScreen(),
-                // _ComingSoon(title: l10n.dashboard),
-                //    const IncomesPage(),
-                const DevicesPage(),
-                const InvoiceIndexPage(),
-                const CompoundsPage(),
-                //    const AdminScreen(),
-              ],
-            ),
+
+            body: content,
+
             bottomNavigationBar: SafeArea(
               top: false,
               child: Container(
@@ -69,18 +103,17 @@ class _HomeShellState extends State<HomeShell> {
                     top: BorderSide(color: colorScheme.outlineVariant),
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(items.length, (i) {
-                    final selected = i == index;
-                    final item = items[i];
                     return Expanded(
                       child: _BottomNavButton(
-                        label: item.label,
-                        icon: item.icon,
-                        selected: selected,
-                        onTap: () => context.read<HomeCubit>().setIndex(i),
+                        label: items[i].label,
+                        icon: items[i].icon,
+                        selected: i == index,
+                        onTap: () {
+                          context.read<HomeCubit>().setIndex(i);
+                        },
                       ),
                     );
                   }),

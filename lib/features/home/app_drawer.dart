@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:engineering_ops_dashboard/features/admin/admin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/clients/http_client.dart';
 import '../../di/service_locator.dart';
 import '../../theme/theme_cubit.dart';
 import '../auth/auth_cubit.dart';
@@ -14,6 +17,7 @@ import '../roles/presentation/pages/roles_page.dart';
 import '../../features/tools/tools_page.dart';
 import '../../features/income/income_screen.dart';
 import '../../features/income/presentation/pages/income_index_page.dart';
+import '../admin/password_reset_requests_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -55,7 +59,9 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).pop();
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const EngineeringToolsPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const EngineeringToolsPage(),
+                        ),
                       );
                     },
                   ),
@@ -68,7 +74,9 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).pop();
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const IncomeIndexPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const IncomeIndexPage(),
+                        ),
                       );
                     },
                   ),
@@ -155,6 +163,96 @@ class AppDrawer extends StatelessWidget {
                                   ),
                                 );
                               },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  BlocBuilder<AuthCubit, AuthState>(
+                    builder: (context, state) {
+                      if (!_canOpenAdmin(state.user?.role)) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return ListTile(
+                        leading: Icon(
+                          Icons.lock_reset_outlined,
+                          color: colorScheme.primary,
+                        ),
+                        title: const Text('طلبات إعادة تعيين كلمة المرور'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PasswordResetRequestsPage(
+                                requestsLoader: () async {
+                                  final response = await getIt<AppHttpClient>().get(
+                                    Uri.parse(
+                                      'http://al-mumtazun-api.runasp.net/api/Users/password-reset-requests',
+                                    ),
+                                  );
+
+                                  if (response.statusCode < 200 ||
+                                      response.statusCode >= 300) {
+                                    throw Exception(
+                                      'فشل تحميل الطلبات: ${response.statusCode}',
+                                    );
+                                  }
+
+                                  final decoded = response.body;
+                                  if (decoded.trim().isEmpty) {
+                                    return const <PasswordResetRequest>[];
+                                  }
+
+                                  final parsed = <PasswordResetRequest>[];
+                                  final dynamic jsonBody = jsonDecode(decoded);
+                                  if (jsonBody is List) {
+                                    for (final item in jsonBody) {
+                                      if (item is Map<String, dynamic>) {
+                                        parsed.add(
+                                          PasswordResetRequest(
+                                            id: item['id']?.toString() ?? '',
+                                            userName:
+                                                item['userName']?.toString() ??
+                                                item['fullName']?.toString() ??
+                                                '-',
+                                            requestedAt:
+                                                DateTime.tryParse(
+                                                  item['requestedAt']
+                                                          ?.toString() ??
+                                                      item['date']
+                                                          ?.toString() ??
+                                                      '',
+                                                ) ??
+                                                DateTime.now(),
+                                            userId: int.tryParse(
+                                              item['userId']?.toString() ??
+                                                  item['id']?.toString() ??
+                                                  '',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  }
+
+                                  return parsed;
+                                },
+                                resetPassword: (request) async {
+                                  final userId = request.userId ?? request.id;
+                                  final response = await getIt<AppHttpClient>()
+                                      .post(
+                                        Uri.parse(
+                                          'http://al-mumtazun-api.runasp.net/api/Users/reset-password/$userId',
+                                        ),
+                                        headers: {'accept': '*/*'},
+                                      );
+
+                                  return response.statusCode >= 200 &&
+                                      response.statusCode < 300;
+                                },
+                              ),
                             ),
                           );
                         },
