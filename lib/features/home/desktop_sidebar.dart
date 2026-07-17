@@ -229,8 +229,8 @@ class _CollapsedHeader extends StatelessWidget {
 
       child: Center(
         child: Container(
-          width: 33,
-          height: 33,
+          width: 50,
+          height: 50,
 
           alignment: Alignment.center,
 
@@ -241,8 +241,8 @@ class _CollapsedHeader extends StatelessWidget {
 
           child: Image.asset(
             'assets/images/another.png',
-            width: 28,
-            height: 28,
+            width: 44,
+            height: 44,
           ),
         ),
       ),
