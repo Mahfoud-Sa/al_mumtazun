@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
+import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -64,6 +68,28 @@ class _InvoiceViewState extends State<_InvoiceView> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        appBar: (Platform.isWindows)
+            ? AppBar(
+                toolbarHeight: 64,
+                // backgroundColor: colorScheme.surface,
+                title: AppHeader(
+                  title: 'الأجهزة',
+                  username: 'المهندس',
+                  userInitial: 'م',
+                  showDrawerButton: true,
+                  showSearch: false,
+                  showDesktopMenus: false,
+                  onDrawerPressed: () => AppShell.openDrawer(context),
+                  onProfilePressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ProfilePage(),
+                      ),
+                    );
+                  },
+                ),
+              )
+            : null,
         backgroundColor: Colors.transparent,
         body: BlocListener<InvoicesCubit, InvoicesState>(
           listenWhen: (previous, current) =>
@@ -91,7 +117,11 @@ class _InvoiceViewState extends State<_InvoiceView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _InvoicesHeader(),
+                  if (Platform.isAndroid || Platform.isIOS) ...{
+                    const _InvoicesHeader(),
+                  } else
+                    ...{},
+
                   const SizedBox(height: AppSpacing.xl),
                   const _InvoiceQueryPanel(),
                   const SizedBox(height: AppSpacing.md),

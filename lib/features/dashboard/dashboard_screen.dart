@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:engineering_ops_dashboard/core/services/platform_service.dart';
+import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
 import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
+import 'package:engineering_ops_dashboard/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -38,19 +41,67 @@ class DashboardScreen extends StatelessWidget {
                       // ======================================================
                       // APP BAR
                       // ======================================================
-                      SliverAppBar(
-                        pinned: true,
-                        backgroundColor: colorScheme.surface,
-                        surfaceTintColor: Colors.transparent,
-                        elevation: 0,
-                        toolbarHeight: 64,
-                        titleSpacing: horizontalPadding,
+                      if (PlatformService.isDesktop) ...{
+                        SliverAppBar(
+                          pinned: true,
+                          toolbarHeight: 64,
 
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            if (13 < 6) ...{
-                              // Drawer button
+                          backgroundColor: Colors.transparent,
+
+                          surfaceTintColor: Colors.transparent,
+
+                          elevation: 0,
+
+                          titleSpacing: 24,
+
+                          flexibleSpace: Container(
+                            decoration: const BoxDecoration(
+                              color: Color.fromARGB(255, 245, 243, 244),
+
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Color.fromARGB(255, 221, 222, 225),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          title: AppHeader(
+                            title: "محل المتميزون",
+
+                            showDrawerButton: false,
+
+                            showSearch: true,
+
+                            showDesktopMenus: true,
+
+                            username: "Admin",
+
+                            userInitial: "A",
+
+                            onDrawerPressed: () => AppShell.openDrawer(context),
+
+                            onProfilePressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ProfilePage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      } else ...{
+                        SliverAppBar(
+                          pinned: true,
+                          backgroundColor: colorScheme.surface,
+                          surfaceTintColor: Colors.transparent,
+                          elevation: 0,
+                          toolbarHeight: 64,
+                          titleSpacing: horizontalPadding,
+                          title: Row(
+                            children: [
                               IconButton(
                                 icon: Icon(
                                   Icons.menu,
@@ -58,130 +109,25 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                                 onPressed: () => AppShell.openDrawer(context),
                               ),
-                            } else ...{
                               const SizedBox(width: 12),
-                            },
-                            const SizedBox(width: 12),
-
-                            // Application title
-                            Text(
-                              "محل المتميزون",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: colorScheme.primary,
-                                  ),
-                            ),
-
-                            const SizedBox(width: 32),
-
-                            // Desktop Menu Items
-                            if (MediaQuery.of(context).size.width > 900)
-                              Row(
-                                children: [
-                                  _appBarMenuItem(context, "ملف"),
-
-                                  _appBarMenuItem(context, "تعديل"),
-
-                                  _appBarMenuItem(context, "عرض"),
-
-                                  _appBarMenuItem(context, "الادوات"),
-
-                                  _appBarMenuItem(context, "مساعدة"),
-                                ],
-                              ),
-
-                            const Spacer(),
-
-                            // Search field
-                            if (MediaQuery.of(context).size.width > 700)
-                              SizedBox(
-                                width: 260,
-                                height: 40,
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: "البحث داخل النظام...",
-
-                                    prefixIcon: Icon(
-                                      Icons.search,
-                                      color: colorScheme.outline,
-                                    ),
-
-                                    filled: true,
-
-                                    fillColor:
-                                        colorScheme.surfaceContainerHighest,
-
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-
-                                      borderSide: BorderSide.none,
-                                    ),
-
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 0,
-                                    ),
-                                  ),
+                              Flexible(
+                                child: Text(
+                                  l10n.dashboard,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium!
+                                      .copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: colorScheme.primary,
+                                      ),
                                 ),
                               ),
-
-                            const SizedBox(width: 16),
-
-                            // User Profile
-                            InkWell(
-                              borderRadius: BorderRadius.circular(30),
-
-                              onTap: () {
-                                // open profile menu
-                              },
-
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor:
-                                        colorScheme.primaryContainer,
-
-                                    child: Text(
-                                      "A",
-                                      style: TextStyle(
-                                        color: colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 8),
-
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => const ProfilePage(),
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      "Admin",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(width: 8),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      },
 
                       // ======================================================
                       // BODY
@@ -276,7 +222,7 @@ class _DashboardErrorBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
+        color: Color.fromARGB(245, 247, 249, 251),
         border: Border.all(color: colorScheme.error.withValues(alpha: 0.25)),
         borderRadius: BorderRadius.circular(4),
       ),

@@ -1,3 +1,4 @@
+import 'package:engineering_ops_dashboard/core/services/platform_service.dart';
 import 'package:engineering_ops_dashboard/features/dashboard/dashboard_screen.dart';
 import 'package:engineering_ops_dashboard/features/home/desktop_sidebar.dart';
 import 'package:flutter/material.dart';
@@ -56,27 +57,39 @@ class _AppShellState extends State<AppShell> {
             ],
           );
 
-          if (13 < 6) {
+          if (PlatformService.isDesktop) {
             return Scaffold(
               body: Row(
                 children: [
                   DesktopSidebar(
+                    selectedIndex: index,
+                    onItemSelected: (selectedIndex) {
+                      context.read<HomeCubit>().setIndex(selectedIndex);
+                    },
                     items: [
                       DesktopNavItem(
                         label: l10n.dashboard,
                         icon: Icons.dashboard_outlined,
+                        selectedIcon: Icons.dashboard_rounded,
+                        description: 'الملخص والاتجاهات',
                       ),
                       DesktopNavItem(
-                        label: "الاجهزة",
+                        label: 'الأجهزة',
                         icon: Icons.inventory_2_outlined,
+                        selectedIcon: Icons.inventory_2_rounded,
+                        description: 'إدارة ومتابعة الأجهزة',
                       ),
                       DesktopNavItem(
                         label: l10n.invoices,
                         icon: Icons.receipt_long_outlined,
+                        selectedIcon: Icons.receipt_long_rounded,
+                        description: 'الفواتير والمستحقات',
                       ),
                       DesktopNavItem(
                         label: l10n.components,
                         icon: Icons.engineering_outlined,
+                        selectedIcon: Icons.engineering_rounded,
+                        description: 'المكونات والمخزون',
                       ),
                     ],
                   ),

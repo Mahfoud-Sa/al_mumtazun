@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
+import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -63,6 +66,28 @@ class _SparePartsViewState extends State<_SparePartsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: (Platform.isWindows)
+          ? AppBar(
+              toolbarHeight: 64,
+              //  backgroundColor: colorScheme.surface,
+              title: AppHeader(
+                title: 'الأجهزة',
+                username: 'المهندس',
+                userInitial: 'م',
+                showDrawerButton: true,
+                showSearch: false,
+                showDesktopMenus: false,
+                onDrawerPressed: () => AppShell.openDrawer(context),
+                onProfilePressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const ProfilePage(),
+                    ),
+                  );
+                },
+              ),
+            )
+          : null,
       backgroundColor: Colors.transparent,
       body: Directionality(
         textDirection: TextDirection.rtl,
@@ -75,7 +100,11 @@ class _SparePartsViewState extends State<_SparePartsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const _SparePartsHeader(),
+                if (Platform.isAndroid || Platform.isIOS) ...{
+                  const _SparePartsHeader(),
+                } else
+                  ...{},
+
                 const SizedBox(height: 24),
                 const _SparePartsFilters(),
                 const SizedBox(height: 16),
