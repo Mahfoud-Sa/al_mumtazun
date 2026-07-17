@@ -1,3 +1,4 @@
+import 'package:engineering_ops_dashboard/core/config/windows_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -17,6 +18,8 @@ import 'theme/theme_cubit.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
+  // Configure the native Windows window (does nothing on Android/iOS).
+  await WindowsConfig.initialize();
   runApp(const EngineeringOpsApp());
 }
 
@@ -37,6 +40,7 @@ class EngineeringOpsApp extends StatelessWidget {
           return BlocBuilder<ThemeCubit, ThemeState>(
             builder: (context, themeState) {
               return MaterialApp(
+                title: 'محل المتميزون',
                 navigatorKey: appNavigatorKey,
                 onGenerateTitle: (context) =>
                     AppLocalizations.of(context)!.appTitle,

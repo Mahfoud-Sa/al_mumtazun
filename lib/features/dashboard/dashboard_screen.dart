@@ -46,38 +46,22 @@ class DashboardScreen extends StatelessWidget {
                           pinned: true,
                           toolbarHeight: 64,
 
-                          backgroundColor: Colors.transparent,
-
+                          backgroundColor: Colors.white,
                           surfaceTintColor: Colors.transparent,
 
                           elevation: 0,
+                          scrolledUnderElevation: 0,
 
-                          titleSpacing: 24,
-
-                          flexibleSpace: Container(
-                            decoration: const BoxDecoration(
-                              color: Color.fromARGB(255, 245, 243, 244),
-
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Color.fromARGB(255, 221, 222, 225),
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                          ),
+                          forceElevated: false,
 
                           title: AppHeader(
                             title: "محل المتميزون",
 
                             showDrawerButton: false,
-
                             showSearch: true,
-
                             showDesktopMenus: true,
 
                             username: "Admin",
-
                             userInitial: "A",
 
                             onDrawerPressed: () => AppShell.openDrawer(context),
