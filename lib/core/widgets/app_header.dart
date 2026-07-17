@@ -1,6 +1,6 @@
-import 'dart:math' as math;
-
+import 'package:engineering_ops_dashboard/features/auth/auth_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppHeader extends StatelessWidget {
   final String title;
@@ -11,27 +11,37 @@ class AppHeader extends StatelessWidget {
   final String userInitial;
   final VoidCallback? onDrawerPressed;
   final VoidCallback? onProfilePressed;
+  final VoidCallback? onLogout;
   final List<HeaderMenuItemData> menuItems;
   final int? selectedMenuIndex;
   final TextEditingController? searchController;
   final ValueChanged<String>? onSearchChanged;
   final String? searchHintText;
+  final bool showLogoutButton;
+  final bool confirmLogout;
+  final IconData tapIcon;
+  final String? logoutTooltip;
 
   const AppHeader({
     super.key,
     required this.title,
     required this.username,
     required this.userInitial,
+    required this.tapIcon,
     this.showDrawerButton = false,
     this.showSearch = true,
     this.showDesktopMenus = true,
     this.onDrawerPressed,
     this.onProfilePressed,
+    this.onLogout,
     this.menuItems = const [],
     this.selectedMenuIndex,
     this.searchController,
     this.onSearchChanged,
     this.searchHintText = 'البحث داخل النظام...',
+    this.showLogoutButton = true,
+    this.confirmLogout = true,
+    this.logoutTooltip = 'تسجيل الخروج',
   });
 
   @override
@@ -44,82 +54,98 @@ class AppHeader extends StatelessWidget {
       height: 64,
       width: double.infinity,
       decoration: BoxDecoration(
-        //   color: colorScheme.surface,
+        color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+          bottom: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+            width: 1,
+          ),
         ),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: colorScheme.shadow.withValues(alpha: 0.06),
-        //     blurRadius: 12,
-        //     offset: const Offset(0, 2),
-        //   ),
-        // ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
-            final showMenus = showDesktopMenus && width >= 920;
-            final showSearch = this.showSearch && width >= 760;
-            final showUsername = width >= 620;
+            final showMenus = showDesktopMenus && width >= 960;
+            final showSearchField = showSearch && width >= 760;
+            final showUsername = width >= 640;
+            final showLogout = showLogoutButton && width >= 430;
 
             return Row(
               textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
               children: [
                 if (showDrawerButton) ...[
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.45,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: IconButton(
+                      onPressed: onDrawerPressed,
+                      icon: Icon(
+                        Icons.menu_rounded,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      style: IconButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.all(10),
                       ),
                     ),
-                    onPressed: onDrawerPressed,
-                    icon: Icon(Icons.menu, color: colorScheme.onSurfaceVariant),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                 ] else
-                  const SizedBox(width: 4),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 240),
-                  child: AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.dashboard_outlined,
-                          size: 20,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
-                            ),
+                  const SizedBox(width: 2),
+                Expanded(
+                  child: Row(
+                    children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer
+                                      .withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  tapIcon,
+                                  size: 18,
+                                  color: colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
-                  child: showMenus
-                      ? SizedBox(
-                          key: const ValueKey('menus-visible'),
+                      ),
+                      if (showMenus) ...[
+                        const SizedBox(width: 14),
+                        Expanded(
                           child: HeaderMenu(
                             items: menuItems.isNotEmpty
                                 ? menuItems
@@ -132,50 +158,52 @@ class AppHeader extends StatelessWidget {
                                   ],
                             selectedIndex: selectedMenuIndex,
                           ),
-                        )
-                      : const SizedBox.shrink(key: ValueKey('menus-hidden')),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
                   transitionBuilder: (child, animation) =>
                       FadeTransition(opacity: animation, child: child),
-                  child: showSearch
-                      ? ConstrainedBox(
+                  child: showSearchField
+                      ? SizedBox(
                           key: const ValueKey('search-visible'),
-                          constraints: const BoxConstraints(
-                            minWidth: 150,
-                            maxWidth: 280,
-                          ),
-                          child: LayoutBuilder(
-                            builder: (context, innerConstraints) {
-                              final preferredWidth = math.min(
-                                280.0,
-                                math.max(
-                                  150.0,
-                                  innerConstraints.maxWidth * 0.28,
-                                ),
-                              );
-                              return SizedBox(
-                                width: preferredWidth,
-                                child: HeaderSearch(
-                                  controller: searchController,
-                                  onChanged: onSearchChanged,
-                                  hintText:
-                                      searchHintText ?? 'البحث داخل النظام...',
-                                ),
-                              );
-                            },
+                          width: width >= 1100
+                              ? 320
+                              : width >= 900
+                              ? 260
+                              : 220,
+                          child: HeaderSearch(
+                            controller: searchController,
+                            onChanged: onSearchChanged,
+                            hintText: searchHintText ?? 'البحث داخل النظام...',
                           ),
                         )
                       : const SizedBox.shrink(key: ValueKey('search-hidden')),
                 ),
-                const SizedBox(width: 12),
-                UserProfileButton(
-                  username: username,
-                  userInitial: userInitial,
-                  showUsername: showUsername,
-                  onPressed: onProfilePressed,
+                const SizedBox(width: 10),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showLogout)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: LogoutButton(
+                          onPressed: onLogout,
+                          confirmBeforeLogout: confirmLogout,
+                          tooltip: logoutTooltip ?? 'تسجيل الخروج',
+                        ),
+                      ),
+                    UserProfileButton(
+                      username: username,
+                      userInitial: userInitial,
+                      showUsername: showUsername,
+                      onPressed: onProfilePressed,
+                    ),
+                  ],
                 ),
               ],
             );
@@ -198,21 +226,22 @@ class HeaderMenu extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 0,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final isActive = selectedIndex != null && index == selectedIndex;
+    return SizedBox(
+      height: 48,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(items.length, (index) {
+            final item = items[index];
+            final isActive = selectedIndex != null && index == selectedIndex;
 
-          return HeaderMenuItem(
-            label: item.label,
-            active: isActive,
-            onPressed: item.onTap,
-          );
-        }),
+            return HeaderMenuItem(
+              label: item.label,
+              active: isActive,
+              onPressed: item.onTap,
+            );
+          }),
+        ),
       ),
     );
   }
@@ -255,13 +284,19 @@ class _HeaderMenuItemState extends State<HeaderMenuItem> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
+        margin: const EdgeInsetsDirectional.only(end: 4),
         decoration: BoxDecoration(
           color: isActive
-              ? colorScheme.primaryContainer
+              ? colorScheme.primaryContainer.withValues(alpha: 0.55)
               : (_hovered
-                    ? colorScheme.secondaryContainer.withValues(alpha: 0.5)
-                    : Colors.transparent),
+                    ? colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.65,
+                      )
+                    : colorScheme.surface.withValues(alpha: 0.0)),
           borderRadius: BorderRadius.circular(10),
+          border: isActive
+              ? Border(bottom: BorderSide(color: colorScheme.primary, width: 2))
+              : null,
         ),
         child: TextButton(
           style: TextButton.styleFrom(
@@ -301,34 +336,62 @@ class HeaderSearch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final localController = controller;
+    final hasText = localController?.text.isNotEmpty ?? false;
 
     return SizedBox(
       height: 40,
       child: TextField(
-        controller: controller,
+        controller: localController,
         onChanged: onChanged,
         textAlign: TextAlign.start,
         textDirection: Directionality.of(context),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-          prefixIcon: Icon(Icons.search, color: colorScheme.outline),
+          prefixIcon: Icon(Icons.search_rounded, color: colorScheme.outline),
+          suffixIcon: hasText
+              ? IconButton(
+                  onPressed: () {
+                    if (localController != null) {
+                      localController.clear();
+                      onChanged?.call('');
+                    }
+                  },
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 18,
+                  ),
+                  splashRadius: 18,
+                )
+              : null,
           filled: true,
-          fillColor: colorScheme.surfaceContainerHighest,
+          fillColor: colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.72,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: colorScheme.primary.withValues(alpha: 0.3),
+              color: colorScheme.primary.withValues(alpha: 0.45),
+              width: 1.2,
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(
@@ -361,7 +424,7 @@ class UserProfileButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Material(
-      color: Colors.transparent,
+      color: colorScheme.surface.withValues(alpha: 0.0),
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
         onTap: onPressed,
@@ -370,7 +433,7 @@ class UserProfileButton extends StatelessWidget {
           curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Row(
@@ -394,7 +457,10 @@ class UserProfileButton extends StatelessWidget {
                 child: showUsername
                     ? Padding(
                         key: const ValueKey('profile-name'),
-                        padding: const EdgeInsetsDirectional.only(start: 8),
+                        padding: const EdgeInsetsDirectional.only(
+                          start: 8,
+                          end: 4,
+                        ),
                         child: Text(
                           username,
                           maxLines: 1,
@@ -410,7 +476,149 @@ class UserProfileButton extends StatelessWidget {
                         key: ValueKey('profile-name-hidden'),
                       ),
               ),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 18,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LogoutButton extends StatefulWidget {
+  final VoidCallback? onPressed;
+  final bool confirmBeforeLogout;
+  final String tooltip;
+
+  const LogoutButton({
+    super.key,
+    this.onPressed,
+    this.confirmBeforeLogout = true,
+    this.tooltip = 'تسجيل الخروج',
+  });
+
+  @override
+  State<LogoutButton> createState() => _LogoutButtonState();
+}
+
+class _LogoutButtonState extends State<LogoutButton> {
+  bool _hovered = false;
+
+  Future<void> _handleTap(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final authCubit = context.read<AuthCubit>();
+    final bool shouldProceed;
+
+    if (!widget.confirmBeforeLogout) {
+      shouldProceed = true;
+    } else {
+      shouldProceed =
+          await showDialog<bool>(
+            context: context,
+            builder: (dialogContext) {
+              final dialogColorScheme = Theme.of(dialogContext).colorScheme;
+
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                title: Text(
+                  'تسجيل الخروج',
+                  style: Theme.of(dialogContext).textTheme.titleMedium
+                      ?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: dialogColorScheme.onSurface,
+                      ),
+                ),
+                content: Text(
+                  'هل تريد تسجيل الخروج من التطبيق؟',
+                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                    color: dialogColorScheme.onSurfaceVariant,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    child: const Text('إلغاء'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    child: const Text('تسجيل الخروج'),
+                  ),
+                ],
+              );
+            },
+          ) ??
+          false;
+    }
+
+    if (!shouldProceed) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    if (widget.onPressed != null) {
+      widget.onPressed!.call();
+      return;
+    }
+
+    authCubit.logout();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (navigator.canPop()) {
+      navigator.pop();
+    } else {
+      navigator.pushReplacementNamed('/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            color: _hovered
+                ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.65)
+                : colorScheme.surface.withValues(alpha: 0.0),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+            ),
+          ),
+          child: IconButton(
+            onPressed: () => _handleTap(context),
+            tooltip: widget.tooltip,
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            icon: Icon(
+              Icons.logout_rounded,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),

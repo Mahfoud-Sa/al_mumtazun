@@ -71,14 +71,15 @@ class _InvoiceViewState extends State<_InvoiceView> {
         appBar: (Platform.isWindows)
             ? AppBar(
                 toolbarHeight: 64,
-                // backgroundColor: colorScheme.surface,
+                backgroundColor: Colors.white,
                 title: AppHeader(
                   title: 'الأجهزة',
+                  tapIcon: Icons.receipt_long_outlined,
                   username: 'المهندس',
                   userInitial: 'م',
-                  showDrawerButton: true,
-                  showSearch: false,
-                  showDesktopMenus: false,
+                  showDrawerButton: false,
+                  showSearch: true,
+                  showDesktopMenus: true,
                   onDrawerPressed: () => AppShell.openDrawer(context),
                   onProfilePressed: () {
                     Navigator.of(context).push(

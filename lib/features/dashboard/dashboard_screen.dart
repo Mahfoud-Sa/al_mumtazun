@@ -56,7 +56,7 @@ class DashboardScreen extends StatelessWidget {
 
                           title: AppHeader(
                             title: "محل المتميزون",
-
+                            tapIcon: Icons.dashboard_outlined,
                             showDrawerButton: false,
                             showSearch: true,
                             showDesktopMenus: true,
@@ -64,8 +64,7 @@ class DashboardScreen extends StatelessWidget {
                             username: "Admin",
                             userInitial: "A",
 
-                            onDrawerPressed: () => AppShell.openDrawer(context),
-
+                            //   onDrawerPressed: () => AppShell.openDrawer(context),
                             onProfilePressed: () {
                               Navigator.push(
                                 context,
