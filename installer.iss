@@ -1,7 +1,7 @@
 #define MyAppName "المتميزون"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "GIDtEAM"
-#define MyAppExeName "engineering_ops_dashboard.exe"
+#define MyAppExeName "al_mumtazun.exe"
 
 
 [Setup]
