@@ -1,3 +1,4 @@
+import 'package:engineering_ops_dashboard/core/widgets/desktop_profile_card.dart';
 import 'package:engineering_ops_dashboard/features/auth/auth_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -197,12 +198,21 @@ class AppHeader extends StatelessWidget {
                           tooltip: logoutTooltip ?? 'تسجيل الخروج',
                         ),
                       ),
-                    UserProfileButton(
-                      username: username,
-                      userInitial: userInitial,
-                      showUsername: showUsername,
-                      onPressed: onProfilePressed,
+                    SizedBox(
+                      width: 180,
+                      height: 48,
+                      child: DesktopProfileCard(
+                        name: "محمد سالم ",
+                        role: "Admin",
+                        onTap: () {},
+                      ),
                     ),
+                    // UserProfileCard(
+                    //   username: username,
+                    //   userInitial: userInitial,
+                    //   showUsername: showUsername,
+                    //   onPressed: onProfilePressed,
+                    // ),
                   ],
                 ),
               ],
@@ -399,90 +409,6 @@ class HeaderSearch extends StatelessWidget {
             horizontal: 12,
           ),
           isDense: true,
-        ),
-      ),
-    );
-  }
-}
-
-class UserProfileButton extends StatelessWidget {
-  final String username;
-  final String userInitial;
-  final bool showUsername;
-  final VoidCallback? onPressed;
-
-  const UserProfileButton({
-    super.key,
-    required this.username,
-    required this.userInitial,
-    this.showUsername = true,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Material(
-      color: colorScheme.surface.withValues(alpha: 0.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                radius: 17,
-                backgroundColor: colorScheme.primaryContainer,
-                child: Text(
-                  userInitial,
-                  style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                transitionBuilder: (child, animation) =>
-                    FadeTransition(opacity: animation, child: child),
-                child: showUsername
-                    ? Padding(
-                        key: const ValueKey('profile-name'),
-                        padding: const EdgeInsetsDirectional.only(
-                          start: 8,
-                          end: 4,
-                        ),
-                        child: Text(
-                          username,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
-                              ),
-                        ),
-                      )
-                    : const SizedBox.shrink(
-                        key: ValueKey('profile-name-hidden'),
-                      ),
-              ),
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 18,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
         ),
       ),
     );
