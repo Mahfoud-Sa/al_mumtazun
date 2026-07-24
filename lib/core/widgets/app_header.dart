@@ -3,6 +3,13 @@ import 'package:engineering_ops_dashboard/features/auth/auth_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/tools/ohms_law_calculator.dart';
+import '../../features/tools/power_calculator.dart';
+import '../../features/tools/resistor_color_decoder.dart';
+import '../../features/tools/tools_page.dart';
+import '../../features/tools/voltage_divider_calculator.dart';
+
 class AppHeader extends StatelessWidget {
   final String title;
   final bool showDrawerButton;
@@ -70,7 +77,6 @@ class AppHeader extends StatelessWidget {
             final width = constraints.maxWidth;
             final showMenus = showDesktopMenus && width >= 960;
             final showSearchField = showSearch && width >= 760;
-            final showUsername = width >= 640;
             final showLogout = showLogoutButton && width >= 430;
 
             return Row(
@@ -150,13 +156,7 @@ class AppHeader extends StatelessWidget {
                           child: HeaderMenu(
                             items: menuItems.isNotEmpty
                                 ? menuItems
-                                : const [
-                                    HeaderMenuItemData(label: 'ملف'),
-                                    HeaderMenuItemData(label: 'تعديل'),
-                                    HeaderMenuItemData(label: 'عرض'),
-                                    HeaderMenuItemData(label: 'الأدوات'),
-                                    HeaderMenuItemData(label: 'مساعدة'),
-                                  ],
+                                : _buildDefaultMenuItems(context),
                             selectedIndex: selectedMenuIndex,
                           ),
                         ),
@@ -204,7 +204,9 @@ class AppHeader extends StatelessWidget {
                       child: DesktopProfileCard(
                         name: "محمد سالم ",
                         role: "Admin",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).pushNamed('/profile');
+                        },
                       ),
                     ),
                     // UserProfileCard(
@@ -221,6 +223,131 @@ class AppHeader extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<HeaderMenuItemData> _buildDefaultMenuItems(BuildContext context) {
+    return [
+      HeaderMenuItemData(
+        label: 'ملف',
+        subItems: [
+          HeaderSubMenuItemData(
+            label: 'الملف الشخصي',
+            icon: Icons.account_circle_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+            },
+          ),
+        ],
+      ),
+      HeaderMenuItemData(
+        label: 'تعديل',
+        subItems: [
+          HeaderSubMenuItemData(
+            label: 'حاسبة قانون أوم (Ohm\'s Law)',
+            icon: Icons.flash_on_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const OhmsLawCalculator()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'حساب القدرة الكهربائية (Power Calculator)',
+            icon: Icons.bolt_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PowerCalculator()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'كود ألوان المقاومات (Resistor Decoder)',
+            icon: Icons.palette_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ResistorColorDecoder()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'مقسم الجهد (Voltage Divider)',
+            icon: Icons.alt_route_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const VoltageDividerCalculator()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'جميع الأدوات الهندسية',
+            icon: Icons.calculate_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const EngineeringToolsPage()),
+              );
+            },
+          ),
+        ],
+      ),
+      HeaderMenuItemData(
+        label: 'الأدوات',
+        subItems: [
+          HeaderSubMenuItemData(
+            label: 'لوحة الأدوات الهندسية',
+            icon: Icons.design_services_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const EngineeringToolsPage()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'حاسبة قانون أوم',
+            icon: Icons.flash_on_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const OhmsLawCalculator()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'حساب القدرة الكهربائية',
+            icon: Icons.bolt_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PowerCalculator()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'شفرة ألوان المقاومات',
+            icon: Icons.palette_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ResistorColorDecoder()),
+              );
+            },
+          ),
+          HeaderSubMenuItemData(
+            label: 'مقسم / مجزئ الجهد',
+            icon: Icons.alt_route_rounded,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const VoltageDividerCalculator()),
+              );
+            },
+          ),
+        ],
+      ),
+      HeaderMenuItemData(
+        label: 'عرض',
+      ),
+      HeaderMenuItemData(
+        label: 'مساعدة',
+      ),
+    ];
   }
 }
 
@@ -249,6 +376,7 @@ class HeaderMenu extends StatelessWidget {
               label: item.label,
               active: isActive,
               onPressed: item.onTap,
+              subItems: item.subItems,
             );
           }),
         ),
@@ -257,23 +385,42 @@ class HeaderMenu extends StatelessWidget {
   }
 }
 
+class HeaderSubMenuItemData {
+  final String label;
+  final IconData? icon;
+  final VoidCallback onTap;
+
+  const HeaderSubMenuItemData({
+    required this.label,
+    this.icon,
+    required this.onTap,
+  });
+}
+
 class HeaderMenuItemData {
   final String label;
   final VoidCallback? onTap;
+  final List<HeaderSubMenuItemData>? subItems;
 
-  const HeaderMenuItemData({required this.label, this.onTap});
+  const HeaderMenuItemData({
+    required this.label,
+    this.onTap,
+    this.subItems,
+  });
 }
 
 class HeaderMenuItem extends StatefulWidget {
   final String label;
   final bool active;
   final VoidCallback? onPressed;
+  final List<HeaderSubMenuItemData>? subItems;
 
   const HeaderMenuItem({
     super.key,
     required this.label,
     this.active = false,
     this.onPressed,
+    this.subItems,
   });
 
   @override
@@ -287,6 +434,81 @@ class _HeaderMenuItemState extends State<HeaderMenuItem> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isActive = widget.active;
+    final hasSubItems = widget.subItems != null && widget.subItems!.isNotEmpty;
+
+    final labelWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          widget.label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            color: isActive
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurfaceVariant,
+          ),
+        ),
+        if (hasSubItems) ...[
+          const SizedBox(width: 2),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 16,
+            color: isActive
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ],
+    );
+
+    Widget childWidget;
+
+    if (hasSubItems) {
+      childWidget = PopupMenuButton<HeaderSubMenuItemData>(
+        tooltip: widget.label,
+        offset: const Offset(0, 38),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        onSelected: (subItem) => subItem.onTap(),
+        itemBuilder: (context) {
+          return widget.subItems!.map((subItem) {
+            return PopupMenuItem<HeaderSubMenuItemData>(
+              value: subItem,
+              child: Row(
+                children: [
+                  if (subItem.icon != null) ...[
+                    Icon(subItem.icon, size: 18, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                  ],
+                  Text(
+                    subItem.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: labelWidget,
+        ),
+      );
+    } else {
+      childWidget = TextButton(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        onPressed: widget.onPressed,
+        child: labelWidget,
+      );
+    }
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
@@ -308,24 +530,7 @@ class _HeaderMenuItemState extends State<HeaderMenuItem> {
               ? Border(bottom: BorderSide(color: colorScheme.primary, width: 2))
               : null,
         ),
-        child: TextButton(
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          onPressed: widget.onPressed,
-          child: Text(
-            widget.label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-              color: isActive
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
+        child: childWidget,
       ),
     );
   }

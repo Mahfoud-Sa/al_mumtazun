@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
-import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -66,30 +64,6 @@ class _SparePartsViewState extends State<_SparePartsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: (Platform.isWindows)
-          ? AppBar(
-              toolbarHeight: 64,
-              //  backgroundColor: colorScheme.surface,
-              backgroundColor: Colors.white,
-              title: AppHeader(
-                title: 'الأجهزة',
-                tapIcon: Icons.engineering_outlined,
-                username: 'المهندس',
-                userInitial: 'م',
-                showDrawerButton: false,
-                showSearch: true,
-                showDesktopMenus: true,
-                onDrawerPressed: () => AppShell.openDrawer(context),
-                onProfilePressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const ProfilePage(),
-                    ),
-                  );
-                },
-              ),
-            )
-          : null,
       backgroundColor: Colors.transparent,
       body: Directionality(
         textDirection: TextDirection.rtl,

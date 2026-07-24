@@ -1,9 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:engineering_ops_dashboard/core/services/platform_service.dart';
-import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
-import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
-import 'package:engineering_ops_dashboard/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -41,41 +38,7 @@ class DashboardScreen extends StatelessWidget {
                       // ======================================================
                       // APP BAR
                       // ======================================================
-                      if (PlatformService.isDesktop) ...{
-                        SliverAppBar(
-                          pinned: true,
-                          toolbarHeight: 64,
-
-                          backgroundColor: Colors.white,
-                          surfaceTintColor: Colors.transparent,
-
-                          elevation: 0,
-                          scrolledUnderElevation: 0,
-
-                          forceElevated: false,
-
-                          title: AppHeader(
-                            title: "محل المتميزون",
-                            tapIcon: Icons.dashboard_outlined,
-                            showDrawerButton: false,
-                            showSearch: true,
-                            showDesktopMenus: true,
-
-                            username: "Admin",
-                            userInitial: "A",
-
-                            //   onDrawerPressed: () => AppShell.openDrawer(context),
-                            onProfilePressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ProfilePage(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      } else ...{
+                      if (!PlatformService.isDesktop) ...{
                         SliverAppBar(
                           pinned: true,
                           backgroundColor: colorScheme.surface,
@@ -163,30 +126,6 @@ class DashboardScreen extends StatelessWidget {
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _appBarMenuItem(BuildContext context, String title) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-
-      child: TextButton(
-        onPressed: () {
-          // menu action
-        },
-
-        style: TextButton.styleFrom(
-          foregroundColor: colorScheme.onSurfaceVariant,
-
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
-
-        child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       ),
     );
   }

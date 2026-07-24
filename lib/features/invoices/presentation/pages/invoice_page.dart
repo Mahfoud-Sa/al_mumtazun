@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
-import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -68,29 +66,6 @@ class _InvoiceViewState extends State<_InvoiceView> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: (Platform.isWindows)
-            ? AppBar(
-                toolbarHeight: 64,
-                backgroundColor: Colors.white,
-                title: AppHeader(
-                  title: 'الأجهزة',
-                  tapIcon: Icons.receipt_long_outlined,
-                  username: 'المهندس',
-                  userInitial: 'م',
-                  showDrawerButton: false,
-                  showSearch: true,
-                  showDesktopMenus: true,
-                  onDrawerPressed: () => AppShell.openDrawer(context),
-                  onProfilePressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const ProfilePage(),
-                      ),
-                    );
-                  },
-                ),
-              )
-            : null,
         backgroundColor: Colors.transparent,
         body: BlocListener<InvoicesCubit, InvoicesState>(
           listenWhen: (previous, current) =>
@@ -133,7 +108,7 @@ class _InvoiceViewState extends State<_InvoiceView> {
                     },
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  // const _InvoicesSummary(),
+                  const _InvoicesSummary(),
                   const SizedBox(height: AppSpacing.xl),
                   _InvoicesList(viewMode: _viewMode),
                   if (_viewMode == IndexViewMode.list) ...[

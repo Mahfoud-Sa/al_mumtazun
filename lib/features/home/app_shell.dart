@@ -4,10 +4,13 @@ import 'package:engineering_ops_dashboard/features/home/desktop_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/widgets/app_header.dart';
 import '../../localization/l10n.dart';
 import '../compounds/presentation/pages/compounds_page.dart';
 import '../devices/presentation/pages/devices_page.dart';
+import '../diagnostics/presentation/pages/diagnostics_page.dart';
 import '../invoices/presentation/pages/invoice_page.dart';
+import '../profile/presentation/pages/profile_page.dart';
 import 'app_drawer.dart';
 import 'state/home_cubit.dart';
 
@@ -32,14 +35,6 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final items = <_NavItem>[
-      _NavItem(label: l10n.dashboard, icon: Icons.dashboard_outlined),
-      //   _NavItem(label: l10n.income, icon: Icons.payments_outlined),
-      const _NavItem(label: 'الأجهزة', icon: Icons.inventory_2_outlined),
-      const _NavItem(label: 'الفواتير', icon: Icons.receipt_long_outlined),
-      _NavItem(label: l10n.components, icon: Icons.engineering_outlined),
-      //      _NavItem(label: l10n.admin, icon: Icons.settings_outlined),
-    ];
 
     return BlocProvider(
       create: (_) => HomeCubit(),
@@ -47,66 +42,119 @@ class _AppShellState extends State<AppShell> {
         builder: (context, index) {
           final colorScheme = Theme.of(context).colorScheme;
 
-          final content = IndexedStack(
-            index: index,
-            children: [
-              DashboardScreen(),
-              const DevicesPage(),
-              const InvoiceIndexPage(),
-              const CompoundsPage(),
-            ],
-          );
-
           if (PlatformService.isDesktop) {
+            final desktopPages = const <Widget>[
+              DashboardScreen(),
+              DevicesPage(),
+              InvoiceIndexPage(),
+              CompoundsPage(),
+              DiagnosticsPage(),
+            ];
+
+            final desktopNavItems = <DesktopNavItem>[
+              DesktopNavItem(
+                label: l10n.dashboard,
+                icon: Icons.dashboard_outlined,
+                selectedIcon: Icons.dashboard_rounded,
+                description: 'الملخص والاتجاهات',
+              ),
+              DesktopNavItem(
+                label: 'الأجهزة',
+                icon: Icons.inventory_2_outlined,
+                selectedIcon: Icons.inventory_2_rounded,
+                description: 'إدارة ومتابعة الأجهزة',
+              ),
+              DesktopNavItem(
+                label: l10n.invoices,
+                icon: Icons.receipt_long_outlined,
+                selectedIcon: Icons.receipt_long_rounded,
+                description: 'الفواتير والمستحقات',
+              ),
+              DesktopNavItem(
+                label: l10n.components,
+                icon: Icons.engineering_outlined,
+                selectedIcon: Icons.engineering_rounded,
+                description: 'المكونات والمخزون',
+              ),
+              DesktopNavItem(
+                label: 'المشكلات والتشخيص',
+                icon: Icons.bug_report_sharp,
+                selectedIcon: Icons.bug_report_rounded,
+                description:
+                    'إدارة أعطال الأجهزة وتشخيصاتها والإجراءات الفنية المتخذة.',
+              ),
+            ];
+
+            final safeDesktopIndex = index.clamp(0, desktopPages.length - 1);
+
             return Scaffold(
               body: Row(
                 children: [
                   DesktopSidebar(
-                    selectedIndex: index,
+                    selectedIndex: safeDesktopIndex,
                     onItemSelected: (selectedIndex) {
                       context.read<HomeCubit>().setIndex(selectedIndex);
                     },
-                    items: [
-                      DesktopNavItem(
-                        label: l10n.dashboard,
-                        icon: Icons.dashboard_outlined,
-                        selectedIcon: Icons.dashboard_rounded,
-                        description: 'الملخص والاتجاهات',
-                      ),
-                      DesktopNavItem(
-                        label: 'الأجهزة',
-                        icon: Icons.inventory_2_outlined,
-                        selectedIcon: Icons.inventory_2_rounded,
-                        description: 'إدارة ومتابعة الأجهزة',
-                      ),
-                      DesktopNavItem(
-                        label: l10n.invoices,
-                        icon: Icons.receipt_long_outlined,
-                        selectedIcon: Icons.receipt_long_rounded,
-                        description: 'الفواتير والمستحقات',
-                      ),
-                      DesktopNavItem(
-                        label: l10n.components,
-                        icon: Icons.engineering_outlined,
-                        selectedIcon: Icons.engineering_rounded,
-                        description: 'المكونات والمخزون',
-                      ),
-                    ],
+                    items: desktopNavItems,
                   ),
-
-                  Expanded(child: content),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        AppHeader(
+                          title: desktopNavItems[safeDesktopIndex].label,
+                          tapIcon: desktopNavItems[safeDesktopIndex].icon,
+                          username: 'المهندس',
+                          userInitial: 'م',
+                          showDrawerButton: false,
+                          showSearch: true,
+                          showDesktopMenus: true,
+                          onDrawerPressed: () => AppShell.openDrawer(context),
+                          onProfilePressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const ProfilePage(),
+                              ),
+                            );
+                          },
+                        ),
+                        Expanded(
+                          child: IndexedStack(
+                            index: safeDesktopIndex,
+                            children: desktopPages,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             );
           }
 
+          // Mobile Layout
+          final mobilePages = const <Widget>[
+            DashboardScreen(),
+            DevicesPage(),
+            InvoiceIndexPage(),
+            CompoundsPage(),
+          ];
+
+          final mobileNavItems = <_NavItem>[
+            _NavItem(label: l10n.dashboard, icon: Icons.dashboard_outlined),
+            const _NavItem(label: 'الأجهزة', icon: Icons.inventory_2_outlined),
+            const _NavItem(label: 'الفواتير', icon: Icons.receipt_long_outlined),
+            _NavItem(label: l10n.components, icon: Icons.engineering_outlined),
+          ];
+
+          final safeMobileIndex = index.clamp(0, mobilePages.length - 1);
+
           return Scaffold(
             key: scaffoldKey,
-
             drawer: const AppDrawer(),
-
-            body: content,
-
+            body: IndexedStack(
+              index: safeMobileIndex,
+              children: mobilePages,
+            ),
             bottomNavigationBar: SafeArea(
               top: false,
               child: Container(
@@ -116,14 +164,13 @@ class _AppShellState extends State<AppShell> {
                     top: BorderSide(color: colorScheme.outlineVariant),
                   ),
                 ),
-
                 child: Row(
-                  children: List.generate(items.length, (i) {
+                  children: List.generate(mobileNavItems.length, (i) {
                     return Expanded(
                       child: _BottomNavButton(
-                        label: items[i].label,
-                        icon: items[i].icon,
-                        selected: i == index,
+                        label: mobileNavItems[i].label,
+                        icon: mobileNavItems[i].icon,
+                        selected: i == safeMobileIndex,
                         onTap: () {
                           context.read<HomeCubit>().setIndex(i);
                         },

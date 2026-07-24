@@ -577,7 +577,7 @@ class _DefaultFooter extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'جميع الحقوق محفوظة © 2024',
+              'جميع الحقوق محفوظة © 2026',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

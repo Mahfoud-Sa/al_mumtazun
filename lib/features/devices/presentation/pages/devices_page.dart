@@ -1,10 +1,7 @@
-import 'dart:io';
-
-import 'package:engineering_ops_dashboard/core/widgets/app_header.dart';
-import 'package:engineering_ops_dashboard/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/services/platform_service.dart';
 import '../../../../core/widgets/index_view_toggle.dart';
 import '../../../../di/service_locator.dart';
 import '../../../../theme/app_colors.dart';
@@ -71,29 +68,6 @@ class _DevicesViewState extends State<_DevicesView> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: (Platform.isWindows)
-            ? AppBar(
-                toolbarHeight: 64,
-                backgroundColor: colorScheme.surface,
-                title: AppHeader(
-                  title: 'الأجهزة',
-                  tapIcon: Icons.inventory_2_outlined,
-                  username: 'المهندس',
-                  userInitial: 'م',
-                  showDrawerButton: false,
-                  showSearch: true,
-                  showDesktopMenus: true,
-                  onDrawerPressed: () => AppShell.openDrawer(context),
-                  onProfilePressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const ProfilePage(),
-                      ),
-                    );
-                  },
-                ),
-              )
-            : null,
         backgroundColor: Colors.transparent,
         floatingActionButton: FloatingActionButton(
           backgroundColor: colorScheme.secondary,
@@ -125,10 +99,9 @@ class _DevicesViewState extends State<_DevicesView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (Platform.isAndroid || Platform.isIOS) ...{
+                  if (!PlatformService.isDesktop) ...[
                     const _DevicesHeader(),
-                  } else
-                    ...{},
+                  ],
                   const SizedBox(height: AppSpacing.xl),
                   const _SearchAndActions(),
                   const SizedBox(height: AppSpacing.md),

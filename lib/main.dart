@@ -42,6 +42,9 @@ class EngineeringOpsApp extends StatelessWidget {
               return MaterialApp(
                 title: 'محل المتميزون',
                 navigatorKey: appNavigatorKey,
+                routes: {
+                  '/login': (context) => const LoginScreen(),
+                },
                 onGenerateTitle: (context) =>
                     AppLocalizations.of(context)!.appTitle,
                 debugShowCheckedModeBanner: false,
@@ -49,8 +52,7 @@ class EngineeringOpsApp extends StatelessWidget {
                 darkTheme: AppTheme.dark(),
                 themeMode: themeState.themeMode,
                 home: UpdateListener(
-                  child: BlocListener<AuthCubit, AuthState>(
-                    listenWhen: (previous, current) =>
+                  child: BlocListener<AuthCubit, AuthState>(                    listenWhen: (previous, current) =>
                         !previous.isInitialized && current.isInitialized,
                     listener: (context, state) {
                       // Trigger the update check exactly once after auth

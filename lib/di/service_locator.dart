@@ -32,6 +32,16 @@ import '../features/compounds/domain/usecases/get_compounds_usecase.dart';
 import '../features/compounds/domain/usecases/update_compound_usecase.dart';
 import '../features/compounds/presentation/cubit/compounds_cubit.dart';
 
+// Diagnostics
+import '../features/diagnostics/data/datasources/diagnostics_remote_datasource.dart';
+import '../features/diagnostics/data/repositories/diagnostic_repository_impl.dart';
+import '../features/diagnostics/domain/repositories/diagnostic_repository.dart';
+import '../features/diagnostics/domain/usecases/create_diagnostic_usecase.dart';
+import '../features/diagnostics/domain/usecases/delete_diagnostic_usecase.dart';
+import '../features/diagnostics/domain/usecases/get_diagnostics_usecase.dart';
+import '../features/diagnostics/domain/usecases/update_diagnostic_usecase.dart';
+import '../features/diagnostics/presentation/cubit/diagnostics_cubit.dart';
+
 // Incomes
 import '../features/incomes/data/datasources/incomes_remote_datasource.dart';
 import '../features/incomes/data/repositories/income_repository_impl.dart';
@@ -159,6 +169,34 @@ Future<void> configureDependencies() async {
       createCompound: getIt<CreateCompoundUseCase>(),
       updateCompound: getIt<UpdateCompoundUseCase>(),
       deleteCompound: getIt<DeleteCompoundUseCase>(),
+    ),
+  );
+
+  // Diagnostics
+  getIt.registerLazySingleton<DiagnosticsRemoteDataSource>(
+    () => DiagnosticsRemoteDataSourceImpl(getIt<AppHttpClient>()),
+  );
+  getIt.registerLazySingleton<DiagnosticRepository>(
+    () => DiagnosticRepositoryImpl(getIt<DiagnosticsRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetDiagnosticsUseCase>(
+    () => GetDiagnosticsUseCase(getIt<DiagnosticRepository>()),
+  );
+  getIt.registerLazySingleton<CreateDiagnosticUseCase>(
+    () => CreateDiagnosticUseCase(getIt<DiagnosticRepository>()),
+  );
+  getIt.registerLazySingleton<UpdateDiagnosticUseCase>(
+    () => UpdateDiagnosticUseCase(getIt<DiagnosticRepository>()),
+  );
+  getIt.registerLazySingleton<DeleteDiagnosticUseCase>(
+    () => DeleteDiagnosticUseCase(getIt<DiagnosticRepository>()),
+  );
+  getIt.registerFactory<DiagnosticsCubit>(
+    () => DiagnosticsCubit(
+      getDiagnostics: getIt<GetDiagnosticsUseCase>(),
+      createDiagnostic: getIt<CreateDiagnosticUseCase>(),
+      updateDiagnostic: getIt<UpdateDiagnosticUseCase>(),
+      deleteDiagnostic: getIt<DeleteDiagnosticUseCase>(),
     ),
   );
 
