@@ -16,7 +16,9 @@ abstract class DiagnosticRepository {
     String? sortBy,
     String? sortDirection,
   });
+  Future<Either<Failure, Diagnostic>> getById(int id);
   Future<Either<Failure, Diagnostic>> create(Diagnostic diagnostic);
   Future<Either<Failure, Diagnostic>> update(Diagnostic diagnostic);
+  Future<Either<Failure, Diagnostic>> changeStatus(int id, String newStatus);
   Future<Either<Failure, void>> delete(int id);
 }

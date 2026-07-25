@@ -36,8 +36,10 @@ import '../features/compounds/presentation/cubit/compounds_cubit.dart';
 import '../features/diagnostics/data/datasources/diagnostics_remote_datasource.dart';
 import '../features/diagnostics/data/repositories/diagnostic_repository_impl.dart';
 import '../features/diagnostics/domain/repositories/diagnostic_repository.dart';
+import '../features/diagnostics/domain/usecases/change_diagnostic_status_usecase.dart';
 import '../features/diagnostics/domain/usecases/create_diagnostic_usecase.dart';
 import '../features/diagnostics/domain/usecases/delete_diagnostic_usecase.dart';
+import '../features/diagnostics/domain/usecases/get_diagnostic_by_id_usecase.dart';
 import '../features/diagnostics/domain/usecases/get_diagnostics_usecase.dart';
 import '../features/diagnostics/domain/usecases/update_diagnostic_usecase.dart';
 import '../features/diagnostics/presentation/cubit/diagnostics_cubit.dart';
@@ -182,11 +184,17 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<GetDiagnosticsUseCase>(
     () => GetDiagnosticsUseCase(getIt<DiagnosticRepository>()),
   );
+  getIt.registerLazySingleton<GetDiagnosticByIdUseCase>(
+    () => GetDiagnosticByIdUseCase(getIt<DiagnosticRepository>()),
+  );
   getIt.registerLazySingleton<CreateDiagnosticUseCase>(
     () => CreateDiagnosticUseCase(getIt<DiagnosticRepository>()),
   );
   getIt.registerLazySingleton<UpdateDiagnosticUseCase>(
     () => UpdateDiagnosticUseCase(getIt<DiagnosticRepository>()),
+  );
+  getIt.registerLazySingleton<ChangeDiagnosticStatusUseCase>(
+    () => ChangeDiagnosticStatusUseCase(getIt<DiagnosticRepository>()),
   );
   getIt.registerLazySingleton<DeleteDiagnosticUseCase>(
     () => DeleteDiagnosticUseCase(getIt<DiagnosticRepository>()),
@@ -194,8 +202,10 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<DiagnosticsCubit>(
     () => DiagnosticsCubit(
       getDiagnostics: getIt<GetDiagnosticsUseCase>(),
+      getDiagnosticById: getIt<GetDiagnosticByIdUseCase>(),
       createDiagnostic: getIt<CreateDiagnosticUseCase>(),
       updateDiagnostic: getIt<UpdateDiagnosticUseCase>(),
+      changeDiagnosticStatusUseCase: getIt<ChangeDiagnosticStatusUseCase>(),
       deleteDiagnostic: getIt<DeleteDiagnosticUseCase>(),
     ),
   );

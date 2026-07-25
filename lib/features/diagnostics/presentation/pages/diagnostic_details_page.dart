@@ -395,24 +395,19 @@ class _SeverityBadge extends StatelessWidget {
     Color bg;
     Color fg;
 
-    switch (severity) {
-      case 'حرج':
-        bg = Colors.red.shade100;
-        fg = Colors.red.shade900;
-        break;
-      case 'عالي':
-        bg = Colors.orange.shade100;
-        fg = Colors.orange.shade900;
-        break;
-      case 'متوسط':
-        bg = Colors.amber.shade100;
-        fg = Colors.amber.shade900;
-        break;
-      case 'منخفض':
-      default:
-        bg = Colors.blue.shade100;
-        fg = Colors.blue.shade900;
-        break;
+    final s = severity.trim();
+    if (s == 'حرج' || s.toLowerCase() == 'critical') {
+      bg = Colors.red.shade100;
+      fg = Colors.red.shade900;
+    } else if (s == 'عالي' || s.toLowerCase() == 'high') {
+      bg = Colors.orange.shade100;
+      fg = Colors.orange.shade900;
+    } else if (s == 'متوسط' || s.toLowerCase() == 'medium') {
+      bg = Colors.amber.shade100;
+      fg = Colors.amber.shade900;
+    } else {
+      bg = Colors.blue.shade100;
+      fg = Colors.blue.shade900;
     }
 
     return Container(
@@ -439,24 +434,19 @@ class _StatusBadge extends StatelessWidget {
     Color bg;
     Color fg;
 
-    switch (status) {
-      case 'تم الحل':
-        bg = Colors.green.shade100;
-        fg = Colors.green.shade900;
-        break;
-      case 'مغلق':
-        bg = Colors.grey.shade200;
-        fg = Colors.grey.shade800;
-        break;
-      case 'قيد المعالجة':
-        bg = Colors.lightBlue.shade100;
-        fg = Colors.lightBlue.shade900;
-        break;
-      case 'قيد الانتظار':
-      default:
-        bg = Colors.purple.shade100;
-        fg = Colors.purple.shade900;
-        break;
+    final st = status.trim();
+    if (st == 'تم الحل' || st.toLowerCase() == 'resolved') {
+      bg = Colors.green.shade100;
+      fg = Colors.green.shade900;
+    } else if (st == 'مغلق' || st.toLowerCase() == 'closed') {
+      bg = Colors.grey.shade200;
+      fg = Colors.grey.shade800;
+    } else if (st == 'قيد المعالجة' || st.toLowerCase() == 'in progress') {
+      bg = Colors.lightBlue.shade100;
+      fg = Colors.lightBlue.shade900;
+    } else {
+      bg = Colors.purple.shade100;
+      fg = Colors.purple.shade900;
     }
 
     return Container(

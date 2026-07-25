@@ -13,6 +13,16 @@ class DiagnosticRepositoryImpl implements DiagnosticRepository {
   DiagnosticRepositoryImpl(this.remote);
 
   @override
+  Future<Either<Failure, Diagnostic>> getById(int id) async {
+    try {
+      final item = await remote.getDiagnosticById(id);
+      return Right(item);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Diagnostic>> create(Diagnostic diagnostic) async {
     try {
       final created = await remote.createDiagnostic(
@@ -30,6 +40,16 @@ class DiagnosticRepositoryImpl implements DiagnosticRepository {
       final updated = await remote.updateDiagnostic(
         DiagnosticModel.fromEntity(diagnostic),
       );
+      return Right(updated);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Diagnostic>> changeStatus(int id, String newStatus) async {
+    try {
+      final updated = await remote.changeStatus(id, newStatus);
       return Right(updated);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

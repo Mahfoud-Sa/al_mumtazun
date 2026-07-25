@@ -16,8 +16,10 @@ abstract class DiagnosticsRemoteDataSource {
     String? sortBy,
     String? sortDirection,
   });
+  Future<DiagnosticModel> getDiagnosticById(int id);
   Future<DiagnosticModel> createDiagnostic(DiagnosticModel diagnostic);
   Future<DiagnosticModel> updateDiagnostic(DiagnosticModel diagnostic);
+  Future<DiagnosticModel> changeStatus(int id, String newStatus);
   Future<void> deleteDiagnostic(int id);
 }
 
@@ -244,20 +246,58 @@ class DiagnosticsRemoteDataSourceImpl implements DiagnosticsRemoteDataSource {
   }
 
   @override
+  Future<DiagnosticModel> getDiagnosticById(int id) async {
+    try {
+      final response = await client.get(
+        _itemUri(id),
+        headers: {'accept': 'application/json'},
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300 && response.body.trim().isNotEmpty) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          final model = DiagnosticModel.fromJson(decoded);
+          _updateLocal(model);
+          return model;
+        }
+      }
+    } catch (_) {}
+
+    return _localItems.firstWhere(
+      (item) => item.id == id,
+      orElse: () => throw Exception('Diagnostic entry not found'),
+    );
+  }
+
+  @override
   Future<DiagnosticModel> createDiagnostic(DiagnosticModel diagnostic) async {
     try {
       final response = await client.post(
         baseUri,
-        headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
+        headers: {'accept': 'application/json', 'Content-Type': 'application/json'},
         body: jsonEncode(diagnostic.toJson()),
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300 && response.body.trim().isNotEmpty) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
-          final created = DiagnosticModel.fromJson(decoded);
-          _localItems.insert(0, created);
-          return created;
+          if (decoded.containsKey('title')) {
+            final created = DiagnosticModel.fromJson(decoded);
+            _localItems.insert(0, created);
+            return created;
+          } else {
+            final returnedId = _readInt(decoded['id'], diagnostic.id);
+            final returnedCode = decoded['diagnosticCode']?.toString() ??
+                (diagnostic.diagnosticCode.isNotEmpty ? diagnostic.diagnosticCode : 'DIAG-$returnedId');
+            final created = DiagnosticModel.fromEntity(
+              diagnostic.copyWith(
+                id: returnedId > 0 ? returnedId : diagnostic.id,
+                diagnosticCode: returnedCode,
+              ),
+            );
+            _localItems.insert(0, created);
+            return created;
+          }
         }
       }
     } catch (_) {}
@@ -288,13 +328,13 @@ class DiagnosticsRemoteDataSourceImpl implements DiagnosticsRemoteDataSource {
     try {
       final response = await client.put(
         _itemUri(diagnostic.id),
-        headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+        headers: {'accept': 'application/json', 'Content-Type': 'application/json'},
         body: jsonEncode(diagnostic.toJson()),
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300 && response.body.trim().isNotEmpty) {
         final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
+        if (decoded is Map<String, dynamic> && decoded.containsKey('title')) {
           final updated = DiagnosticModel.fromJson(decoded);
           _updateLocal(updated);
           return updated;
@@ -305,6 +345,40 @@ class DiagnosticsRemoteDataSourceImpl implements DiagnosticsRemoteDataSource {
     final updatedModel = DiagnosticModel.fromEntity(diagnostic.copyWith(updatedAt: DateTime.now()));
     _updateLocal(updatedModel);
     return updatedModel;
+  }
+
+  @override
+  Future<DiagnosticModel> changeStatus(int id, String newStatus) async {
+    try {
+      final baseStr = baseUri.toString().replaceAll(RegExp(r'/$'), '');
+      final changeStatusUri = Uri.parse('$baseStr/change-status/$id');
+
+      final response = await client.put(
+        changeStatusUri,
+        headers: {'accept': 'application/json', 'Content-Type': 'application/json'},
+        body: jsonEncode({'status': newStatus}),
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300 && response.body.trim().isNotEmpty) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> && decoded.containsKey('title')) {
+          final updated = DiagnosticModel.fromJson(decoded);
+          _updateLocal(updated);
+          return updated;
+        }
+      }
+    } catch (_) {}
+
+    final existingIdx = _localItems.indexWhere((item) => item.id == id);
+    if (existingIdx != -1) {
+      final updatedModel = DiagnosticModel.fromEntity(
+        _localItems[existingIdx].copyWith(status: newStatus, updatedAt: DateTime.now()),
+      );
+      _localItems[existingIdx] = updatedModel;
+      return updatedModel;
+    } else {
+      throw Exception('Diagnostic entry not found');
+    }
   }
 
   @override

@@ -74,6 +74,26 @@ class _DiagnosticsViewState extends State<_DiagnosticsView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final cubit = context.read<DiagnosticsCubit>();
+          final created = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: cubit,
+                child: const AddDiagnosticPage(),
+              ),
+            ),
+          );
+          if (created == true && context.mounted) {
+            context.read<DiagnosticsCubit>().fetch(page: 1);
+          }
+        },
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('إضافة تشخيص جديد', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.secondary,
+      ),
       body: Directionality(
         textDirection: TextDirection.rtl,
         child: RefreshIndicator(
@@ -85,11 +105,7 @@ class _DiagnosticsViewState extends State<_DiagnosticsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (Platform.isAndroid || Platform.isIOS) ...{
-                  const _DiagnosticsHeader(),
-                } else
-                  ...{},
-
+                const _DiagnosticsHeader(),
                 const SizedBox(height: 24),
                 const _DiagnosticsFilters(),
                 const SizedBox(height: 16),
@@ -118,6 +134,7 @@ class _DiagnosticsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 768;
+    final isMobilePlatform = Platform.isAndroid || Platform.isIOS;
     return Flex(
       direction: isWide ? Axis.horizontal : Axis.vertical,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -126,12 +143,14 @@ class _DiagnosticsHeader extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              tooltip: 'القائمة',
-              icon: const Icon(Icons.menu, color: AppColors.primary),
-              onPressed: () => AppShell.openDrawer(context),
-            ),
-            const SizedBox(width: 8),
+            if (isMobilePlatform) ...[
+              IconButton(
+                tooltip: 'القائمة',
+                icon: const Icon(Icons.menu, color: AppColors.primary),
+                onPressed: () => AppShell.openDrawer(context),
+              ),
+              const SizedBox(width: 8),
+            ],
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
@@ -494,6 +513,7 @@ class _DiagnosticsBody extends StatelessWidget {
                               onSelected: (val) => _handleAction(context, val, item),
                               itemBuilder: (context) => const [
                                 PopupMenuItem(value: 'view', child: Text('عرض التفاصيل')),
+                                PopupMenuItem(value: 'change_status', child: Text('تغيير الحالة (سريع)')),
                                 PopupMenuItem(value: 'edit', child: Text('تعديل')),
                                 PopupMenuItem(value: 'delete', child: Text('حذف')),
                               ],
@@ -551,6 +571,8 @@ class _DiagnosticsBody extends StatelessWidget {
           ),
         ),
       );
+    } else if (action == 'change_status') {
+      _showChangeStatusDialog(context, cubit, item);
     } else if (action == 'edit') {
       final updated = await showDialog<Diagnostic>(
         context: context,
@@ -568,6 +590,60 @@ class _DiagnosticsBody extends StatelessWidget {
         cubit.removeDiagnostic(item.id);
       }
     }
+  }
+
+  static void _showChangeStatusDialog(BuildContext context, DiagnosticsCubit cubit, Diagnostic item) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: SimpleDialog(
+          title: Text('تغيير حالة التشخيص (كود: ${item.diagnosticCode})'),
+          children: [
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                cubit.changeDiagnosticStatus(item.id, 'Pending');
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('قيد الانتظار (Pending)'),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                cubit.changeDiagnosticStatus(item.id, 'In Progress');
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('قيد المعالجة (In Progress)'),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                cubit.changeDiagnosticStatus(item.id, 'Resolved');
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('تم الحل (Resolved)'),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                cubit.changeDiagnosticStatus(item.id, 'Closed');
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('مغلق (Closed)'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -615,6 +691,8 @@ class _DiagnosticCard extends StatelessWidget {
                               ),
                             ),
                           );
+                        } else if (val == 'change_status') {
+                          _DiagnosticsBody._showChangeStatusDialog(context, cubit, diagnostic);
                         } else if (val == 'edit') {
                           showDialog<Diagnostic>(
                             context: context,
@@ -633,6 +711,7 @@ class _DiagnosticCard extends StatelessWidget {
                       },
                       itemBuilder: (context) => const [
                         PopupMenuItem(value: 'view', child: Text('عرض التفاصيل')),
+                        PopupMenuItem(value: 'change_status', child: Text('تغيير الحالة (سريع)')),
                         PopupMenuItem(value: 'edit', child: Text('تعديل')),
                         PopupMenuItem(value: 'delete', child: Text('حذف')),
                       ],
@@ -705,19 +784,15 @@ class _SeverityTextBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
-    switch (severity) {
-      case 'حرج':
-        color = Colors.red;
-        break;
-      case 'عالي':
-        color = Colors.orange;
-        break;
-      case 'متوسط':
-        color = Colors.amber.shade800;
-        break;
-      default:
-        color = Colors.blue;
-        break;
+    final s = severity.trim();
+    if (s == 'حرج' || s.toLowerCase() == 'critical') {
+      color = Colors.red;
+    } else if (s == 'عالي' || s.toLowerCase() == 'high') {
+      color = Colors.orange;
+    } else if (s == 'متوسط' || s.toLowerCase() == 'medium') {
+      color = Colors.amber.shade800;
+    } else {
+      color = Colors.blue;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -742,19 +817,15 @@ class _StatusTextBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
-    switch (status) {
-      case 'تم الحل':
-        color = Colors.green;
-        break;
-      case 'مغلق':
-        color = Colors.grey;
-        break;
-      case 'قيد المعالجة':
-        color = Colors.blue;
-        break;
-      default:
-        color = Colors.purple;
-        break;
+    final st = status.trim();
+    if (st == 'تم الحل' || st.toLowerCase() == 'resolved') {
+      color = Colors.green;
+    } else if (st == 'مغلق' || st.toLowerCase() == 'closed') {
+      color = Colors.grey;
+    } else if (st == 'قيد المعالجة' || st.toLowerCase() == 'in progress') {
+      color = Colors.blue;
+    } else {
+      color = Colors.purple;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

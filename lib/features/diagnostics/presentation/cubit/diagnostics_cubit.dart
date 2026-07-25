@@ -1,16 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/diagnostic.dart';
+import '../../domain/usecases/change_diagnostic_status_usecase.dart';
 import '../../domain/usecases/create_diagnostic_usecase.dart';
 import '../../domain/usecases/delete_diagnostic_usecase.dart';
+import '../../domain/usecases/get_diagnostic_by_id_usecase.dart';
 import '../../domain/usecases/get_diagnostics_usecase.dart';
 import '../../domain/usecases/update_diagnostic_usecase.dart';
 import 'diagnostics_state.dart';
 
 class DiagnosticsCubit extends Cubit<DiagnosticsState> {
   final GetDiagnosticsUseCase getDiagnostics;
+  final GetDiagnosticByIdUseCase getDiagnosticById;
   final CreateDiagnosticUseCase createDiagnostic;
   final UpdateDiagnosticUseCase updateDiagnostic;
+  final ChangeDiagnosticStatusUseCase changeDiagnosticStatusUseCase;
   final DeleteDiagnosticUseCase deleteDiagnostic;
   static const int defaultPageSize = 10;
 
@@ -26,8 +30,10 @@ class DiagnosticsCubit extends Cubit<DiagnosticsState> {
 
   DiagnosticsCubit({
     required this.getDiagnostics,
+    required this.getDiagnosticById,
     required this.createDiagnostic,
     required this.updateDiagnostic,
+    required this.changeDiagnosticStatusUseCase,
     required this.deleteDiagnostic,
   }) : super(const DiagnosticsInitial());
 
@@ -237,6 +243,37 @@ class DiagnosticsCubit extends Cubit<DiagnosticsState> {
     }
 
     final result = await deleteDiagnostic(id);
+
+    return result.fold<Future<bool>>(
+      (failure) async {
+        if (currentLoaded != null) {
+          emit(currentLoaded.copyWith(isSubmitting: false));
+        } else {
+          emit(DiagnosticsError(failure.message));
+        }
+        return false;
+      },
+      (_) async {
+        await fetch(
+          page: currentLoaded?.page ?? _currentPage,
+          size: currentLoaded?.size ?? _currentSize,
+        );
+        return true;
+      },
+    );
+  }
+
+  Future<bool> changeDiagnosticStatus(int id, String newStatus) async {
+    final current = state;
+    final currentLoaded = current is DiagnosticsLoaded ? current : null;
+
+    if (currentLoaded != null) {
+      emit(currentLoaded.copyWith(isSubmitting: true));
+    }
+
+    final result = await changeDiagnosticStatusUseCase(
+      ChangeDiagnosticStatusParams(id: id, status: newStatus),
+    );
 
     return result.fold<Future<bool>>(
       (failure) async {

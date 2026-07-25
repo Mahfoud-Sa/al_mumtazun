@@ -234,9 +234,9 @@ class AppHeader extends StatelessWidget {
             label: 'الملف الشخصي',
             icon: Icons.account_circle_outlined,
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ProfilePage()));
             },
           ),
         ],
@@ -244,51 +244,51 @@ class AppHeader extends StatelessWidget {
       HeaderMenuItemData(
         label: 'تعديل',
         subItems: [
-          HeaderSubMenuItemData(
-            label: 'حاسبة قانون أوم (Ohm\'s Law)',
-            icon: Icons.flash_on_rounded,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const OhmsLawCalculator()),
-              );
-            },
-          ),
-          HeaderSubMenuItemData(
-            label: 'حساب القدرة الكهربائية (Power Calculator)',
-            icon: Icons.bolt_rounded,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PowerCalculator()),
-              );
-            },
-          ),
-          HeaderSubMenuItemData(
-            label: 'كود ألوان المقاومات (Resistor Decoder)',
-            icon: Icons.palette_rounded,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ResistorColorDecoder()),
-              );
-            },
-          ),
-          HeaderSubMenuItemData(
-            label: 'مقسم الجهد (Voltage Divider)',
-            icon: Icons.alt_route_rounded,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const VoltageDividerCalculator()),
-              );
-            },
-          ),
-          HeaderSubMenuItemData(
-            label: 'جميع الأدوات الهندسية',
-            icon: Icons.calculate_outlined,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const EngineeringToolsPage()),
-              );
-            },
-          ),
+          // HeaderSubMenuItemData(
+          //   label: 'حاسبة قانون أوم (Ohm\'s Law)',
+          //   icon: Icons.flash_on_rounded,
+          //   onTap: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (_) => const OhmsLawCalculator()),
+          //     );
+          //   },
+          // ),
+          // HeaderSubMenuItemData(
+          //   label: 'حساب القدرة الكهربائية (Power Calculator)',
+          //   icon: Icons.bolt_rounded,
+          //   onTap: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (_) => const PowerCalculator()),
+          //     );
+          //   },
+          // ),
+          // HeaderSubMenuItemData(
+          //   label: 'كود ألوان المقاومات (Resistor Decoder)',
+          //   icon: Icons.palette_rounded,
+          //   onTap: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (_) => const ResistorColorDecoder()),
+          //     );
+          //   },
+          // ),
+          // HeaderSubMenuItemData(
+          //   label: 'مقسم الجهد (Voltage Divider)',
+          //   icon: Icons.alt_route_rounded,
+          //   onTap: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (_) => const VoltageDividerCalculator()),
+          //     );
+          //   },
+          // ),
+          // HeaderSubMenuItemData(
+          //   label: 'جميع الأدوات الهندسية',
+          //   icon: Icons.calculate_outlined,
+          //   onTap: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (_) => const EngineeringToolsPage()),
+          //     );
+          //   },
+          // ),
         ],
       ),
       HeaderMenuItemData(
@@ -335,18 +335,16 @@ class AppHeader extends StatelessWidget {
             icon: Icons.alt_route_rounded,
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const VoltageDividerCalculator()),
+                MaterialPageRoute(
+                  builder: (_) => const VoltageDividerCalculator(),
+                ),
               );
             },
           ),
         ],
       ),
-      HeaderMenuItemData(
-        label: 'عرض',
-      ),
-      HeaderMenuItemData(
-        label: 'مساعدة',
-      ),
+      HeaderMenuItemData(label: 'عرض'),
+      HeaderMenuItemData(label: 'مساعدة'),
     ];
   }
 }
@@ -402,11 +400,7 @@ class HeaderMenuItemData {
   final VoidCallback? onTap;
   final List<HeaderSubMenuItemData>? subItems;
 
-  const HeaderMenuItemData({
-    required this.label,
-    this.onTap,
-    this.subItems,
-  });
+  const HeaderMenuItemData({required this.label, this.onTap, this.subItems});
 }
 
 class HeaderMenuItem extends StatefulWidget {
