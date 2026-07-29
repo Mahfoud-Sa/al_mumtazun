@@ -1,12 +1,12 @@
 #define MyAppName "المتميزون"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.8.4"
 #define MyAppPublisher "GIDtEAM"
-#define MyAppExeName "al_mumtazun.exe"
+#define MyAppExeName "engineering_ops_dashboard.exe"
 
 
 [Setup]
 
-AppId={{YOUR-UNIQUE-ID-HERE}
+AppId={{C8F6E87A-286A-4A8E-985B-3D28E0124D69}}
 
 AppName={#MyAppName}
 
@@ -29,7 +29,7 @@ SolidCompression=yes
 WizardStyle=modern
 
 
-SetupIconFile=app_icon.ico
+SetupIconFile=windows\runner\resources\app_icon.ico
 
 
 
