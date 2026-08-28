@@ -1,4 +1,6 @@
 import 'package:engineering_ops_dashboard/core/config/windows_config.dart';
+import 'package:engineering_ops_dashboard/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -17,6 +19,7 @@ import 'theme/theme_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await configureDependencies();
   // Configure the native Windows window (does nothing on Android/iOS).
   await WindowsConfig.initialize();
@@ -42,9 +45,7 @@ class EngineeringOpsApp extends StatelessWidget {
               return MaterialApp(
                 title: 'محل المتميزون',
                 navigatorKey: appNavigatorKey,
-                routes: {
-                  '/login': (context) => const LoginScreen(),
-                },
+                routes: {'/login': (context) => const LoginScreen()},
                 onGenerateTitle: (context) =>
                     AppLocalizations.of(context)!.appTitle,
                 debugShowCheckedModeBanner: false,
@@ -52,7 +53,8 @@ class EngineeringOpsApp extends StatelessWidget {
                 darkTheme: AppTheme.dark(),
                 themeMode: themeState.themeMode,
                 home: UpdateListener(
-                  child: BlocListener<AuthCubit, AuthState>(                    listenWhen: (previous, current) =>
+                  child: BlocListener<AuthCubit, AuthState>(
+                    listenWhen: (previous, current) =>
                         !previous.isInitialized && current.isInitialized,
                     listener: (context, state) {
                       // Trigger the update check exactly once after auth

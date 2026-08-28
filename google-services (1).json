@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "439736446453",
+    "project_id": "al-mumtazun-realtime",
+    "storage_bucket": "al-mumtazun-realtime.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:439736446453:android:af18a1f0e2e65d893384bc",
+        "android_client_info": {
+          "package_name": "com.gidteam.al_mumtazun"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdM2df-lfTX5ge7OWbduy1ZJc-N69O6Mw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
